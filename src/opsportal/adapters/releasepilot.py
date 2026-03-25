@@ -193,7 +193,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         proc = self._pm.get(self._process_name)
         if proc and proc.status == ProcessStatus.RUNNING:
             return ToolStatus.RUNNING
-        if not shutil.which(self._cli):
+        if proc and proc.status == ProcessStatus.FAILED:
             return ToolStatus.ERROR
         return ToolStatus.STOPPED
 

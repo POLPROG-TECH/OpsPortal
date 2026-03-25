@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.display_name }} — Configuration — OpsPortal{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+  <div class="container">
+    <a href="/" class="breadcrumb-link" data-i18n="breadcrumb.home">OpsPortal</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="/tools/{{ tool.slug }}" class="breadcrumb-link">{{ tool.display_name }}</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current" data-i18n="nav.settings">Configuration</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="tool-header" style="border-left-color: {{ tool.color }}">
+  <div class="tool-header-info">
+    <h1 class="tool-header-name">{{ tool.display_name }} — <span data-i18n="config.title">Configuration</span></h1>
+    <p class="tool-header-desc">
+      {% if config_file %}
+      <code>{{ config_file }}</code>
+      {% else %}
+      <span data-i18n="config.no_file">No configuration file yet — save to create one.</span>
+      {% endif %}
+    </p>
+  </div>
+  <div class="tool-header-controls">
+    <a href="/tools/{{ tool.slug }}" class="btn btn-ghost btn-sm">← <span data-i18n="config.back">Back to app</span></a>
+  </div>
+</div>
+
+{% if not configurable %}
+<div class="empty-state">
+  <p class="empty-state-icon">⚙️</p>
+  <p class="empty-state-text" data-i18n="config.not_configurable">This tool does not support configuration editing.</p>
+</div>
+{% else %}
+
+{# Validation errors banner #}
+<div id="validation-banner" class="alert alert-danger" role="alert" style="display:none">
+  <strong data-i18n="config.validation_errors">Validation errors:</strong>
+  <ul id="validation-errors"></ul>
+</div>
+
+{# Success banner #}
+<div id="save-success" class="alert alert-success" role="status" style="display:none">
+  <span data-i18n="config.saved">Configuration saved successfully.</span>
+</div>
+
+{# Restart-required info banner #}
+<div id="restart-hint" class="alert alert-info" role="status" style="display:none">
+  <span data-i18n="config.restart_hint">Configuration saved. Restart the tool to apply changes.</span>
+  <button type="button" class="btn btn-primary btn-sm" style="margin-left: 12px" onclick="restartTool()" data-i18n="config.restart_now">Restart Now</button>
+</div>
+
+{# Config form #}
+<div class="section" id="config-form-section">
+  <div class="config-form-header">
+    <h2 class="section-title" data-i18n="config.edit">Edit Configuration</h2>
+    <div class="config-form-actions">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="validateConfig()" data-i18n="config.validate">Validate</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="resetConfig()" data-i18n="config.reset">Reset</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="saveConfig(false)" data-i18n="config.save">Save Configuration</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="saveConfig(true)" data-i18n="config.save_restart">Save &amp; Restart</button>
+    </div>
+  </div>
+  <div id="config-form-container">
+    <div class="config-loading">
+      <span class="spinner"></span> <span data-i18n="config.loading_schema">Loading schema…</span>
+    </div>
+  </div>
+</div>
+
+{# Raw JSON editor (collapsible) #}
+<details class="section">
+  <summary class="section-title section-toggle" data-i18n="config.raw_json">Raw JSON</summary>
+  <textarea id="raw-json-editor" class="raw-json-editor" spellcheck="false" aria-label="Raw JSON configuration" data-i18n-aria="aria.raw_json_config"></textarea>
+  <div style="margin-top: 10px; display: flex; gap: 8px;">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="applyRawJson()" data-i18n="config.apply_json">Apply JSON to Form</button>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="syncRawJson()" data-i18n="config.sync_json">Sync Form → JSON</button>
+  </div>
+</details>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if configurable %}
+<script>
+(function(){
+  var SLUG = "{{ tool.slug }}";
+  var SCHEMA = {{ schema | tojson }};
+  var VALUES = {{ values | tojson }};
+  var originalValues = JSON.parse(JSON.stringify(VALUES));
+  var container = document.getElementById('config-form-container');
+  var rawEditor = document.getElementById('raw-json-editor');
+
+  // Section grouping for top-level fields (derived from schema domains)
+  var SECTION_MAP = {
+    'app_name': 'general', 'audience': 'general', 'format': 'general',
+    'language': 'general', 'title': 'general', 'version': 'general',
+    'branch': 'source', 'repos': 'source', 'multi_repo_sources': 'source',
+    'since_date': 'source',
+    'show_authors': 'output', 'show_hashes': 'output',
+    'accent_color': 'output', 'output_dir': 'output', 'overwrite': 'output',
+    'export_formats': 'output',
+    'github_token': 'connectivity', 'github_owner': 'connectivity',
+    'github_repo': 'connectivity', 'github_url': 'connectivity',
+    'github_ssl_verify': 'connectivity',
+    'gitlab_url': 'connectivity', 'gitlab_token': 'connectivity',
+    'gitlab_project': 'connectivity', 'gitlab_ssl_verify': 'connectivity',
+    'ci': 'ci',
+    'repositories': 'general', 'layers': 'general',
+    'defaults': 'general', 'health': 'general',
+    'theme': 'display', 'locale': 'display',
+    'server': 'advanced', 'logging': 'advanced'
+  };
+  var SECTION_LABELS = {
+    'general': 'General',
+    'source': 'Source Control',
+    'output': 'Output & Display',
+    'connectivity': 'Connectivity & Tokens',
+    'ci': 'CI / CD',
+    'display': 'Display',
+    'advanced': 'Advanced'
+  };
+
+  // ── Render form from JSON Schema ──
+  function renderForm(schema, values, parentPath, targetEl) {
+    targetEl.innerHTML = '';
+    if (!schema || !schema.properties) {
+      targetEl.innerHTML = '<p class="text-muted">' + t("config.no_properties") + '</p>';
+      return;
+    }
+    var required = schema.required || [];
+    var keys = Object.keys(schema.properties);
+
+    if (!parentPath) {
+      var sections = {};
+      var sectionOrder = [];
+      keys.forEach(function(key) {
+        var sec = SECTION_MAP[key] || 'other';
+        if (!sections[sec]) { sections[sec] = []; sectionOrder.push(sec); }
+        sections[sec].push(key);
+      });
+      sectionOrder.forEach(function(sec) {
+        var heading = document.createElement('h3');
+        heading.className = 'config-section-heading';
+        heading.textContent = SECTION_LABELS[sec] || (sec.charAt(0).toUpperCase() + sec.slice(1));
+        targetEl.appendChild(heading);
+        var sectionDiv = document.createElement('div');
+        sectionDiv.className = 'config-section-group';
+        sections[sec].forEach(function(key) {
+          renderField(schema, values, key, '', required, sectionDiv);
+        });
+        targetEl.appendChild(sectionDiv);
+      });
+    } else {
+      keys.forEach(function(key) {
+        renderField(schema, values, key, parentPath, required, targetEl);
+      });
+    }
+  }
+
+  function renderField(schema, values, key, parentPath, required, targetEl) {
+    var prop = schema.properties[key];
+    var path = parentPath ? parentPath + '.' + key : key;
+    var value = values && values[key] !== undefined ? values[key] : prop.default;
+    var isRequired = required.indexOf(key) !== -1;
+    var fieldDiv = document.createElement('div');
+    fieldDiv.className = 'config-field';
+
+    if (prop.type === 'object' && prop.properties) {
+      var group = document.createElement('details');
+      group.className = 'config-group';
+      group.open = true;
+      var summary = document.createElement('summary');
+      summary.className = 'config-group-title';
+      summary.innerHTML = formatLabel(key) + (prop.title ? ' <span class="config-group-hint">' + escapeHtml(prop.title) + '</span>' : '');
+      group.appendChild(summary);
+      var groupBody = document.createElement('div');
+      groupBody.className = 'config-group-body';
+      renderForm(prop, value || {}, path, groupBody);
+      group.appendChild(groupBody);
+      targetEl.appendChild(group);
+      return;
+    }
+
+    if (prop.type === 'array' && prop.items && prop.items.type === 'object') {
+      fieldDiv.innerHTML = '<label class="config-label">' + formatLabel(key) + (isRequired ? ' <span class="config-required">*</span>' : '') + '</label>' +
+        (prop.description ? '<div class="config-help">' + escapeHtml(prop.description) + '</div>' : '') +
+        '<textarea class="config-input config-textarea" data-path="' + path + '" data-type="json">' + escapeHtml(JSON.stringify(value || [], null, 2)) + '</textarea>';
+      targetEl.appendChild(fieldDiv);
+      return;
+    }
+
+    if (prop.type === 'array') {
+      var arrVal = Array.isArray(value) ? value.join(', ') : '';
+      fieldDiv.innerHTML = '<label class="config-label">' + formatLabel(key) + (isRequired ? ' <span class="config-required">*</span>' : '') + '</label>' +
+        (prop.description ? '<div class="config-help">' + escapeHtml(prop.description) + '</div>' : '') +
+        '<input class="config-input" data-path="' + path + '" data-type="array" value="' + escapeHtml(arrVal) + '"' +
+        ' placeholder="' + t("config.comma_separated") + '">';
+      targetEl.appendChild(fieldDiv);
+      return;
+    }
+
+    var inputHtml = '';
+    if (prop.enum) {
+      inputHtml = '<select class="config-input" data-path="' + path + '" data-type="string">';
+      if (!isRequired) inputHtml += '<option value="">' + t("config.default_option") + '</option>';
+      prop.enum.forEach(function(opt) {
+        var sel = (value === opt) ? ' selected' : '';
+        inputHtml += '<option value="' + escapeHtml(opt) + '"' + sel + '>' + escapeHtml(opt) + '</option>';
+      });
+      inputHtml += '</select>';
+    } else if (prop.type === 'boolean') {
+      var checked = value === true ? ' checked' : '';
+      inputHtml = '<label class="config-toggle"><input type="checkbox" data-path="' + path + '" data-type="boolean"' + checked + '> <span>' + formatLabel(key) + '</span></label>';
+    } else if (prop.type === 'integer' || prop.type === 'number') {
+      var numAttrs = '';
+      if (prop.minimum !== undefined) numAttrs += ' min="' + prop.minimum + '"';
+      if (prop.maximum !== undefined) numAttrs += ' max="' + prop.maximum + '"';
+      inputHtml = '<input type="number" class="config-input" data-path="' + path + '" data-type="' + prop.type + '" value="' + (value !== undefined && value !== null ? value : '') + '"' + numAttrs + '>';
+    } else {
+      var patternAttr = prop.pattern ? ' pattern="' + escapeHtml(prop.pattern) + '"' : '';
+      inputHtml = '<input type="text" class="config-input" data-path="' + path + '" data-type="string" value="' + escapeHtml(value !== undefined && value !== null ? String(value) : '') + '"' + patternAttr +
+        (prop.default ? ' placeholder="' + escapeHtml(String(prop.default)) + '"' : '') + '>';
+    }
+
+    if (prop.type !== 'boolean') {
+      fieldDiv.innerHTML = '<label class="config-label">' + formatLabel(key) + (isRequired ? ' <span class="config-required">*</span>' : '') +
+        (prop.default !== undefined ? ' <span class="config-default">' + t("config.default_prefix") + escapeHtml(JSON.stringify(prop.default)) + '</span>' : '') +
+        '</label>' +
+        (prop.description ? '<div class="config-help">' + escapeHtml(prop.description) + '</div>' : '') +
+        inputHtml;
+    } else {
+      fieldDiv.innerHTML = (prop.description ? '<div class="config-help">' + escapeHtml(prop.description) + '</div>' : '') + inputHtml;
+    }
+
+    targetEl.appendChild(fieldDiv);
+  }
+
+  // ── Collect form values into a dict ──
+  function collectValues() {
+    var data = {};
+    container.querySelectorAll('[data-path]').forEach(function(el) {
+      var path = el.dataset.path.split('.');
+      var type = el.dataset.type;
+      var val;
+      if (type === 'boolean') {
+        val = el.checked;
+      } else if (type === 'integer') {
+        val = el.value !== '' ? parseInt(el.value, 10) : undefined;
+      } else if (type === 'number') {
+        val = el.value !== '' ? parseFloat(el.value) : undefined;
+      } else if (type === 'array') {
+        val = el.value ? el.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+      } else if (type === 'json') {
+        try { val = JSON.parse(el.value); } catch(e) { val = el.value; }
+      } else {
+        val = el.value;
+      }
+      // Set nested path
+      var obj = data;
+      for (var i = 0; i < path.length - 1; i++) {
+        if (!obj[path[i]]) obj[path[i]] = {};
+        obj = obj[path[i]];
+      }
+      if (val !== undefined && val !== '') {
+        obj[path[path.length - 1]] = val;
+      }
+    });
+    return data;
+  }
+
+  // ── Validate ──
+  window.validateConfig = function() {
+    var data = collectValues();
+    fetch('/api/tools/' + SLUG + '/config/validate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': _csrfToken()},
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); }).then(function(res) {
+      showValidation(res);
+      if (res.valid) showToast(t('config.config_valid_toast'), 'success');
+    }).catch(function(err) {
+      showToast(t('config.validation_failed') + err.message, 'error');
+    });
+  };
+
+  // ── Save ──
+  window.saveConfig = function(andRestart) {
+    var data = collectValues();
+    fetch('/api/tools/' + SLUG + '/config', {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': _csrfToken()},
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); }).then(function(res) {
+      if (res.success) {
+        document.getElementById('save-success').style.display = 'block';
+        document.getElementById('validation-banner').style.display = 'none';
+        showToast(res.output || t('config.saved_toast'), 'success');
+        originalValues = JSON.parse(JSON.stringify(data));
+        syncRawJson();
+        if (andRestart) {
+          restartTool();
+        } else {
+          document.getElementById('restart-hint').style.display = 'flex';
+        }
+      } else {
+        showToast(res.error || t('config.save_failed_toast'), 'error');
+        if (res.error) {
+          showValidation({valid: false, errors: [res.error]});
+        }
+      }
+    }).catch(function(err) {
+      showToast(t('config.save_request_failed') + err.message, 'error');
+    });
+  };
+
+  // ── Restart ──
+  window.restartTool = function() {
+    showToast(t('config.restarting'), 'info');
+    fetch('/api/tools/' + SLUG + '/actions/restart', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': _csrfToken()},
+      body: '{}'
+    }).then(function(r) { return r.json(); }).then(function(res) {
+      if (res.success) {
+        document.getElementById('restart-hint').style.display = 'none';
+        showToast(t('config.restart_success'), 'success');
+      } else {
+        showToast(t('config.restart_failed') + (res.error || ''), 'error');
+      }
+    }).catch(function(err) {
+      showToast(t('config.restart_request_failed') + err.message, 'error');
+    });
+  };
+
+  // ── Reset ──
+  window.resetConfig = function() {
+    VALUES = JSON.parse(JSON.stringify(originalValues));
+    renderForm(SCHEMA, VALUES, '', container);
+    syncRawJson();
+    document.getElementById('validation-banner').style.display = 'none';
+    document.getElementById('save-success').style.display = 'none';
+    showToast(t('config.form_reset_toast'), 'info');
+  };
+
+  // ── Raw JSON ──
+  window.syncRawJson = function() {
+    rawEditor.value = JSON.stringify(collectValues(), null, 2);
+  };
+
+  window.applyRawJson = function() {
+    try {
+      var parsed = JSON.parse(rawEditor.value);
+      VALUES = parsed;
+      renderForm(SCHEMA, VALUES, '', container);
+      showToast(t('config.json_applied'), 'success');
+    } catch(e) {
+      showToast(t('config.invalid_json') + e.message, 'error');
+    }
+  };
+
+  // ── Helpers ──
+  function showValidation(res) {
+    var banner = document.getElementById('validation-banner');
+    var list = document.getElementById('validation-errors');
+    if (res.valid) {
+      banner.style.display = 'none';
+    } else {
+      banner.style.display = 'block';
+      list.innerHTML = '';
+      (res.errors || []).forEach(function(err) {
+        var li = document.createElement('li');
+        li.textContent = err;
+        list.appendChild(li);
+      });
+    }
+    document.getElementById('save-success').style.display = 'none';
+  }
+
+  function formatLabel(key) {
+    return key.replace(/[_-]/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── Init ──
+  renderForm(SCHEMA, VALUES, '', container);
+  rawEditor.value = JSON.stringify(VALUES, null, 2);
+})();
+</script>
+{% endif %}
+{% endblock %}

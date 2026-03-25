@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="{{ request.cookies.get('opsportal_lang', 'en') }}" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OpsPortal{% endblock %}</title>
+  {% block head_extra %}{% endblock %}
+  <link rel="stylesheet" href="/static/css/portal-base.css">
+  <link rel="stylesheet" href="/static/css/portal-components.css">
+  <link rel="stylesheet" href="/static/css/portal-pages.css">
+  <script>
+    // Apply saved theme immediately to avoid flash
+    (function(){
+      var t = localStorage.getItem('opsportal_theme') || 'system';
+      if (t === 'system') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+      // Apply saved language immediately to avoid FOUC
+      var lang = localStorage.getItem('opsportal_lang');
+      if (lang) document.documentElement.lang = lang;
+    })();
+  </script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </span>
+        <span class="brand-text">OpsPortal</span>
+      </a>
+      <nav class="header-right" aria-label="Main navigation" data-i18n-aria="aria.main_nav">
+        <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}" data-i18n="nav.dashboard">
+          <svg aria-hidden="true" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <div class="gear-wrapper">
+          <button type="button" class="gear-btn" id="gear-toggle" data-i18n-title="gear.settings_title" title="Settings" aria-label="Settings" aria-expanded="false">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
+          </button>
+          <div class="gear-dropdown" id="gear-dropdown" role="menu">
+            <div class="gear-section">
+              <div class="gear-section-label" data-i18n="gear.theme">Theme</div>
+              <div class="gear-options">
+                <button type="button" class="gear-option" data-theme-set="light" role="menuitem">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                  <span data-i18n="theme.light">Light</span>
+                </button>
+                <button type="button" class="gear-option" data-theme-set="dark" role="menuitem">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                  <span data-i18n="theme.dark">Dark</span>
+                </button>
+                <button type="button" class="gear-option" data-theme-set="midnight" role="menuitem">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+                  <span data-i18n="theme.midnight">Midnight</span>
+                </button>
+                <button type="button" class="gear-option" data-theme-set="system" role="menuitem">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  <span data-i18n="theme.system">System</span>
+                </button>
+              </div>
+            </div>
+            <div class="gear-section">
+              <div class="gear-section-label" data-i18n="gear.language">Language</div>
+              <div class="gear-options">
+                <button type="button" class="gear-option" data-lang-set="en" role="menuitem">
+                  <span class="lang-flag">EN</span>
+                  <span>English</span>
+                </button>
+                <button type="button" class="gear-option" data-lang-set="pl" role="menuitem">
+                  <span class="lang-flag">PL</span>
+                  <span>Polski</span>
+                </button>
+              </div>
+            </div>
+            <div class="gear-divider"></div>
+            <a href="/health" class="gear-nav-link" role="menuitem">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span data-i18n="nav.health">Health</span>
+            </a>
+            <a href="/config" class="gear-nav-link" role="menuitem">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <span data-i18n="nav.settings">Settings</span>
+            </a>
+            <a href="/logs" class="gear-nav-link" role="menuitem">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span data-i18n="nav.logs">Logs</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  {% block breadcrumb %}{% endblock %}
+
+  <main class="main">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="app-footer-copyright">
+      &copy; 2026 <a class="app-footer-author" href="https://polprog.pl/" target="_blank" rel="noopener">POLPROG</a>.
+      <span data-i18n="footer.rights">All rights reserved.</span>
+    </div>
+    <div class="app-footer-tools">
+      <span data-i18n="footer.built_with">Dashboard built with</span>
+      <a class="app-footer-brand" href="https://github.com/polprog-tech/OpsPortal" target="_blank" rel="noopener">OpsPortal</a>
+      <span class="app-footer-version">v{{ portal_version }}</span>
+    </div>
+  </footer>
+
+  {# ── Custom Modal ── #}
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title"></h3>
+        <button type="button" class="modal-close" id="modal-close-x" data-i18n-aria="modal.close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="modal-cancel"></button>
+        <button type="button" class="btn btn-danger" id="modal-confirm"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" aria-live="polite" role="status"></div>
+
+  <script src="/static/js/portal-i18n-pl.js"></script>
+  <script src="/static/js/portal-i18n.js"></script>
+  <script src="/static/js/portal.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.display_name }} — Error — OpsPortal{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+  <div class="container">
+    <a href="/" class="breadcrumb-link" data-i18n="breadcrumb.home">OpsPortal</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">{{ tool.display_name }}</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="tool-header" style="border-left-color: {{ tool.color }}">
+  <div class="tool-header-info">
+    <h1 class="tool-header-name">{{ tool.display_name }}</h1>
+    <p class="tool-header-desc">{{ tool.description }}</p>
+  </div>
+  <div class="tool-header-controls">
+    <span class="badge badge-error badge-lg" data-i18n="error.badge">error</span>
+  </div>
+</div>
+
+<div class="error-panel" role="alert">
+  <div class="error-panel-header">
+    <span class="error-panel-icon" aria-hidden="true">⚠️</span>
+    <h2 class="error-panel-title" data-i18n="error.failed_to_start">Failed to Start</h2>
+  </div>
+  {% if error %}
+  <p class="error-panel-message">{{ error }}</p>
+  {% else %}
+  <p class="error-panel-message" data-i18n="error.unexpected">An unexpected error occurred.</p>
+  {% endif %}
+
+  <div class="error-panel-actions">
+    <a href="/tools/{{ tool.slug }}" class="btn btn-primary" data-i18n="error.retry">Retry</a>
+    <a href="/" class="btn btn-ghost" data-i18n="error.back_to_portal">Back to Portal</a>
+  </div>
+</div>
+
+{% if logs %}
+<details class="section" open>
+  <summary class="section-title section-toggle" data-i18n="error.diagnostic_logs">Diagnostic Logs</summary>
+  <pre class="output-area output-area-sm">{% for line in logs %}{{ line }}
+{% endfor %}</pre>
+</details>
+{% endif %}
+{% endblock %}

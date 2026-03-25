@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" fill="none" role="img" aria-label="OpsPortal">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a73e8"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="12" width="96" height="96" rx="20" fill="url(#bg)"/>
+  <rect x="24" y="28" width="28" height="28" rx="6" fill="url(#glow)" opacity="0.95"/>
+  <rect x="60" y="28" width="28" height="28" rx="6" fill="url(#glow)" opacity="0.70"/>
+  <rect x="24" y="64" width="28" height="28" rx="6" fill="url(#glow)" opacity="0.70"/>
+  <rect x="60" y="64" width="28" height="28" rx="6" fill="url(#glow)" opacity="0.50"/>
+  <line x1="55" y1="42" x2="57" y2="42" stroke="#fff" stroke-width="2" opacity="0.6"/>
+  <line x1="38" y1="59" x2="38" y2="61" stroke="#fff" stroke-width="2" opacity="0.6"/>
+  <line x1="74" y1="59" x2="74" y2="61" stroke="#fff" stroke-width="2" opacity="0.6"/>
+  <line x1="55" y1="78" x2="57" y2="78" stroke="#fff" stroke-width="2" opacity="0.6"/>
+  <circle cx="56" cy="60" r="4" fill="#fff" opacity="0.85"/>
+  <text x="120" y="56" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="38" font-weight="700" fill="#1a73e8">Ops</text>
+  <text x="195" y="56" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="38" font-weight="700" fill="#4F46E5">Portal</text>
+  <text x="120" y="82" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="14" font-weight="400" fill="#9ca3af" letter-spacing="0.5">Unified Developer Operations Platform</text>
+</svg>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Logs" | default("Logs") }} — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.logs">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <h1 class="page-title" data-i18n="logs.activity_log">Activity Log</h1>
+    <button type="button" class="btn btn-sm btn-ghost" onclick="location.reload()" data-i18n="logs.refresh">↻ Refresh</button>
+  </div>
+</div>
+
+{% if entries %}
+<div class="table-wrapper">
+  <table class="table" aria-label="Activity log" data-i18n-aria="aria.activity_log">
+    <thead>
+      <tr>
+        <th data-i18n="logs.time">Time</th>
+        <th data-i18n="logs.level">Level</th>
+        <th data-i18n="logs.tool">Tool</th>
+        <th data-i18n="logs.action">Action</th>
+        <th data-i18n="logs.message">Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr class="log-row log-{{ entry.level | lower }}">
+        <td class="cell-nowrap">{{ entry.time_str }}</td>
+        <td><span class="badge badge-log-{{ entry.level | lower }}" data-i18n-map="log.level">{{ entry.level }}</span></td>
+        <td>{{ entry.tool_slug }}</td>
+        <td>{{ entry.action }}</td>
+        <td class="cell-message">{{ entry.message }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p class="empty-state-text" data-i18n="logs.no_entries">No log entries yet.</p>
+  <p class="empty-state-hint" data-i18n="logs.no_entries_hint">Activity will appear here as you interact with tools.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  if (window.location.search.includes('auto=1')) {
+    setInterval(() => location.reload(), 5000);
+  }
+</script>
+{% endblock %}

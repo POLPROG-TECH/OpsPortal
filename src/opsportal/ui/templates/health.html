@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Health" | default("Health") }} — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.health">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title" data-i18n="health.status">Health Status</h1>
+</div>
+
+<div class="health-banner {% if health.overall %}health-ok{% else %}health-bad{% endif %}">
+  <span class="health-banner-icon" aria-hidden="true">{% if health.overall %}✓{% else %}✕{% endif %}</span>
+  <span class="health-banner-text">
+    {% if health.overall %}<span data-i18n="health.all_ok">All systems operational</span>{% else %}<span data-i18n="health.issues_detected">Issues detected</span>{% endif %}
+  </span>
+</div>
+
+{% if health.errors %}
+<div class="alert alert-danger">
+  <strong data-i18n="health.errors">Errors:</strong>
+  <ul class="alert-list">
+    {% for err in health.errors %}
+    <li>{{ err }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if health.tools %}
+<div class="health-grid">
+  {% for slug, result in health.tools.items() %}
+  <div class="health-card {% if result.healthy %}health-card-ok{% else %}health-card-bad{% endif %}">
+    <div class="health-card-header">
+      <h3 class="health-card-name">{{ slug }}</h3>
+      <span class="badge {% if result.healthy %}badge-available{% else %}badge-error{% endif %}">
+        {% if result.healthy %}<span data-i18n="health.healthy">Healthy</span>{% else %}<span data-i18n="health.unhealthy">Unhealthy</span>{% endif %}
+      </span>
+    </div>
+    <p class="health-card-msg" data-i18n-map="health">{{ result.message }}</p>
+    {% if result.details %}
+    <div class="health-card-details">
+      {% for key, val in result.details.items() %}
+      <div class="detail-row">
+        <span class="detail-key">{{ key }}</span>
+        <span class="detail-val">{{ val }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p class="empty-state-text" data-i18n="health.no_tools">No tools registered for health checks.</p>
+</div>
+{% endif %}
+{% endblock %}

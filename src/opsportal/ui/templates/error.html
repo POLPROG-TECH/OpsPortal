@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Error — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.error">{% endblock %}
+
+{% block content %}
+<div class="error-page" role="alert">
+  <div class="error-icon" aria-hidden="true">⚠</div>
+  <h1 class="error-title" data-i18n="error.something_wrong">Something went wrong</h1>
+  {% if error %}
+  <p class="error-message">{{ error }}</p>
+  {% else %}
+  <p class="error-message" data-i18n="error.unexpected">An unexpected error occurred.</p>
+  {% endif %}
+  <a href="/" class="btn btn-primary" data-i18n="error.back_to_dashboard">Back to Dashboard</a>
+</div>
+{% endblock %}

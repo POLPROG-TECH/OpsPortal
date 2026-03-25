@@ -1,0 +1,600 @@
+/* OpsPortal — Pages (tool views, config forms, dark theme) */
+
+/* ============================================================
+   Tool Header (tool_web / tool_cli)
+   ============================================================ */
+
+.tool-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary);
+  margin-bottom: 24px;
+}
+
+.tool-header-name { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; }
+.tool-header-desc { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; overflow-wrap: break-word; }
+
+.tool-header-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.tool-header-info { flex: 1; min-width: 0; }
+
+
+/* ============================================================
+   Iframe
+   ============================================================ */
+
+.iframe-wrapper {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+  position: relative;
+}
+
+.tool-iframe {
+  width: 100%;
+  height: calc(100vh - 240px);
+  min-height: 500px;
+  border: none;
+  display: block;
+}
+
+.iframe-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 48px 24px;
+  text-align: center;
+}
+.iframe-fallback-content { max-width: 440px; }
+.iframe-fallback-icon { font-size: 2.5rem; display: block; margin-bottom: 16px; opacity: 0.6; }
+.iframe-fallback-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+.iframe-fallback-text { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+.iframe-fallback-actions { display: flex; gap: 12px; justify-content: center; }
+/* Iframe width controls */
+.iframe-controls { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 8px; }
+.iframe-control-btn { gap: 4px; font-size: 0.78rem; }
+.iframe-control-btn.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.iframe-control-btn svg { width: 14px; height: 14px; }
+
+/* Width expansion modes */
+.container.frame-expand-left { max-width: none; padding-left: 16px; padding-right: 32px; }
+.container.frame-expand-right { max-width: none; padding-left: 32px; padding-right: 16px; }
+
+/* Skeleton loader — shimmer pattern (aligned with ReleaseBoard) */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.iframe-skeleton { padding: 32px; display: flex; flex-direction: column; gap: 16px; min-height: 300px; }
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--border-light) 25%, var(--bg) 50%, var(--border-light) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
+.skeleton-text-lg { height: 20px; width: 60%; }
+.skeleton-text-sm { height: 10px; width: 40%; }
+.skeleton-row { display: flex; gap: 14px; }
+.skeleton-row > * { flex: 1; }
+.skeleton-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 18px; }
+.skeleton-card .skeleton-text { margin-bottom: 10px; }
+.skeleton-block { height: 120px; border-radius: var(--radius); }
+.skeleton-block-sm { height: 60px; }
+.skeleton-block-lg { height: 200px; }
+
+/* ============================================================
+   Section / Details
+   ============================================================ */
+
+.section {
+  margin-top: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+.section-title { font-size: 1rem; font-weight: 600; margin-bottom: 12px; }
+.section-toggle { cursor: pointer; user-select: none; }
+.section-toggle:hover { color: var(--primary); }
+
+/* ============================================================
+   Artifacts
+   ============================================================ */
+
+.artifact-list { display: flex; flex-direction: column; gap: 6px; }
+
+.artifact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: var(--radius-xs);
+  transition: background var(--transition);
+}
+.artifact-item:hover { background: var(--bg-subtle); }
+.artifact-name { font-weight: 500; font-size: 0.9rem; }
+.artifact-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ============================================================
+   Health Page
+   ============================================================ */
+
+.health-banner { padding: 16px 24px; border-radius: var(--radius); font-weight: 600; font-size: 0.95rem; margin-bottom: 24px; }
+.health-banner-ok { background: var(--success-light); color: var(--success); border: 1px solid #c8e6c9; }
+.health-banner-fail { background: var(--danger-light); color: var(--danger); border: 1px solid #f5c6cb; }
+
+.health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+.health-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 20px; }
+
+.health-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.health-card-name { font-weight: 600; font-size: 0.95rem; }
+
+.health-detail-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+.health-detail-table td { padding: 4px 0; color: var(--text-secondary); }
+.health-detail-table td:first-child { font-weight: 500; color: var(--text); width: 40%; }
+
+/* ============================================================
+   Action Cards (tool_cli)
+   ============================================================ */
+
+.tool-layout { display: grid; grid-template-columns: 400px 1fr; gap: 24px; }
+
+.action-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+.action-card-title { font-weight: 600; font-size: 0.93rem; margin-bottom: 4px; }
+.action-card-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; }
+.action-dangerous { border-left: 3px solid var(--danger); }
+
+.inline-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.form-field label { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 3px; color: var(--text-secondary); }
+.form-field input, .form-field select {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg-card);
+  transition: border-color var(--transition);
+}
+.form-field input:focus, .form-field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+
+/* ============================================================
+   Output Area (tool_cli)
+   ============================================================ */
+
+.output-area {
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+  position: sticky;
+  top: calc(var(--header-h) + 20px);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.output-placeholder { color: #64748b; font-style: italic; }
+.output-entry { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #334155; }
+.output-entry:last-child { border-bottom: none; }
+.output-entry-header { color: #94a3b8; font-size: 0.78rem; margin-bottom: 4px; }
+.output-entry-success { color: #86efac; }
+.output-entry-error { color: #fca5a5; }
+
+/* ============================================================
+   Error Pages
+   ============================================================ */
+
+.error-panel {
+  background: var(--danger-light);
+  border: 1px solid #f5c6cb;
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.error-panel-title { font-size: 1rem; font-weight: 600; color: var(--danger); margin-bottom: 8px; }
+.error-panel-msg { color: var(--text-secondary); font-size: 0.9rem; }
+
+.error-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+/* ============================================================
+   Log Page
+   ============================================================ */
+
+.log-error td { color: var(--danger); }
+.log-warning td { color: var(--warning); }
+
+/* ============================================================
+   Config Page
+   ============================================================ */
+
+.config-section { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+.config-section-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* ============================================================
+   Dark Theme
+   ============================================================ */
+
+[data-theme="dark"] {
+  --bg: #111318;
+  --bg-subtle: #1a1d25;
+  --bg-card: #1e2028;
+  --text: #e0e2e6;
+  --text-secondary: #9ca0a8;
+  --text-muted: #6b7280;
+  --primary: #5ba3f5;
+  --primary-hover: #7db8ff;
+  --primary-light: #1a2940;
+  --success: #3dd068;
+  --success-light: #0d2818;
+  --warning: #f0a030;
+  --warning-light: #2a1e08;
+  --danger: #f85149;
+  --danger-light: #2a0c0c;
+  --border: #2d3140;
+  --border-light: #252830;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3);
+  --shadow-xl: 0 8px 24px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .hero {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 50%, #141720 100%);
+}
+
+[data-theme="dark"] .output-area {
+  background: #0d1117;
+  border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .config-health-section {
+  background: var(--warning-light);
+  border-color: #3d3010;
+}
+
+[data-theme="dark"] .config-issue-row {
+  background: rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] .stat-pill-success {
+  border-color: #1a3a20;
+}
+
+[data-theme="dark"] .stat-pill-warn {
+  border-color: #3d3010;
+}
+
+[data-theme="dark"] .product-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .status-dot {
+  border-color: var(--bg-card);
+}
+
+[data-theme="dark"] .toast {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+/* ============================================================
+   Midnight Theme
+   ============================================================ */
+
+[data-theme="midnight"] {
+  --bg: #0c0e14;
+  --bg-subtle: #12151e;
+  --bg-card: #141722;
+  --text: #e8ecf4;
+  --text-secondary: #9dabc2;
+  --text-muted: #7484a0;
+  --primary: #5ba3f5;
+  --primary-hover: #7db8ff;
+  --primary-light: #1a2940;
+  --success: #3dd068;
+  --success-light: #0d2818;
+  --warning: #f0a030;
+  --warning-light: #2a1e08;
+  --danger: #f85149;
+  --danger-light: #2a0c0c;
+  --border: #232840;
+  --border-light: #1a1e2e;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 1px 3px rgba(0,0,0,.5), 0 4px 8px rgba(0,0,0,.3);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.4);
+  --shadow-xl: 0 8px 24px rgba(0,0,0,.7), 0 16px 40px rgba(0,0,0,.5);
+}
+
+[data-theme="midnight"] .hero {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 50%, #141720 100%);
+}
+
+[data-theme="midnight"] .output-area {
+  background: #0d1117;
+  border: 1px solid var(--border);
+}
+
+[data-theme="midnight"] .config-health-section {
+  background: var(--warning-light);
+  border-color: #3d3010;
+}
+
+[data-theme="midnight"] .config-issue-row {
+  background: rgba(0,0,0,0.2);
+}
+
+[data-theme="midnight"] .stat-pill-success {
+  border-color: #1a3a20;
+}
+
+[data-theme="midnight"] .stat-pill-warn {
+  border-color: #3d3010;
+}
+
+[data-theme="midnight"] .product-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="midnight"] .status-dot {
+  border-color: var(--bg-card);
+}
+
+[data-theme="midnight"] .toast {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+/* ============================================================
+   Config Form (tool_config page)
+   ============================================================ */
+
+.config-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.config-form-actions { display: flex; gap: 8px; }
+
+.config-field {
+  margin-bottom: 18px;
+}
+
+.config-label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.config-required { color: var(--danger); }
+
+.config-default {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.config-help {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.config-input {
+  width: 100%;
+  max-width: 560px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg-card);
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.config-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.config-textarea {
+  min-height: 120px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  resize: vertical;
+}
+
+select.config-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.config-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.config-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.config-group {
+  margin-bottom: 20px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.config-group-title {
+  font-size: 0.93rem;
+  font-weight: 600;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--bg);
+  user-select: none;
+  color: var(--text);
+}
+.config-group-title:hover { background: var(--bg-subtle); }
+
+.config-group-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.config-group-body { padding: 16px; }
+
+.config-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 20px 0;
+}
+
+.raw-json-editor {
+  width: 100%;
+  min-height: 250px;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+/* Config section grouping */
+.config-section-heading { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
+.config-section-heading:first-child { margin-top: 0; }
+.config-section-group { margin-bottom: 8px; }
+/* Alert variants */
+.alert-info, .alert-danger, .alert-success { border-radius: var(--radius); padding: 12px 16px; font-size: 0.9rem; margin-bottom: 16px; }
+.alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); font-weight: 500; display: flex; align-items: center; }
+.alert-danger { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger); }
+.alert-success { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+
+/* ============================================================
+   CLI layout (tool_cli.html)
+   ============================================================ */
+
+.cli-layout { display: grid; grid-template-columns: 400px 1fr; gap: 24px; }
+.cli-actions { min-width: 0; }
+.cli-output { min-width: 0; }
+
+.panel-title-bar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.panel-title { font-size: 1rem; font-weight: 600; }
+
+.action-card-body { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.action-info { flex: 1; min-width: 150px; }
+.action-label { font-weight: 600; font-size: 0.93rem; display: block; margin-bottom: 4px; }
+.action-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0; }
+.action-form-inline { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 12px; width: 100%; }
+.form-group-inline { display: flex; flex-direction: column; gap: 3px; }
+.form-label-sm { font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); }
+.form-input {
+  width: 100%; padding: 7px 10px; font-size: 0.88rem; font-family: inherit;
+  border: 1px solid var(--border); border-radius: var(--radius-xs);
+  background: var(--bg-card); color: var(--text); transition: border-color var(--transition);
+}
+.form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+.form-input-sm { padding: 5px 8px; font-size: 0.82rem; }
+
+/* ============================================================
+   Health page
+   ============================================================ */
+
+.health-ok { background: var(--success-light); color: var(--success); border: 1px solid #c8e6c9; }
+.health-bad { background: var(--danger-light); color: var(--danger); border: 1px solid #f5c6cb; }
+.health-banner-icon { font-size: 1.2rem; margin-right: 8px; }
+.health-banner-text { font-weight: 600; }
+.health-card-ok { border-left: 3px solid var(--success); }
+.health-card-bad { border-left: 3px solid var(--danger); }
+.health-card-msg { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 8px; }
+.health-card-details { font-size: 0.85rem; margin-top: 10px; }
+.detail-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border-light); }
+.detail-row:last-child { border-bottom: none; }
+.detail-key { font-weight: 500; color: var(--text); }
+.detail-val { color: var(--text-secondary); }
+.alert-list { margin: 8px 0 0 20px; list-style: disc; }
+.alert-list li { margin-bottom: 4px; }
+
+/* ============================================================
+   Log page
+   ============================================================ */
+
+.cell-nowrap { white-space: nowrap; }
+.cell-message { max-width: 400px; word-break: break-word; }
+.log-row { transition: background var(--transition); }
+.log-row:hover { background: var(--bg-subtle); }
+
+/* ============================================================
+   Error page (error.html)
+   ============================================================ */
+
+.error-page { text-align: center; padding: 80px 24px; }
+.error-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+.error-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+.error-message { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+/* ============================================================
+   Tool error page (tool_error.html)
+   ============================================================ */
+
+.error-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.error-panel-icon { font-size: 1.5rem; }
+.error-panel-message { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px; word-break: break-word; }
+.error-panel-actions { display: flex; gap: 10px; margin-top: 16px; }
+.output-area-sm { max-height: 300px; }

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8"/>
+      <stop offset="100%" style="stop-color:#4F46E5"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#bg)"/>
+  <!-- 2×2 grid of squares — represents the unified portal -->
+  <rect x="24" y="24" width="30" height="30" rx="6" fill="white" opacity="0.95"/>
+  <rect x="66" y="24" width="30" height="30" rx="6" fill="white" opacity="0.75"/>
+  <rect x="24" y="66" width="30" height="30" rx="6" fill="white" opacity="0.75"/>
+  <rect x="66" y="66" width="30" height="30" rx="6" fill="white" opacity="0.55"/>
+  <!-- Connection lines between quadrants -->
+  <line x1="57" y1="39" x2="63" y2="39" stroke="white" stroke-width="2" opacity="0.5"/>
+  <line x1="39" y1="57" x2="39" y2="63" stroke="white" stroke-width="2" opacity="0.5"/>
+  <line x1="81" y1="57" x2="81" y2="63" stroke="white" stroke-width="2" opacity="0.5"/>
+  <line x1="57" y1="81" x2="63" y2="81" stroke="white" stroke-width="2" opacity="0.5"/>
+</svg>

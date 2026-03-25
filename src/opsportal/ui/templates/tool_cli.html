@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.display_name }} — OpsPortal{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb-bar">
+  <div class="container">
+    <a href="/" class="breadcrumb-link" data-i18n="breadcrumb.home">OpsPortal</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">{{ tool.display_name }}</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="tool-header" style="border-left-color: {{ tool.color }}">
+  <div class="tool-header-info">
+    <h1 class="tool-header-name">{{ tool.display_name }}</h1>
+    <p class="tool-header-desc">{{ tool.description }}</p>
+  </div>
+  <div class="tool-header-controls">
+    <span class="badge badge-{{ status | lower }} badge-lg" data-i18n-map="status">{{ status }}</span>
+  </div>
+</div>
+
+{# -- Primary: show existing generated dashboard if available -- #}
+{% if latest_artifact %}
+<div class="section">
+  <div class="panel-title-bar">
+    <h2 class="panel-title" data-i18n="cli.dashboard">Dashboard</h2>
+    <a href="/tools/{{ tool.slug }}/artifacts/{{ latest_artifact.name }}" class="btn btn-sm btn-ghost" target="_blank" rel="noopener noreferrer" data-i18n="cli.open_fullscreen">
+      Open Full Screen ↗
+    </a>
+  </div>
+  <div class="iframe-wrapper">
+    <iframe src="/tools/{{ tool.slug }}/artifacts/{{ latest_artifact.name }}"
+            class="tool-iframe"
+            title="{{ tool.display_name }} Dashboard"></iframe>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <p class="empty-state-icon">📊</p>
+  <p class="empty-state-text" data-i18n="cli.no_dashboard">No dashboard generated yet.</p>
+  <p class="empty-state-hint" data-i18n="cli.no_dashboard_hint">Run an action below to generate a dashboard.</p>
+</div>
+{% endif %}
+
+{# -- Secondary: quick action buttons + output area -- #}
+<div class="cli-layout">
+  <div class="cli-actions">
+    <h2 class="panel-title" data-i18n="cli.actions">Actions</h2>
+
+    {% if actions %}
+    {% for action in actions %}
+    <div class="action-card {% if action.dangerous %}action-dangerous{% endif %}">
+      <div class="action-card-body">
+        <div class="action-info">
+          <span class="action-label">{{ action.label }}</span>
+          {% if action.description %}<p class="action-desc">{{ action.description }}</p>{% endif %}
+        </div>
+
+        {% if action.fields %}
+        <form id="form-{{ action.name }}" class="action-form-inline" onsubmit="return false;">
+          {% for field in action.fields %}
+          <div class="form-group-inline">
+            <label class="form-label-sm" for="field-{{ action.name }}-{{ field.name }}">{{ field.label }}</label>
+            {% if field.field_type == 'select' %}
+            <select id="field-{{ action.name }}-{{ field.name }}" name="{{ field.name }}" class="form-input form-input-sm">
+              {% for choice in field.choices %}
+              <option value="{{ choice }}" {% if choice == field.default %}selected{% endif %}>{{ choice }}</option>
+              {% endfor %}
+            </select>
+            {% else %}
+            <input type="text"
+                   id="field-{{ action.name }}-{{ field.name }}"
+                   name="{{ field.name }}"
+                   class="form-input form-input-sm"
+                   value="{{ field.default }}"
+                   placeholder="{{ field.placeholder }}"
+                   {% if field.required %}required{% endif %}>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </form>
+        {% endif %}
+
+        <button type="button"
+                class="btn btn-sm {% if action.dangerous %}btn-danger{% else %}btn-primary{% endif %}"
+                onclick="runAction('{{ tool.slug }}', '{{ action.name }}', event)"
+                data-i18n="cli.run">
+          Run
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-muted" data-i18n="cli.no_actions">No actions available.</p>
+    {% endif %}
+  </div>
+
+  <div class="cli-output">
+    <div class="panel-title-bar">
+      <h2 class="panel-title" data-i18n="cli.output">Output</h2>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="clearOutput()" data-i18n="cli.clear">Clear</button>
+    </div>
+    <div id="output-area" class="output-area" tabindex="0" role="log" aria-live="polite">
+      <span class="output-placeholder" data-i18n="cli.output_placeholder">Run an action to see output here.</span>
+    </div>
+  </div>
+</div>
+
+{% if artifacts and artifacts | length > 1 %}
+<div class="section">
+  <h2 class="section-title" data-i18n="cli.all_artifacts">All Artifacts</h2>
+  <div class="artifact-list">
+    {% for a in artifacts %}
+    <a href="/tools/{{ a.tool_slug }}/artifacts/{{ a.name }}" class="artifact-item" target="_blank" rel="noopener noreferrer">
+      <span class="artifact-name">{{ a.name }}</span>
+      <span class="artifact-meta">{{ a.content_type }} · {{ (a.size_bytes / 1024) | round(1) }} <span data-i18n="unit.kb">KB</span></span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

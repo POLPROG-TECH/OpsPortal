@@ -1,0 +1,39 @@
+# OpsPortal Manifest — Tool Registration
+# Tools can be sourced from remote Git repos (production) or local paths (dev).
+
+tools:
+  releasepilot:
+    display_name: ReleasePilot
+    description: "Release notes generator — from git history to polished documents"
+    integration_mode: subprocess_web
+    icon: rocket
+    color: "#4F46E5"
+    enabled: true
+    port: 8082
+    startup_timeout: 30
+    env: {}
+    source:
+      provider: github
+      repository: POLPROG-TECH/ReleasePilot
+      ref: v1.1.0
+      package: releasepilot
+      extras: [all]
+      install_strategy: pip_git
+
+  releaseboard:
+    display_name: ReleaseBoard
+    description: "Release readiness dashboard — track branch status across repos"
+    integration_mode: subprocess_web
+    icon: clipboard-check
+    color: "#059669"
+    enabled: true
+    port: 8081
+    config_file: releaseboard.json
+    startup_timeout: 30
+    env: {}
+    source:
+      provider: github
+      repository: POLPROG-TECH/ReleaseBoard
+      ref: v1.1.0
+      package: releaseboard
+      install_strategy: pip_git

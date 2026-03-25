@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}OpsPortal — Engineering Operations Platform{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.home">{% endblock %}
+
+{% block content %}
+
+{# ── Hero Section ── #}
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title" data-i18n="hero.title">Welcome to OpsPortal</h1>
+    <p class="hero-subtitle" data-i18n="hero.subtitle">Your unified entry point to the engineering operations toolkit. Launch, monitor, and manage your tools from a single dashboard.</p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-pill">
+      <span class="stat-number">{{ platform.total }}</span>
+      <span class="stat-label" data-i18n="stats.apps">Apps</span>
+    </div>
+    <div class="stat-pill stat-pill-success">
+      <span class="stat-number">{{ platform.running }}</span>
+      <span class="stat-label" data-i18n="stats.running">Running</span>
+    </div>
+    {% if platform.needs_attention > 0 %}
+    <div class="stat-pill stat-pill-warn">
+      <span class="stat-number">{{ platform.needs_attention }}</span>
+      <span class="stat-label" data-i18n="stats.attention">Needs Attention</span>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ── Product Grid ── #}
+{% if cards %}
+<section class="product-section">
+  <h2 class="section-heading" data-i18n="section.apps">Applications</h2>
+  <div class="product-grid">
+    {% for card in cards %}
+    <a href="/tools/{{ card.slug }}" class="product-card" style="--accent: {{ card.color }}">
+      <div class="product-card-inner">
+        <div class="product-logo-wrap" style="background: {{ card.color }}0d">
+          {% if card.has_logo %}
+          <img src="{{ card.logo_url }}" alt="{{ card.name }}" class="product-logo">
+          {% else %}
+          <span class="product-logo-fallback" style="color: {{ card.color }}">{{ card.icon }}</span>
+          {% endif %}
+        </div>
+        <div class="product-card-content">
+          <div class="product-name-row">
+            <h3 class="product-name">{{ card.name }}</h3>
+            {% if card.version %}
+            <span class="product-version" title="Version {{ card.version }}">v{{ card.version }}</span>
+            {% endif %}
+            {% if card.status == 'running' %}
+            <span class="status-dot status-running" title="Running"></span>
+            {% elif card.status == 'error' %}
+            <span class="status-dot status-error" title="Error"></span>
+            {% elif not card.config_ok %}
+            <span class="status-dot status-warn" title="Needs configuration"></span>
+            {% else %}
+            <span class="status-dot status-idle" title="Ready"></span>
+            {% endif %}
+          </div>
+          <p class="product-desc" data-i18n="adapter.{{ card.slug }}.desc">{{ card.description }}</p>
+          {% if not card.config_ok %}
+          <span class="product-status-label product-status-setup" data-i18n="card.setup">Setup required</span>
+          {% endif %}
+          <div class="product-meta">
+            <span class="product-meta-badge" title="Integration mode">{{ card.mode | replace('_', ' ') | title }}</span>
+            {% if card.has_web_ui %}<span class="product-meta-badge product-meta-web">Web UI</span>{% endif %}
+            {% if card.has_config %}<span class="product-meta-badge product-meta-config">Configurable</span>{% endif %}
+          </div>
+        </div>
+        {% if card.has_config %}
+        <button type="button" class="product-action-config" title="Configure" aria-label="Configure {{ card.name }}" onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/tools/{{ card.slug }}/config'">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="empty-hero">
+  <div class="empty-hero-icon">
+    <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  </div>
+  <h2 class="empty-hero-title" data-i18n="empty.no_apps">No applications registered</h2>
+  <p class="empty-hero-text" data-i18n="empty.add_tools" data-i18n-html>Add tools to <code>opsportal.yaml</code> to get started.</p>
+</section>
+{% endif %}
+
+{# ── Configuration Health ── #}
+{% set issues = [] %}
+{% for card in cards %}
+  {% if not card.config_ok %}
+    {% for issue in card.config_issues %}
+      {% if issues.append({"tool": card.name, "color": card.color, "issue": issue}) %}{% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+{% if issues %}
+<section class="config-health-section">
+  <h2 class="section-heading">
+    <svg aria-hidden="true" class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span data-i18n="section.config_issues">Configuration Issues</span>
+  </h2>
+  <div class="config-issues-list">
+    {% for item in issues %}
+    <div class="config-issue-row">
+      <span class="config-issue-tool" style="color: {{ item.color }}">{{ item.tool }}</span>
+      <span class="config-issue-text">{{ item.issue }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── Onboarding Overlay ── #}
+<div id="onboarding-overlay" class="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title-text" style="display: none">
+  <div class="onboarding-card">
+    <div class="onboarding-header">
+      <h2 class="onboarding-title" id="onboarding-title-text" data-i18n="onboarding.title">Welcome to OpsPortal</h2>
+      <button type="button" class="onboarding-close" onclick="dismissOnboarding()" data-i18n-title="onboarding.close" title="Close">&times;</button>
+    </div>
+    <div class="onboarding-body" id="onboarding-body">
+      <div class="onboarding-step" data-step="0">
+        <div class="onboarding-step-icon">
+          <svg aria-hidden="true" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h3 data-i18n="onboarding.step1.title">Your engineering operations hub</h3>
+        <p data-i18n="onboarding.step1.text">OpsPortal is the single entry point for four internal tools. Each tile on the dashboard represents a distinct application you can launch and use.</p>
+      </div>
+      <div class="onboarding-step" data-step="1" style="display:none">
+        <div class="onboarding-step-icon">
+          <svg aria-hidden="true" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3 data-i18n="onboarding.step2.title">Click a tile to launch</h3>
+        <p data-i18n="onboarding.step2.text">Click any application card to auto-start it. OpsPortal manages the lifecycle — it launches the app, checks health, and embeds it in the portal. Use the top navigation to return here anytime.</p>
+      </div>
+      <div class="onboarding-step" data-step="2" style="display:none">
+        <div class="onboarding-step-icon">
+          <svg aria-hidden="true" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3 data-i18n="onboarding.step3.title">Monitor health &amp; configuration</h3>
+        <p data-i18n="onboarding.step3.text">Status indicators on each card show whether an app is running, idle, or needs setup. The Health page gives a full system overview. The Settings page shows portal configuration.</p>
+      </div>
+    </div>
+    <div class="onboarding-footer">
+      <div class="onboarding-dots">
+        <span class="onboarding-dot active" data-dot="0"></span>
+        <span class="onboarding-dot" data-dot="1"></span>
+        <span class="onboarding-dot" data-dot="2"></span>
+      </div>
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-ghost" id="onboarding-skip" onclick="dismissOnboarding()" data-i18n="onboarding.skip">Skip</button>
+        <button type="button" class="btn btn-primary" id="onboarding-next" onclick="nextOnboardingStep()" data-i18n="onboarding.next">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var STEP = 0, MAX = 2;
+  var KEY = 'opsportal_onboarded';
+
+  if (!localStorage.getItem(KEY)) {
+    document.getElementById('onboarding-overlay').style.display = 'flex';
+  }
+
+  window.nextOnboardingStep = function() {
+    if (STEP < MAX) {
+      document.querySelector('[data-step="'+STEP+'"]').style.display = 'none';
+      document.querySelector('[data-dot="'+STEP+'"]').classList.remove('active');
+      STEP++;
+      document.querySelector('[data-step="'+STEP+'"]').style.display = 'block';
+      document.querySelector('[data-dot="'+STEP+'"]').classList.add('active');
+      if (STEP === MAX) {
+        var btn = document.getElementById('onboarding-next');
+        btn.textContent = t('onboarding.get_started');
+      }
+    } else {
+      dismissOnboarding();
+    }
+  };
+
+  window.dismissOnboarding = function() {
+    localStorage.setItem(KEY, '1');
+    var overlay = document.getElementById('onboarding-overlay');
+    overlay.style.opacity = '0';
+    setTimeout(function(){ overlay.style.display = 'none'; }, 200);
+  };
+})();
+</script>
+{% endblock %}

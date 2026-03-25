@@ -61,26 +61,60 @@ def _find_logo(repo_path: Path | None) -> Path | None:
 def _config_issues(adapter) -> list[str]:
     """Check for common configuration problems."""
     issues: list[str] = []
+
     rp = adapter.repo_path
     wd = getattr(adapter, "work_dir", None)
     if rp is None and wd is None:
         issues.append("Neither repository path nor work directory is configured")
     elif rp is not None and not rp.is_dir():
         issues.append("Repository not found at expected location")
-    # Check if tool has a config file requirement
-    cfg_path = adapter.config_file_path()
-    if cfg_path is None and hasattr(adapter, "_config_file"):
-        # Config file is expected but not found
-        config_file = getattr(adapter, "_config_file", None)
-        if config_file:
-            issues.append(f"Configuration file '{config_file}' not found")
+
+    if not _has_missing_config(adapter):
+        return issues
+
+    # Tool handles missing config with its own setup wizard
+    if getattr(adapter, "has_first_run_wizard", False):
+        return issues
+
+    # Config file is expected but missing — try scaffolding first
+    if hasattr(adapter, "scaffold_default_config") and adapter.scaffold_default_config():
+        return issues
+
+    # Scaffolding didn't work — report actionable guidance
+    slug = getattr(adapter, "slug", "tool")
+    config_file = getattr(adapter, "_config_file", "config.json")
+    env_var = f"OPSPORTAL_{slug.upper()}_CONFIG"
+    config_dir = wd or rp or Path.cwd()
+    issues.append(
+        f"Configuration file '{config_file}' not found. "
+        f"Create it at {_sanitize_path(config_dir / config_file)} "
+        f"or set {env_var} environment variable, "
+        f"or use the Configuration page to set up this tool."
+    )
     return issues
+
+
+def _has_missing_config(adapter) -> bool:
+    """Return True if the adapter expects a config file but doesn't have one."""
+    if adapter.config_file_path() is not None:
+        return False
+    config_file = getattr(adapter, "_config_file", None)
+    return bool(config_file)
 
 
 def _sanitize_logs(logs: list[str]) -> list[str]:
     """Replace the user's home directory path with ``~`` in log lines."""
     home = str(Path.home())
     return [line.replace(home, "~") for line in logs]
+
+
+def _sanitize_path(path: Path) -> str:
+    """Return a display-safe path without exposing home directories."""
+    s = str(path)
+    home = str(Path.home())
+    if s.startswith(home):
+        s = "~" + s[len(home) :]
+    return s
 
 
 async def _tool_cards(request: Request) -> list[dict[str, Any]]:

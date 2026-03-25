@@ -81,6 +81,115 @@ def init(
     typer.echo("  Edit the file to customize tools, then run: opsportal serve")
 
 
+_DEFAULT_SETUP_MANIFEST = typer.Option(
+    Path("opsportal.yaml"), "--manifest", "-m", help="Path to manifest file"
+)
+
+
+@app.command()
+def setup(
+    manifest: Path = _DEFAULT_SETUP_MANIFEST,
+) -> None:
+    """Set up OpsPortal: create manifest, install tools, and scaffold configs.
+
+    This is the recommended first-run command after installing OpsPortal.
+    It creates the manifest file if missing, installs declared tools from
+    their remote sources, and scaffolds default configuration files.
+    """
+    from opsportal.config.manifest import DEFAULT_MANIFEST_YAML, load_manifest
+    from opsportal.services.tool_installer import ToolInstaller
+
+    # Step 1: Ensure manifest exists
+    if not manifest.exists():
+        manifest.write_text(DEFAULT_MANIFEST_YAML, encoding="utf-8")
+        typer.echo(f"✔ Created manifest: {manifest}")
+    else:
+        typer.echo(f"✔ Manifest found: {manifest}")
+
+    # Step 2: Load manifest and install tools
+    work_dir = Path("work/tools")
+    work_dir.mkdir(parents=True, exist_ok=True)
+    portal_manifest = load_manifest(manifest, Path("."), tools_work_dir=work_dir)
+
+    if not portal_manifest.enabled_tools:
+        typer.echo("  No tools registered in manifest.")
+        typer.echo("  Edit opsportal.yaml and re-run: opsportal setup")
+        return
+
+    installer = ToolInstaller(work_dir)
+    for tool in portal_manifest.enabled_tools:
+        typer.echo(f"\n── {tool.display_name} ({tool.slug}) ──")
+
+        # Install from source if defined
+        if tool.source:
+            typer.echo(f"  Installing from {tool.source.repository}@{tool.source.ref}...")
+            try:
+                result = installer.ensure_installed(tool.source)
+                ver = result.get("version", "?")
+                typer.echo(f"  ✔ {result['action']}: {result['package']} v{ver}")
+            except Exception as exc:
+                typer.echo(f"  ✗ Install failed: {exc}", err=True)
+                continue
+
+        # Scaffold config if adapter supports it
+        tool_work = installer.work_dir_for(tool.slug)
+        _scaffold_tool_config(tool.slug, tool, tool_work)
+
+    typer.echo("\n✔ Setup complete. Start the portal with: opsportal serve")
+
+
+def _scaffold_tool_config(slug: str, tool, work_dir: Path) -> None:
+    """Attempt to scaffold default config for a tool."""
+    from opsportal.services.process_manager import ProcessManager
+
+    pm = ProcessManager()
+    adapter = _create_adapter_for_scaffold(slug, tool, work_dir, pm)
+
+    if adapter is None:
+        return
+
+    if adapter.config_file_path() is not None:
+        typer.echo(f"  ✔ Config already exists: {adapter._config_file}")
+        return
+
+    if adapter.scaffold_default_config():
+        typer.echo(f"  ✔ Scaffolded default config: {adapter._config_file}")
+        return
+
+    config_path = adapter._resolve_config_path()
+    typer.echo(
+        f"  ⚠ Could not auto-scaffold config (no schema with defaults found).\n"
+        f"    Create config manually at: {config_path}\n"
+        f"    Or use the web UI Configuration page after starting the portal."
+    )
+
+
+def _create_adapter_for_scaffold(slug: str, tool, work_dir: Path, pm):
+    """Create the appropriate adapter instance for config scaffolding."""
+    if slug == "releasepilot":
+        from opsportal.adapters.releasepilot import ReleasePilotAdapter
+
+        return ReleasePilotAdapter(
+            pm,
+            repo_path=tool.repo_path,
+            work_dir=work_dir,
+            port=tool.port or 8082,
+        )
+
+    if slug == "releaseboard":
+        from opsportal.adapters.releaseboard import ReleaseBoardAdapter
+
+        return ReleaseBoardAdapter(
+            pm,
+            repo_path=tool.repo_path,
+            work_dir=work_dir,
+            port=tool.port or 8081,
+            config_file=tool.config_file or "releaseboard.json",
+        )
+
+    return None
+
+
 @app.command()
 def version() -> None:
     """Show OpsPortal version."""

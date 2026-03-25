@@ -7,6 +7,7 @@ The server is started automatically when the user enters the tool.
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -38,6 +39,17 @@ def _rp_validate(data: dict[str, Any]) -> list[str]:
     return [w.message for w in warnings]
 
 
+# Minimal valid config that lets ReleasePilot start without errors.
+# Users can refine via the Configuration page afterward.
+_RELEASEPILOT_DEFAULT_CONFIG: dict[str, Any] = {
+    "app_name": "Release Notes",
+    "language": "en",
+    "format": "markdown",
+    "show_authors": True,
+    "show_hashes": False,
+}
+
+
 class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
     def __init__(
         self,
@@ -49,6 +61,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         cli_binary: str = "releasepilot",
         env: dict[str, str] | None = None,
         startup_timeout: int = 30,
+        tools_base_dir: Path | None = None,
         portal_origins: str = "http://127.0.0.1:8000,http://localhost:8000",
     ) -> None:
         self._repo_path = repo_path
@@ -62,12 +75,14 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
             "RELEASEPILOT_CORS_ORIGINS": portal_origins,
         }
         self._startup_timeout = startup_timeout
+        self._tools_base_dir = tools_base_dir
         self._process_name = "releasepilot"
         self._http_client: httpx.AsyncClient | None = None
         # Config mixin setup — ReleasePilot uses auto-discovered config files
         self._config_file = ".releasepilot.json"
         self._schema_paths = self._build_schema_paths()
         self._validate_fn = _rp_validate
+        self._builtin_default_config = _RELEASEPILOT_DEFAULT_CONFIG
 
     def _build_schema_paths(self) -> list[Path]:
         """Build schema search paths: installed package → repo → work_dir."""
@@ -85,6 +100,51 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         if self._work_dir:
             paths.append(self._work_dir / "releasepilot.schema.json")
         return paths
+
+    def _resolve_config_path(self) -> Path:
+        """Multi-strategy config resolution for production use.
+
+        Search order:
+        1. Environment variable OPSPORTAL_RELEASEPILOT_CONFIG (explicit override)
+        2. repo_path / config_file  (local dev checkout)
+        3. work_dir / config_file   (remote-managed tool)
+        4. tools_base_dir / config_file
+        5. CWD / config_file
+
+        Returns the first path that exists, or falls back to the best
+        canonical location for creation/save.
+        """
+        env_path = os.environ.get("OPSPORTAL_RELEASEPILOT_CONFIG")
+        if env_path:
+            p = Path(env_path).resolve()
+            if p.exists():
+                return p
+            logger.warning(
+                "OPSPORTAL_RELEASEPILOT_CONFIG=%s does not exist, trying other locations",
+                env_path,
+            )
+
+        candidates: list[Path] = []
+        if self._repo_path:
+            candidates.append(self._repo_path / self._config_file)
+        if self._work_dir:
+            candidates.append(self._work_dir / self._config_file)
+        if self._tools_base_dir:
+            candidates.append(self._tools_base_dir / self._config_file)
+        candidates.append(Path.cwd() / self._config_file)
+
+        for candidate in candidates:
+            resolved = candidate.resolve()
+            if resolved.exists():
+                logger.debug("ReleasePilot config found at %s", resolved)
+                return resolved
+
+        # Return the canonical location for creation/error messages
+        if self._work_dir:
+            return (self._work_dir / self._config_file).resolve()
+        if self._repo_path:
+            return (self._repo_path / self._config_file).resolve()
+        return (Path.cwd() / self._config_file).resolve()
 
     # -- Identity -----------------------------------------------------------
     @property
@@ -266,7 +326,8 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     # -- Lifecycle ----------------------------------------------------------
     async def startup(self) -> None:
-        pass  # Started on demand
+        """Scaffold default config on portal startup (proactive bootstrap)."""
+        self.scaffold_default_config()
 
     async def shutdown(self) -> None:
         await self._stop_server()

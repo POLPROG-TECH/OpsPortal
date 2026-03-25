@@ -173,6 +173,10 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
         }
 
     @property
+    def has_first_run_wizard(self) -> bool:
+        return True
+
+    @property
     def icon(self) -> str:
         return "clipboard-check"
 
@@ -223,7 +227,11 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     # -- Auto-start ---------------------------------------------------------
     async def ensure_ready(self) -> EnsureReadyResult:
-        """Start the ReleaseBoard server if not running, wait for health."""
+        """Start the ReleaseBoard server if not running, wait for health.
+
+        ReleaseBoard has a built-in first-run wizard: when the config file
+        does not exist it launches in setup mode instead of crashing.
+        """
         if not shutil.which(self._cli):
             return EnsureReadyResult(
                 ready=False,
@@ -231,35 +239,8 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
                 "Install ReleaseBoard: pip install releaseboard",
             )
 
-        # Auto-scaffold default config from schema if available
-        self.scaffold_default_config()
-
         config_path = self._resolve_config_path()
-        if not config_path.exists():
-            search_locations = [
-                "  • $OPSPORTAL_RELEASEBOARD_CONFIG (env var)",
-            ]
-            if self._repo_path:
-                search_locations.append(
-                    f"  • {_sanitize_path_for_display(self._repo_path / self._config_file)}"
-                )
-            if self._work_dir:
-                search_locations.append(
-                    f"  • {_sanitize_path_for_display(self._work_dir / self._config_file)}"
-                )
-            if self._tools_base_dir:
-                search_locations.append(
-                    f"  • {_sanitize_path_for_display(self._tools_base_dir / self._config_file)}"
-                )
-            return EnsureReadyResult(
-                ready=False,
-                error=(
-                    f"ReleaseBoard configuration file '{self._config_file}' not found.\n"
-                    f"Searched locations:\n" + "\n".join(search_locations) + "\n\n"
-                    "Create a config file or set OPSPORTAL_RELEASEBOARD_CONFIG "
-                    "to the path of your releaseboard.json."
-                ),
-            )
+        config_path.parent.mkdir(parents=True, exist_ok=True)
 
         cmd = [
             self._cli,
@@ -354,7 +335,9 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     # -- Lifecycle ----------------------------------------------------------
     async def startup(self) -> None:
-        pass  # No auto-start at portal boot — started on demand
+        """Ensure the work directory exists on portal startup."""
+        config_path = self._resolve_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
 
     async def shutdown(self) -> None:
         await self._stop_server()

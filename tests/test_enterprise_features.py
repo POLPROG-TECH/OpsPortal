@@ -22,12 +22,11 @@ class TestCSPFrameSrc:
     """Verify that the portal's CSP allows framing child tools."""
 
     def test_csp_includes_frame_src_for_child_ports(self):
-        """GIVEN the csp includes frame src for child ports scenario."""
-
-        """WHEN executing."""
+        """CSP frame-src includes entries for child tool ports."""
+        """WHEN building CSP for ports 8081 and 8082."""
         csp = _build_csp([8081, 8082])
 
-        """THEN the result is correct."""
+        """THEN frame-src contains localhost and 127.0.0.1 entries for each port."""
         assert "frame-src" in csp
         assert "http://127.0.0.1:8081" in csp
         assert "http://127.0.0.1:8082" in csp
@@ -35,41 +34,39 @@ class TestCSPFrameSrc:
         assert "http://localhost:8082" in csp
 
     def test_csp_self_only_when_no_ports(self):
-        """GIVEN the csp self only when no ports scenario."""
-
-        """WHEN executing."""
+        """CSP falls back to 'self' when no child ports are registered."""
+        """WHEN building CSP with an empty port list."""
         csp = _build_csp([])
 
-        """THEN the result is correct."""
+        """THEN frame-src is 'self' only, with no 127.0.0.1 entries."""
         assert "frame-src 'self'" in csp
         assert "127.0.0.1" not in csp
 
     def test_csp_none_ports_handled(self):
-        """GIVEN the csp none ports handled scenario."""
-
-        """WHEN executing."""
+        """CSP handles None as port list gracefully."""
+        """WHEN building CSP with None instead of a list."""
         csp = _build_csp(None)
 
-        """THEN the result is correct."""
+        """THEN frame-src falls back to 'self'."""
         assert "frame-src 'self'" in csp
 
     def test_csp_includes_frame_ancestors(self):
-        """GIVEN the csp includes frame ancestors scenario."""
-
-        """WHEN executing."""
+        """CSP includes frame-ancestors 'self' directive."""
+        """WHEN building CSP for a single port."""
         csp = _build_csp([8081])
 
-        """THEN the result is correct."""
+        """THEN frame-ancestors 'self' is present."""
         assert "frame-ancestors 'self'" in csp
 
     def test_home_page_csp_has_frame_src(self, client: TestClient):
-        """GIVEN Integration: home response CSP should allow child tool ports."""
+        """Home page response includes CSP with frame-src directive."""
+        """GIVEN a GET request to the home page."""
         resp = client.get("/")
 
-        """WHEN executing."""
+        """WHEN extracting the CSP header."""
         csp = resp.headers.get("content-security-policy", "")
 
-        """THEN the result is correct."""
+        """THEN frame-src is present in the header."""
         assert "frame-src" in csp
 
 
@@ -82,10 +79,11 @@ class TestReleaseBoardConfigResolution:
     """Verify multi-strategy config file discovery."""
 
     def test_config_found_in_repo_path(self, tmp_path: Path):
-        """GIVEN the config found in repo path scenario."""
+        """Config resolution finds releaseboard.json inside the repo directory."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a repo directory containing releaseboard.json."""
         repo = tmp_path / "ReleaseBoard"
         repo.mkdir()
         config = repo / "releaseboard.json"
@@ -98,17 +96,18 @@ class TestReleaseBoardConfigResolution:
             port=8081,
         )
 
-        """WHEN executing."""
+        """WHEN resolving the config path."""
         resolved = adapter._resolve_config_path()
 
-        """THEN the result is correct."""
+        """THEN the resolved path points to the config inside the repo."""
         assert resolved == config.resolve()
 
     def test_config_found_in_tools_base_dir(self, tmp_path: Path):
-        """GIVEN the config found in tools base dir scenario."""
+        """Config resolution finds releaseboard.json in the tools base directory."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a tools base directory containing releaseboard.json."""
         repo = tmp_path / "ReleaseBoard"
         repo.mkdir()
         tools_dir = tmp_path / "Tools"
@@ -124,17 +123,18 @@ class TestReleaseBoardConfigResolution:
             tools_base_dir=tools_dir,
         )
 
-        """WHEN executing."""
+        """WHEN resolving the config path."""
         resolved = adapter._resolve_config_path()
 
-        """THEN the result is correct."""
+        """THEN the resolved path points to the config in the tools base dir."""
         assert resolved == config.resolve()
 
     def test_config_from_env_var(self, tmp_path: Path):
-        """GIVEN the config from env var scenario."""
+        """Config resolution uses OPSPORTAL_RELEASEBOARD_CONFIG env var when set."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a custom config file and an adapter without it in the default paths."""
         repo = tmp_path / "ReleaseBoard"
         repo.mkdir()
         custom_config = tmp_path / "custom" / "rb.json"
@@ -148,18 +148,19 @@ class TestReleaseBoardConfigResolution:
             port=8081,
         )
 
-        """WHEN executing."""
+        """WHEN resolving the config path with the env var set."""
         with patch.dict(os.environ, {"OPSPORTAL_RELEASEBOARD_CONFIG": str(custom_config)}):
             resolved = adapter._resolve_config_path()
 
-        """THEN the result is correct."""
+        """THEN the resolved path matches the env var value."""
         assert resolved == custom_config.resolve()
 
     def test_config_not_found_returns_canonical(self, tmp_path: Path):
-        """GIVEN the config not found returns canonical scenario."""
+        """Config resolution returns canonical repo path when no config file exists."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a repo directory with no config file."""
         repo = tmp_path / "ReleaseBoard"
         repo.mkdir()
 
@@ -170,10 +171,10 @@ class TestReleaseBoardConfigResolution:
             port=8081,
         )
 
-        """WHEN executing."""
+        """WHEN resolving the config path."""
         resolved = adapter._resolve_config_path()
 
-        """THEN the result is correct."""
+        """THEN the canonical repo/releaseboard.json path is returned but does not exist."""
         assert resolved == (repo / "releaseboard.json").resolve()
         assert not resolved.exists()
 
@@ -187,37 +188,44 @@ class TestErrorSanitization:
     """Ensure error messages don't leak raw filesystem paths."""
 
     def test_sanitize_path_hides_home(self):
-        """GIVEN the sanitize path hides home scenario."""
+        """Sanitize replaces the home directory prefix with ~."""
         from opsportal.adapters.releaseboard import _sanitize_path_for_display
 
+        """GIVEN a path under the user's home directory."""
         home = Path.home()
         p = home / "Projects" / "Tools" / "file.json"
 
-        """WHEN executing."""
+        """WHEN sanitizing the path for display."""
         result = _sanitize_path_for_display(p)
 
-        """THEN the result is correct."""
+        """THEN the result starts with ~ and does not contain the raw home path."""
         assert result.startswith("~")
         assert str(home) not in result
 
     def test_sanitize_path_no_home(self):
-        """GIVEN the sanitize path no home scenario."""
+        """Sanitize keeps paths outside the home directory unchanged."""
         from opsportal.adapters.releaseboard import _sanitize_path_for_display
 
+        """GIVEN a path not under the home directory."""
         p = Path("/opt/tools/config.json")
 
-        """WHEN executing."""
+        """WHEN sanitizing the path for display."""
         result = _sanitize_path_for_display(p)
 
-        """THEN the result is correct."""
+        """THEN the path is returned unchanged."""
         assert result == "/opt/tools/config.json"
 
     @pytest.mark.asyncio
     async def test_ensure_ready_error_no_raw_path(self, tmp_path: Path):
-        """GIVEN the ensure ready error no raw path scenario."""
+        """ReleaseBoard starts without config (first-run wizard) and errors hide paths."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
-        from opsportal.services.process_manager import ProcessManager
+        from opsportal.services.process_manager import (
+            ManagedProcess,
+            ProcessManager,
+            ProcessStatus,
+        )
 
+        """GIVEN a ReleaseBoard adapter with no config file."""
         repo = tmp_path / "ReleaseBoard"
         repo.mkdir()
 
@@ -228,16 +236,23 @@ class TestErrorSanitization:
             port=8081,
         )
 
-        """WHEN executing."""
-        with patch("shutil.which", return_value="/usr/bin/releaseboard"):
+        """WHEN ensure_ready is called (without a config file)."""
+        running = ManagedProcess(
+            name="releaseboard",
+            command=["releaseboard", "serve"],
+            status=ProcessStatus.RUNNING,
+        )
+        with (
+            patch("shutil.which", return_value="/usr/bin/releaseboard"),
+            patch.object(pm, "ensure_running", return_value=running),
+        ):
             result = await adapter.ensure_ready()
 
-        """THEN the result is correct."""
-        assert not result.ready
-        # Error should not contain the full home directory
-        assert str(Path.home()) not in (result.error or "")
-        # Should contain helpful guidance
-        assert "OPSPORTAL_RELEASEBOARD_CONFIG" in (result.error or "")
+        """THEN the adapter starts successfully (ReleaseBoard handles first-run internally)."""
+        assert result.ready
+        assert result.web_url is not None
+        if result.error:
+            assert str(Path.home()) not in result.error
 
 
 # ---------------------------------------------------------------------------
@@ -249,10 +264,11 @@ class TestVersionDisplay:
     """Verify version discovery from adapters."""
 
     def test_releaseboard_version_from_importlib(self, tmp_path: Path):
-        """GIVEN the releaseboard version from importlib scenario."""
+        """ReleaseBoard adapter returns version from importlib.metadata."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a ReleaseBoard adapter."""
         pm = ProcessManager()
         adapter = ReleaseBoardAdapter(
             pm,
@@ -260,18 +276,19 @@ class TestVersionDisplay:
             port=8081,
         )
 
-        """WHEN executing."""
+        """WHEN importlib.metadata.version returns "1.2.3"."""
         with patch("importlib.metadata.version", return_value="1.2.3"):
             v = adapter.get_version()
 
-        """THEN the result is correct."""
+        """THEN the adapter reports version "1.2.3"."""
         assert v == "1.2.3"
 
     def test_releasepilot_version_from_importlib(self, tmp_path: Path):
-        """GIVEN the releasepilot version from importlib scenario."""
+        """ReleasePilot adapter returns version from importlib.metadata."""
         from opsportal.adapters.releasepilot import ReleasePilotAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a ReleasePilot adapter."""
         pm = ProcessManager()
         adapter = ReleasePilotAdapter(
             pm,
@@ -279,18 +296,19 @@ class TestVersionDisplay:
             port=8082,
         )
 
-        """WHEN executing."""
+        """WHEN importlib.metadata.version returns "2.0.0"."""
         with patch("importlib.metadata.version", return_value="2.0.0"):
             v = adapter.get_version()
 
-        """THEN the result is correct."""
+        """THEN the adapter reports version "2.0.0"."""
         assert v == "2.0.0"
 
     def test_version_returns_none_when_unavailable(self, tmp_path: Path):
-        """GIVEN the version returns none when unavailable scenario."""
+        """Adapter returns None when importlib.metadata.version raises an exception."""
         from opsportal.adapters.releaseboard import ReleaseBoardAdapter
         from opsportal.services.process_manager import ProcessManager
 
+        """GIVEN a ReleaseBoard adapter."""
         pm = ProcessManager()
         adapter = ReleaseBoardAdapter(
             pm,
@@ -298,20 +316,19 @@ class TestVersionDisplay:
             port=8081,
         )
 
-        """WHEN executing."""
+        """WHEN importlib.metadata.version raises an exception."""
         with patch("importlib.metadata.version", side_effect=Exception):
             v = adapter.get_version()
 
-        """THEN the result is correct."""
+        """THEN the version is None."""
         assert v is None
 
     def test_card_data_includes_version(self, client: TestClient):
-        """GIVEN Integration: API should include version field in tool cards."""
-
-        """WHEN executing."""
+        """API /api/tools endpoint returns a list of tool cards."""
+        """WHEN requesting the tools API."""
         resp = client.get("/api/tools")
 
-        """THEN the result is correct."""
+        """THEN the response is 200 and returns a list."""
         assert resp.status_code == 200
         # Even with no tools registered, the endpoint should work
         data = resp.json()
@@ -327,27 +344,26 @@ class TestProductCardUX:
     """Verify the product card HTML structure after redesign."""
 
     def test_home_has_no_product_action_launch(self, client: TestClient):
-        """GIVEN The redundant product-action-launch class should be removed."""
-
-        """WHEN executing."""
+        """Home page does not contain the deprecated product-action-launch class."""
+        """WHEN requesting the home page."""
         resp = client.get("/")
 
-        """THEN the result is correct."""
+        """THEN the response succeeds and does not contain product-action-launch."""
         assert resp.status_code == 200
         assert "product-action-launch" not in resp.text
 
     def test_home_has_no_product_action_open(self, client: TestClient):
-        """GIVEN The redundant product-action-open class should be removed."""
-
-        """WHEN executing."""
+        """Home page does not contain the deprecated product-action-open class."""
+        """WHEN requesting the home page."""
         resp = client.get("/")
 
-        """THEN the result is correct."""
+        """THEN the response succeeds and does not contain product-action-open."""
         assert resp.status_code == 200
         assert "product-action-open" not in resp.text
 
     def test_home_has_product_version_class(self):
-        """GIVEN CSS should define the product-version class."""
+        """CSS defines the .product-version class for version display."""
+        """GIVEN the portal-base.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -358,14 +374,15 @@ class TestProductCardUX:
             / "portal-base.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN .product-version is defined."""
         assert ".product-version" in css
 
     def test_home_has_product_status_label_class(self):
-        """GIVEN CSS should define the product-status-label class."""
+        """CSS defines the .product-status-label class for status badges."""
+        """GIVEN the portal-base.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -376,10 +393,10 @@ class TestProductCardUX:
             / "portal-base.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN .product-status-label is defined."""
         assert ".product-status-label" in css
 
 
@@ -392,7 +409,8 @@ class TestIframeFallback:
     """Verify the iframe fallback UI is present in templates."""
 
     def test_tool_web_template_has_fallback(self):
-        """GIVEN the tool web template has fallback scenario."""
+        """tool_web.html template includes iframe fallback UI elements."""
+        """GIVEN the tool_web.html template path."""
         template_path = (
             Path(__file__).parent.parent
             / "src"
@@ -402,16 +420,17 @@ class TestIframeFallback:
             / "tool_web.html"
         )
 
-        """WHEN executing."""
+        """WHEN reading the template content."""
         content = template_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN fallback elements for embed blocking are present."""
         assert "iframe-fallback" in content
         assert "tool.embed_blocked" in content
         assert "tool.open_new_tab" in content
 
     def test_iframe_fallback_css_exists(self):
-        """GIVEN the iframe fallback css exists scenario."""
+        """portal-pages.css defines the .iframe-fallback class."""
+        """GIVEN the portal-pages.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -422,14 +441,15 @@ class TestIframeFallback:
             / "portal-pages.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN .iframe-fallback is defined."""
         assert ".iframe-fallback" in css
 
     def test_i18n_has_embed_blocked_keys(self):
-        """GIVEN the i18n has embed blocked keys scenario."""
+        """English i18n bundle includes embed_blocked and open_new_tab keys."""
+        """GIVEN the English i18n JS file."""
         js_path = (
             Path(__file__).parent.parent
             / "src"
@@ -440,15 +460,16 @@ class TestIframeFallback:
             / "portal-i18n.js"
         )
 
-        """WHEN executing."""
+        """WHEN reading the JS content."""
         js = js_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN embed_blocked and open_new_tab keys are present."""
         assert '"tool.embed_blocked"' in js
         assert '"tool.open_new_tab"' in js
 
     def test_i18n_pl_has_embed_blocked_keys(self):
-        """GIVEN the i18n pl has embed blocked keys scenario."""
+        """Polish i18n bundle includes embed_blocked and open_new_tab keys."""
+        """GIVEN the Polish i18n JS file."""
         js_path = (
             Path(__file__).parent.parent
             / "src"
@@ -459,10 +480,10 @@ class TestIframeFallback:
             / "portal-i18n-pl.js"
         )
 
-        """WHEN executing."""
+        """WHEN reading the JS content."""
         js = js_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN embed_blocked and open_new_tab keys are present."""
         assert '"tool.embed_blocked"' in js
         assert '"tool.open_new_tab"' in js
 
@@ -476,7 +497,8 @@ class TestIframeWidthControls:
     """Verify the iframe width control UI is present in templates."""
 
     def test_tool_web_has_width_controls(self):
-        """GIVEN the tool web has width controls scenario."""
+        """tool_web.html template includes iframe width control elements."""
+        """GIVEN the tool_web.html template path."""
         template_path = (
             Path(__file__).parent.parent
             / "src"
@@ -486,17 +508,18 @@ class TestIframeWidthControls:
             / "tool_web.html"
         )
 
-        """WHEN executing."""
+        """WHEN reading the template content."""
         content = template_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN width control elements are present."""
         assert "iframe-controls" in content
         assert "expand-left" in content
         assert "expand-right" in content
         assert "setFrameWidth" in content
 
     def test_iframe_controls_css_exists(self):
-        """GIVEN the iframe controls css exists scenario."""
+        """portal-pages.css defines iframe control button classes."""
+        """GIVEN the portal-pages.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -507,17 +530,18 @@ class TestIframeWidthControls:
             / "portal-pages.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN iframe control classes are defined."""
         assert ".iframe-controls" in css
         assert ".iframe-control-btn" in css
         assert ".frame-expand-left" in css
         assert ".frame-expand-right" in css
 
     def test_width_control_i18n_keys_en(self):
-        """GIVEN the width control i18n keys en scenario."""
+        """English i18n bundle includes width control keys."""
+        """GIVEN the English i18n JS file."""
         js_path = (
             Path(__file__).parent.parent
             / "src"
@@ -528,16 +552,17 @@ class TestIframeWidthControls:
             / "portal-i18n.js"
         )
 
-        """WHEN executing."""
+        """WHEN reading the JS content."""
         js = js_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN expand_left, expand_right, and reset_width keys are present."""
         assert '"tool.expand_left"' in js
         assert '"tool.expand_right"' in js
         assert '"tool.reset_width"' in js
 
     def test_width_control_i18n_keys_pl(self):
-        """GIVEN the width control i18n keys pl scenario."""
+        """Polish i18n bundle includes width control keys."""
+        """GIVEN the Polish i18n JS file."""
         js_path = (
             Path(__file__).parent.parent
             / "src"
@@ -548,10 +573,10 @@ class TestIframeWidthControls:
             / "portal-i18n-pl.js"
         )
 
-        """WHEN executing."""
+        """WHEN reading the JS content."""
         js = js_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN expand_left, expand_right, and reset_width keys are present."""
         assert '"tool.expand_left"' in js
         assert '"tool.expand_right"' in js
         assert '"tool.reset_width"' in js
@@ -566,7 +591,8 @@ class TestLoadingSkeleton:
     """Verify the shimmer-based loading skeleton is present."""
 
     def test_skeleton_shimmer_css_exists(self):
-        """GIVEN the skeleton shimmer css exists scenario."""
+        """portal-pages.css defines shimmer animation and skeleton classes."""
+        """GIVEN the portal-pages.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -577,16 +603,17 @@ class TestLoadingSkeleton:
             / "portal-pages.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN shimmer keyframes and skeleton classes are defined."""
         assert "@keyframes shimmer" in css
         assert ".skeleton-shimmer" in css
         assert ".skeleton-card" in css
 
     def test_tool_web_uses_shimmer_skeleton(self):
-        """GIVEN the tool web uses shimmer skeleton scenario."""
+        """tool_web.html template uses shimmer skeleton loading elements."""
+        """GIVEN the tool_web.html template path."""
         template_path = (
             Path(__file__).parent.parent
             / "src"
@@ -596,10 +623,10 @@ class TestLoadingSkeleton:
             / "tool_web.html"
         )
 
-        """WHEN executing."""
+        """WHEN reading the template content."""
         content = template_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN skeleton shimmer elements are present."""
         assert "skeleton-shimmer" in content
         assert "skeleton-card" in content
         assert "skeleton-row" in content
@@ -614,19 +641,21 @@ class TestProductCardMetadata:
     """Verify enhanced product card metadata display."""
 
     def test_home_template_has_product_meta(self):
-        """GIVEN the home template has product meta scenario."""
+        """Home template includes product-meta section for card metadata."""
+        """GIVEN the home.html template."""
         template_path = (
             Path(__file__).parent.parent / "src" / "opsportal" / "ui" / "templates" / "home.html"
         )
 
-        """WHEN executing."""
+        """WHEN reading the template content."""
         content = template_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN product-meta element is present."""
         assert "product-meta" in content
 
     def test_product_meta_css_exists(self):
-        """GIVEN the product meta css exists scenario."""
+        """portal-base.css defines product-meta and product-meta-badge classes."""
+        """GIVEN the portal-base.css file."""
         css_path = (
             Path(__file__).parent.parent
             / "src"
@@ -637,10 +666,10 @@ class TestProductCardMetadata:
             / "portal-base.css"
         )
 
-        """WHEN executing."""
+        """WHEN reading the CSS content."""
         css = css_path.read_text()
 
-        """THEN the result is correct."""
+        """THEN product-meta classes are defined."""
         assert ".product-meta" in css
         assert ".product-meta-badge" in css
 
@@ -658,11 +687,10 @@ class TestConfigSaveRestart:
     I18N_PL = (UI_DIR / "static" / "js" / "portal-i18n-pl.js").read_text(encoding="utf-8")
 
     def test_save_and_restart_button_present(self) -> None:
-        """GIVEN The config form must have a Save & Restart button."""
+        """Config form includes a Save & Restart button."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN the template contains saveConfig(true) and a save_restart label."""
         assert "saveConfig(true)" in self.TEMPLATE
         assert (
             "save_restart" in self.TEMPLATE
@@ -671,29 +699,26 @@ class TestConfigSaveRestart:
         )
 
     def test_restart_hint_banner_present(self) -> None:
-        """GIVEN After save, a restart-hint banner must be available."""
+        """Config form shows a restart-hint banner after saving."""
+        """GIVEN the tool_config.html template and English i18n bundle."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN the restart-hint element and i18n key are present."""
         assert "restart-hint" in self.TEMPLATE
         assert "restart_hint" in self.I18N_EN
 
     def test_restart_tool_function_present(self) -> None:
-        """GIVEN A restartTool() JS function must exist to trigger tool restart."""
+        """Config template defines a restartTool() function calling /actions/restart."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN restartTool function and restart endpoint are present."""
         assert "restartTool" in self.TEMPLATE
         assert "/actions/restart" in self.TEMPLATE
 
     def test_restart_i18n_keys_present(self) -> None:
-        """GIVEN Both EN and PL must have restart-related config keys."""
+        """EN and PL i18n bundles include restart-related config keys."""
+        """GIVEN the English and Polish i18n bundles loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN all restart keys are present in both locales."""
         for key in ["config.restart_hint", "config.restart_now", "config.restart_success"]:
             assert key in self.I18N_EN, f"Missing EN key: {key}"
             assert key in self.I18N_PL, f"Missing PL key: {key}"
@@ -711,35 +736,31 @@ class TestConfigSectionGrouping:
     CSS = (UI_DIR / "static" / "css" / "portal-pages.css").read_text(encoding="utf-8")
 
     def test_section_map_defined(self) -> None:
-        """GIVEN A SECTION_MAP must exist for field-to-section grouping."""
+        """Config template defines a SECTION_MAP for field-to-section grouping."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN SECTION_MAP is defined in the template."""
         assert "SECTION_MAP" in self.TEMPLATE
 
     def test_section_labels_defined(self) -> None:
-        """GIVEN Section labels must be defined for display."""
+        """Config template defines SECTION_LABELS for display headings."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN SECTION_LABELS is defined in the template."""
         assert "SECTION_LABELS" in self.TEMPLATE
 
     def test_config_section_heading_css(self) -> None:
-        """GIVEN CSS must define .config-section-heading for section headers."""
+        """CSS defines .config-section-heading for section headers."""
+        """GIVEN the portal-pages.css file loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN .config-section-heading is defined."""
         assert ".config-section-heading" in self.CSS
 
     def test_section_group_css(self) -> None:
-        """GIVEN CSS must define .config-section-group for section containers."""
+        """CSS defines .config-section-group for section containers."""
+        """GIVEN the portal-pages.css file loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN .config-section-group is defined."""
         assert ".config-section-group" in self.CSS
 
 
@@ -754,30 +775,28 @@ class TestConfigSchemaValidation:
     TEMPLATE = (UI_DIR / "templates" / "tool_config.html").read_text(encoding="utf-8")
 
     def test_validate_button_present(self) -> None:
-        """GIVEN The config form must have a Validate button."""
+        """Config form includes a Validate button calling validateConfig()."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN validateConfig() is present in the template."""
         assert "validateConfig()" in self.TEMPLATE
 
     def test_validation_banner_present(self) -> None:
-        """GIVEN A validation error banner must be available."""
+        """Config template includes validation error banner elements."""
+        """GIVEN the tool_config.html template loaded at class level."""
 
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """THEN validation-banner and validation-errors elements are present."""
         assert "validation-banner" in self.TEMPLATE
         assert "validation-errors" in self.TEMPLATE
 
     def test_save_validates_before_write(self) -> None:
-        """GIVEN The save_config mixin must validate before writing."""
+        """save_config mixin calls validate_config before writing to disk."""
         import inspect
 
         from opsportal.adapters._config_mixin import JsonSchemaConfigMixin
 
-        """WHEN executing."""
+        """WHEN inspecting the save_config source code."""
         source = inspect.getsource(JsonSchemaConfigMixin.save_config)
 
-        """THEN the result is correct."""
+        """THEN validate_config is called within save_config."""
         assert "validate_config" in source

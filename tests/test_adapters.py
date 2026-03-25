@@ -10,90 +10,96 @@ from tests.conftest import StubAdapter
 
 
 def test_registry_register_and_get() -> None:
-    """GIVEN the registry register and get scenario."""
+    """AdapterRegistry stores and retrieves adapters by slug."""
+    """GIVEN an empty registry and a stub adapter."""
     reg = AdapterRegistry()
     adapter = StubAdapter("test-tool")
 
-    """WHEN executing."""
+    """WHEN registering the adapter."""
     reg.register(adapter)
 
-    """THEN the result is correct."""
+    """THEN the adapter is retrievable by slug."""
     assert "test-tool" in reg
     assert reg.get("test-tool") is adapter
     assert len(reg) == 1
 
 
 def test_registry_duplicate_raises() -> None:
-    """GIVEN the registry duplicate raises scenario."""
-
-    """WHEN executing."""
+    """Registering a duplicate slug raises ValueError."""
+    """GIVEN a registry with one adapter already registered."""
     reg = AdapterRegistry()
     reg.register(StubAdapter("dup"))
 
-    """THEN the result is correct."""
+    """WHEN registering another adapter with the same slug."""
+    """THEN a ValueError is raised."""
     with pytest.raises(ValueError, match="Duplicate"):
         reg.register(StubAdapter("dup"))
 
 
 def test_registry_get_unknown_returns_none() -> None:
-    """GIVEN the registry get unknown returns none scenario."""
-
-    """WHEN executing."""
+    """Getting an unregistered slug from the registry returns None."""
+    """GIVEN an empty registry."""
     reg = AdapterRegistry()
 
-    """THEN the result is correct."""
+    """THEN looking up a non-existent slug returns None."""
     assert reg.get("nope") is None
 
 
 def test_registry_all() -> None:
-    """GIVEN the registry all scenario."""
+    """AdapterRegistry.all() returns every registered adapter."""
+    """GIVEN a registry with one adapter."""
     reg = AdapterRegistry()
     reg.register(StubAdapter("a"))
 
-    """WHEN executing."""
+    """WHEN registering a second adapter."""
     reg.register(StubAdapter("b"))
 
-    """THEN the result is correct."""
+    """THEN all() returns both adapters."""
     assert len(reg.all()) == 2
 
 
 @pytest.mark.asyncio
 async def test_stub_adapter_status() -> None:
-    """GIVEN the stub adapter status scenario."""
-
-    """WHEN executing."""
+    """StubAdapter returns AVAILABLE or ERROR based on its available flag."""
+    """GIVEN an available stub adapter."""
     adapter = StubAdapter("t", available=True)
 
-    """THEN the result is correct."""
+    """THEN status is AVAILABLE."""
     assert await adapter.get_status() == ToolStatus.AVAILABLE
 
+    """GIVEN an unavailable stub adapter."""
     adapter2 = StubAdapter("t2", available=False)
+
+    """THEN status is ERROR."""
     assert await adapter2.get_status() == ToolStatus.ERROR
 
 
 @pytest.mark.asyncio
 async def test_stub_adapter_health() -> None:
-    """GIVEN the stub adapter health scenario."""
+    """StubAdapter health_check reflects the available flag."""
+    """GIVEN an available stub adapter."""
     adapter = StubAdapter("t", available=True)
 
-    """WHEN executing."""
+    """WHEN running a health check."""
     h = await adapter.health_check()
 
-    """THEN the result is correct."""
+    """THEN healthy is True."""
     assert h.healthy is True
 
+    """GIVEN an unavailable stub adapter."""
     adapter2 = StubAdapter("t2", available=False)
     h2 = await adapter2.health_check()
+
+    """THEN healthy is False."""
     assert h2.healthy is False
 
 
 def test_stub_adapter_properties() -> None:
-    """GIVEN the stub adapter properties scenario."""
-
-    """WHEN executing."""
+    """StubAdapter exposes correct slug, display_name, mode, and capabilities."""
+    """GIVEN a stub adapter."""
     adapter = StubAdapter("my-tool")
 
-    """THEN the result is correct."""
+    """THEN its properties match expected defaults."""
     assert adapter.slug == "my-tool"
     assert adapter.display_name == "Stub Tool"
     assert adapter.integration_mode == IntegrationMode.CLI_TASK

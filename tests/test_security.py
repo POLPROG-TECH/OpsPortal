@@ -22,7 +22,8 @@ from tests.conftest import csrf_headers
 
 class TestXSSEscaping:
     def test_non_html_artifact_is_escaped(self, client: TestClient, tmp_path: Path) -> None:
-        """GIVEN Non-HTML artifact content must be HTML-escaped inside <pre>."""
+        """Non-HTML artifact content is HTML-escaped inside <pre>."""
+        """GIVEN an artifact with an XSS payload stored as text/plain."""
         am: ArtifactManager = client.app.state.artifact_manager
         payload = "<script>alert('xss')</script>"
         am.store_content("testtool", payload, "evil.txt", content_type="text/plain")
@@ -33,16 +34,17 @@ class TestXSSEscaping:
         adapter = StubAdapter(slug="testtool")
         client.app.state.registry.register(adapter)
 
-        """WHEN executing."""
+        """WHEN requesting the artifact."""
         resp = client.get("/tools/testtool/artifacts/evil.txt")
 
-        """THEN the result is correct."""
+        """THEN the raw <script> tag is escaped."""
         assert resp.status_code == 200
         assert "<script>" not in resp.text
         assert "&lt;script&gt;" in resp.text
 
     def test_html_artifact_has_sandbox_csp(self, client: TestClient, tmp_path: Path) -> None:
-        """GIVEN HTML artifacts must be served with a restrictive CSP header."""
+        """HTML artifacts are served with a restrictive sandbox CSP header."""
+        """GIVEN an HTML artifact."""
         am: ArtifactManager = client.app.state.artifact_manager
         am.store_content("testtool", "<h1>Report</h1>", "report.html", content_type="text/html")
 
@@ -52,10 +54,10 @@ class TestXSSEscaping:
         with contextlib.suppress(Exception):
             client.app.state.registry.register(adapter)
 
-        """WHEN executing."""
+        """WHEN requesting the HTML artifact."""
         resp = client.get("/tools/testtool/artifacts/report.html")
 
-        """THEN the result is correct."""
+        """THEN the CSP header includes sandbox."""
         assert resp.status_code == 200
         assert "sandbox" in resp.headers.get("content-security-policy", "")
 
@@ -67,25 +69,26 @@ class TestXSSEscaping:
 
 class TestPathTraversal:
     def test_traversal_returns_none(self, tmp_path: Path) -> None:
-        """GIVEN Artifact manager must reject path-traversal names."""
+        """Artifact manager rejects path-traversal filenames."""
+        """GIVEN an artifact manager with a stored artifact."""
         am = ArtifactManager(tmp_path / "artifacts")
-
-        """WHEN executing."""
         am.store_content("tool", "legit", "ok.txt")
 
-        """THEN the result is correct."""
+        """WHEN requesting with path-traversal names."""
+        """THEN both attempts return None."""
         assert am.get_artifact("tool", "../../etc/passwd") is None
         assert am.get_artifact("tool", "../other_tool/secret.txt") is None
 
     def test_valid_artifact_still_works(self, tmp_path: Path) -> None:
-        """GIVEN the valid artifact still works scenario."""
+        """Valid artifact names are retrieved correctly."""
+        """GIVEN an artifact manager with a stored artifact."""
         am = ArtifactManager(tmp_path / "artifacts")
         am.store_content("tool", "hello", "readme.txt")
 
-        """WHEN executing."""
+        """WHEN requesting the artifact by its valid name."""
         entry = am.get_artifact("tool", "readme.txt")
 
-        """THEN the result is correct."""
+        """THEN it returns the artifact with the correct name."""
         assert entry is not None
         assert entry.name == "readme.txt"
 
@@ -97,7 +100,8 @@ class TestPathTraversal:
 
 class TestMalformedJSON:
     def test_config_validate_bad_json(self, client: TestClient) -> None:
-        """GIVEN POST with invalid JSON must return 400, not 500."""
+        """POST with invalid JSON to config validate returns 400, not 500."""
+        """GIVEN a registered tool and CSRF headers."""
         from tests.conftest import StubAdapter
 
         adapter = StubAdapter(slug="jsontool")
@@ -107,19 +111,20 @@ class TestMalformedJSON:
         hdrs = csrf_headers(client)
         hdrs["content-type"] = "application/json"
 
-        """WHEN executing."""
+        """WHEN posting malformed JSON to the validate endpoint."""
         resp = client.post(
             "/api/tools/jsontool/config/validate",
             content=b"{bad json",
             headers=hdrs,
         )
 
-        """THEN the result is correct."""
+        """THEN it returns 400 with an 'Invalid JSON' error."""
         assert resp.status_code == 400
         assert "Invalid JSON" in resp.json().get("error", "")
 
     def test_config_save_bad_json(self, client: TestClient) -> None:
-        """GIVEN the config save bad json scenario."""
+        """PUT with invalid JSON to config save returns 400."""
+        """GIVEN a registered tool and CSRF headers."""
         from tests.conftest import StubAdapter
 
         adapter = StubAdapter(slug="jsontool2")
@@ -129,18 +134,19 @@ class TestMalformedJSON:
         hdrs = csrf_headers(client)
         hdrs["content-type"] = "application/json"
 
-        """WHEN executing."""
+        """WHEN putting malformed JSON to the config endpoint."""
         resp = client.put(
             "/api/tools/jsontool2/config",
             content=b"not-json",
             headers=hdrs,
         )
 
-        """THEN the result is correct."""
+        """THEN it returns 400."""
         assert resp.status_code == 400
 
     def test_action_bad_json(self, client: TestClient) -> None:
-        """GIVEN the action bad json scenario."""
+        """POST with invalid JSON to an action endpoint returns 400."""
+        """GIVEN a registered tool and CSRF headers."""
         from tests.conftest import StubAdapter
 
         adapter = StubAdapter(slug="jsontool3")
@@ -150,18 +156,19 @@ class TestMalformedJSON:
         hdrs = csrf_headers(client)
         hdrs["content-type"] = "application/json"
 
-        """WHEN executing."""
+        """WHEN posting malformed JSON to the action endpoint."""
         resp = client.post(
             "/api/tools/jsontool3/actions/run",
             content=b"{bad",
             headers=hdrs,
         )
 
-        """THEN the result is correct."""
+        """THEN it returns 400."""
         assert resp.status_code == 400
 
     def test_action_no_content_type_is_fine(self, client: TestClient) -> None:
-        """GIVEN Non-JSON content-type should default to empty body, not error."""
+        """Non-JSON content-type defaults to empty body, not a JSON parse error."""
+        """GIVEN a registered tool and CSRF headers with text/plain content type."""
         from tests.conftest import StubAdapter
 
         adapter = StubAdapter(slug="jsontool4")
@@ -171,7 +178,7 @@ class TestMalformedJSON:
         hdrs = csrf_headers(client)
         hdrs["content-type"] = "text/plain"
 
-        """WHEN executing."""
+        """WHEN posting empty text content to the action endpoint."""
         resp = client.post(
             "/api/tools/jsontool4/actions/run",
             content=b"",
@@ -180,7 +187,7 @@ class TestMalformedJSON:
         # The adapter doesn't implement run_action so we expect 500,
         # but critically NOT a 400 JSON error
 
-        """THEN the result is correct."""
+        """THEN the response is not a 400 JSON error."""
         assert resp.status_code != 400
 
 
@@ -191,32 +198,29 @@ class TestMalformedJSON:
 
 class TestCSPHeaders:
     def test_home_has_csp_header(self, client: TestClient) -> None:
-        """GIVEN the home has csp header scenario."""
-
-        """WHEN executing."""
+        """Home page response includes a Content-Security-Policy with default-src."""
+        """WHEN requesting the home page."""
         resp = client.get("/")
 
-        """THEN the result is correct."""
+        """THEN the CSP header contains default-src."""
         assert "content-security-policy" in resp.headers
         csp = resp.headers["content-security-policy"]
         assert "default-src" in csp
 
     def test_no_deprecated_xss_protection(self, client: TestClient) -> None:
-        """GIVEN the no deprecated xss protection scenario."""
-
-        """WHEN executing."""
+        """Home page does not send the deprecated X-XSS-Protection header."""
+        """WHEN requesting the home page."""
         resp = client.get("/")
 
-        """THEN the result is correct."""
+        """THEN X-XSS-Protection is absent."""
         assert "x-xss-protection" not in resp.headers
 
     def test_x_frame_options_present(self, client: TestClient) -> None:
-        """GIVEN the x frame options present scenario."""
-
-        """WHEN executing."""
+        """Home page includes X-Frame-Options: SAMEORIGIN."""
+        """WHEN requesting the home page."""
         resp = client.get("/")
 
-        """THEN the result is correct."""
+        """THEN X-Frame-Options is SAMEORIGIN."""
         assert resp.headers.get("x-frame-options", "").upper() == "SAMEORIGIN"
 
 
@@ -227,12 +231,11 @@ class TestCSPHeaders:
 
 class TestCustomErrorPage:
     def test_404_uses_error_template(self, client: TestClient) -> None:
-        """GIVEN the 404 uses error template scenario."""
-
-        """WHEN executing."""
+        """Non-existent pages return 404 with an error message in the body."""
+        """WHEN requesting a non-existent page."""
         resp = client.get("/nonexistent-page-xyz")
 
-        """THEN the result is correct."""
+        """THEN it returns 404 with an error indication."""
         assert resp.status_code == 404
         assert "Something went wrong" in resp.text or "error" in resp.text.lower()
 
@@ -244,7 +247,8 @@ class TestCustomErrorPage:
 
 class TestConfigMixinErrorHandling:
     def test_read_raw_config_corrupt_json(self, tmp_path: Path) -> None:
-        """GIVEN _read_raw_config must return {} for corrupt JSON, not raise."""
+        """_read_raw_config returns {} for corrupt JSON files, not raising."""
+        """GIVEN a FakeAdapter with a corrupt JSON config file."""
         from opsportal.adapters._config_mixin import JsonSchemaConfigMixin
 
         class FakeAdapter(JsonSchemaConfigMixin):
@@ -256,8 +260,8 @@ class TestConfigMixinErrorHandling:
         (tmp_path / "broken.json").write_text("{bad json!", encoding="utf-8")
         adapter = FakeAdapter()
 
-        """WHEN executing."""
+        """WHEN reading the raw config."""
         result = adapter._read_raw_config()
 
-        """THEN the result is correct."""
+        """THEN it returns an empty dict."""
         assert result == {}

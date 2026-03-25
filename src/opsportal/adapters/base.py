@@ -240,6 +240,15 @@ class ToolAdapter(ABC):
         """Return the path to the tool's config file, or None."""
         return None
 
+    @property
+    def has_first_run_wizard(self) -> bool:
+        """True if the tool handles missing config with its own setup UI.
+
+        When True, the portal skips scaffolding and config-missing warnings,
+        and starts the tool even without a config file present.
+        """
+        return False
+
     # -- Lifecycle ----------------------------------------------------------
 
     async def startup(self) -> None:  # noqa: B027

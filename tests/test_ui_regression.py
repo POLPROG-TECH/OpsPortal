@@ -68,17 +68,17 @@ class TestCSSClassCoverage:
         self.html_classes = _extract_html_classes(self.html_text)
 
     def test_no_missing_css_classes(self) -> None:
-        """GIVEN All classes used in templates must be defined in CSS."""
-        # Classes that are legitimately dynamic or from external sources
+        """All classes used in templates are defined in CSS."""
+        """GIVEN allowed dynamic/external classes."""
         allowed_missing = {
             # Jinja-generated dynamic classes (e.g., status-{{ card.status }})
             "status",
         }
 
-        """WHEN executing."""
+        """WHEN computing the set of template classes missing from CSS."""
         missing = self.html_classes - self.css_classes - allowed_missing
 
-        """THEN the result is correct."""
+        """THEN no classes are missing."""
         assert not missing, f"Template classes missing from CSS ({len(missing)}): " + ", ".join(
             sorted(missing)
         )
@@ -99,11 +99,9 @@ class TestAccessibility:
             self.templates[f.name] = f.read_text(encoding="utf-8")
 
     def test_all_svgs_have_aria_hidden(self) -> None:
-        """GIVEN Decorative SVGs must have aria-hidden='true'."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Decorative SVGs in templates have aria-hidden='true'."""
+        """GIVEN all loaded templates."""
+        """THEN every <svg> tag includes aria-hidden="true"."""
         for name, html in self.templates.items():
             svgs = re.findall(r"<svg[^>]*>", html)
             for svg_tag in svgs:
@@ -112,51 +110,43 @@ class TestAccessibility:
                 )
 
     def test_toast_container_has_aria_live(self) -> None:
-        """GIVEN Toast container must have aria-live for screen readers."""
-
-        """WHEN executing."""
+        """Toast container in base.html has aria-live for screen readers."""
+        """WHEN reading base.html."""
         base = self.templates.get("base.html", "")
 
-        """THEN the result is correct."""
+        """THEN it contains aria-live and toast-container."""
         assert "aria-live" in base and "toast-container" in base
 
     def test_modal_has_dialog_role(self) -> None:
-        """GIVEN Modal must have role='dialog' and aria-modal."""
-
-        """WHEN executing."""
+        """Modal in base.html has role='dialog' and aria-modal='true'."""
+        """WHEN reading base.html."""
         base = self.templates.get("base.html", "")
 
-        """THEN the result is correct."""
+        """THEN it contains dialog role and aria-modal."""
         assert 'role="dialog"' in base
         assert 'aria-modal="true"' in base
 
     def test_error_pages_have_alert_role(self) -> None:
-        """GIVEN Error containers must have role='alert'."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Error page templates contain role='alert'."""
+        """GIVEN error templates."""
+        """THEN each error template includes role="alert"."""
         for name in ("error.html", "tool_error.html"):
             html = self.templates.get(name, "")
             assert 'role="alert"' in html, f"{name}: missing role='alert'"
 
     def test_buttons_have_type(self) -> None:
-        """GIVEN All <button> elements should have explicit type attribute."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """All <button> elements in templates have an explicit type attribute."""
+        """GIVEN all loaded templates."""
+        """THEN every button tag has a type attribute."""
         for name, html in self.templates.items():
             buttons = re.findall(r"<button[^>]*>", html)
             for btn in buttons:
                 assert 'type="' in btn, f"{name}: button missing type: {btn[:80]}..."
 
     def test_target_blank_has_rel(self) -> None:
-        """GIVEN Links with target='_blank' must have rel='noopener noreferrer'."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Links with target='_blank' include rel='noopener noreferrer'."""
+        """GIVEN all loaded templates."""
+        """THEN every target="_blank" link has rel="noopener"."""
         for name, html in self.templates.items():
             links = re.findall(r'<a[^>]*target="_blank"[^>]*>', html)
             for link in links:
@@ -179,89 +169,63 @@ class TestI18nCoverage:
         self.pl_js = (JS_DIR / "portal-i18n-pl.js").read_text(encoding="utf-8")
 
     def test_both_locales_present(self) -> None:
-        """GIVEN Both en and pl locale dictionaries must exist."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Both en and pl locale dictionaries exist in i18n files."""
+        """THEN en locale and PL locale are present."""
         assert "en:" in self.i18n_js or '"en"' in self.i18n_js
         assert "__OPS_PL" in self.pl_js
 
     def test_t_function_exported(self) -> None:
-        """GIVEN The t() translation function must be defined."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """The t() translation function is defined in the i18n module."""
+        """THEN t() function exists."""
         assert "function t(" in self.i18n_js or "window.t" in self.i18n_js
 
     def test_en_pl_key_parity(self) -> None:
-        """GIVEN Every key in en must exist in pl and vice versa."""
+        """Every key in en exists in pl and vice versa."""
+        """GIVEN extracted key sets from both locale files."""
         en_keys = set(re.findall(r'"([\w.]+)":\s*"', self.i18n_js))
         pl_keys = set(re.findall(r'"([\w.]+)":\s*"', self.pl_js))
-        missing_in_pl = en_keys - pl_keys
 
-        """WHEN executing."""
+        """WHEN computing key differences."""
+        missing_in_pl = en_keys - pl_keys
         missing_in_en = pl_keys - en_keys
 
-        """THEN the result is correct."""
+        """THEN no keys are missing in either direction."""
         assert not missing_in_pl, f"Keys in en but not pl: {sorted(missing_in_pl)}"
         assert not missing_in_en, f"Keys in pl but not en: {sorted(missing_in_en)}"
 
     def test_apply_language_handles_placeholder(self) -> None:
-        """GIVEN applyLanguage must support data-i18n-placeholder."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """applyLanguage supports data-i18n-placeholder attribute."""
+        """THEN data-i18n-placeholder is referenced in the i18n module."""
         assert "data-i18n-placeholder" in self.i18n_js
 
     def test_apply_language_handles_doc_title(self) -> None:
-        """GIVEN applyLanguage must support document.title updates."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """applyLanguage supports document.title updates via data-i18n-doc-title."""
+        """THEN data-i18n-doc-title is referenced in the i18n module."""
         assert "data-i18n-doc-title" in self.i18n_js
 
     def test_apply_language_handles_map(self) -> None:
-        """GIVEN applyLanguage must support data-i18n-map for dynamic content."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """applyLanguage supports data-i18n-map for dynamic content."""
+        """THEN data-i18n-map is referenced in the i18n module."""
         assert "data-i18n-map" in self.i18n_js
 
     def test_locale_cookie_set(self) -> None:
-        """GIVEN applyLanguage must set a cookie for server-side locale."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """applyLanguage sets an opsportal_lang cookie for server-side locale."""
+        """THEN i18n module references opsportal_lang= and cookie."""
         assert "opsportal_lang=" in self.i18n_js and "cookie" in self.i18n_js
 
     def test_browser_lang_detection(self) -> None:
-        """GIVEN getLang must detect browser language."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """getLang detects browser language via _detectBrowserLang."""
+        """THEN _detectBrowserLang is referenced in the i18n module."""
         assert "_detectBrowserLang" in self.i18n_js
 
     def test_pluralization_support(self) -> None:
-        """GIVEN Pluralization function must exist."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Pluralization function tp() is defined in the i18n module."""
+        """THEN tp() function exists."""
         assert "function tp(" in self.i18n_js or "window.tp" in self.i18n_js
 
     def test_number_formatting_support(self) -> None:
-        """GIVEN Number formatting function must exist."""
-
-        """THEN the result is correct."""
-
-        """WHEN executing."""
+        """Number formatting function formatNumber is defined in the i18n module."""
+        """THEN formatNumber exists."""
         assert "formatNumber" in self.i18n_js
 
 
@@ -284,14 +248,15 @@ class TestFileSizeLimits:
         ],
     )
     def test_files_under_limit(self, subdir: Path, glob_pattern: str) -> None:
-        """GIVEN the files under limit scenario."""
+        """UI files do not exceed the 600-line limit."""
+        """GIVEN a directory of UI files."""
         violations = []
 
-        """WHEN executing."""
+        """WHEN checking line counts for each file."""
         for f in sorted(subdir.rglob(glob_pattern)):
             lines = len(f.read_text(encoding="utf-8").splitlines())
             if lines > self.MAX_LINES:
                 violations.append(f"{f.name}: {lines} lines")
 
-        """THEN the result is correct."""
+        """THEN no files exceed the limit."""
         assert not violations, f"Files exceeding {self.MAX_LINES} lines: " + "; ".join(violations)

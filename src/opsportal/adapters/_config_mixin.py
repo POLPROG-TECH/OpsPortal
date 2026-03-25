@@ -79,6 +79,9 @@ class JsonSchemaConfigMixin:
     And should have either:
       _repo_path: Path | None
       _work_dir: Path | None
+
+    Optionally override:
+      _builtin_default_config: dict | None — hardcoded fallback when no schema exists
     """
 
     _repo_path: Path | None
@@ -86,6 +89,7 @@ class JsonSchemaConfigMixin:
     _config_file: str
     _schema_paths: list[Path]
     _validate_fn: Any  # callable or None
+    _builtin_default_config: dict[str, Any] | None = None
 
     def _resolve_config_path(self) -> Path:
         """Resolve config file: repo_path → work_dir → CWD."""
@@ -106,17 +110,31 @@ class JsonSchemaConfigMixin:
         return p if p.exists() else None
 
     def scaffold_default_config(self) -> bool:
-        """Create a default config from schema defaults if file is missing.
+        """Create a default config from schema defaults or built-in template.
 
         Returns True if a file was created, False otherwise.
-        Only scaffolds if the result passes validation.
+
+        Strategy:
+        1. Try schema-derived defaults (best: schema-validated)
+        2. Fall back to built-in default config (always available)
         """
         if self.config_file_path() is not None:
-            return False  # already exists
+            return False
 
+        defaults = self._derive_defaults_from_schema()
+        if not defaults:
+            defaults = self._builtin_default_config
+
+        if not defaults:
+            return False
+
+        return self._write_config_file(defaults)
+
+    def _derive_defaults_from_schema(self) -> dict[str, Any] | None:
+        """Extract defaults from JSON Schema, if schema exists and covers required fields."""
         schema = self.config_schema()
         if not schema:
-            return False  # no schema to derive defaults from
+            return None
 
         required = set(schema.get("required", []))
         props = schema.get("properties", {})
@@ -126,28 +144,31 @@ class JsonSchemaConfigMixin:
                 defaults[key] = prop["default"]
 
         if not defaults:
-            return False
+            return None
 
-        # Don't scaffold if required fields are missing from defaults
         missing_required = required - set(defaults.keys())
         if missing_required:
             logger.debug(
-                "Skipping config scaffold: required fields %s have no defaults",
+                "Schema defaults incomplete: required fields %s have no defaults",
                 missing_required,
             )
-            return False
+            return None
 
+        return defaults
+
+    def _write_config_file(self, data: dict[str, Any]) -> bool:
+        """Write config data to the resolved config path."""
         config_path = self._resolve_config_path()
         try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             config_path.write_text(
-                json.dumps(defaults, indent=2, ensure_ascii=False) + "\n",
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
             logger.info(
                 "Scaffolded default config at %s (%d fields)",
                 config_path.name,
-                len(defaults),
+                len(data),
             )
             return True
         except Exception:

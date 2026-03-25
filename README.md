@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%2B-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+"></a>
-  <img src="https://img.shields.io/badge/tests-172%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 172 passed">
+  <img src="https://img.shields.io/badge/tests-206%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 206 passed">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-6366f1?style=flat-square" alt="License: AGPL-3.0"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>
@@ -16,6 +16,7 @@
 
 <p align="center">
   <a href="#what-is-opsportal">About</a> •
+  <a href="#screenshots">Screenshots</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#configuration">Configuration</a> •
@@ -40,10 +41,44 @@ monitor, and manage internal engineering tools.
 Every tool is a full web application — OpsPortal starts each on demand, monitors health,
 and embeds them in the portal UI via iframe with automatic theme and language forwarding.
 
+## Screenshots
+
+### Dashboard Overview
+
+The main dashboard shows all registered tools with live status indicators,
+version badges, and capability tags. One click opens any tool directly
+inside the portal.
+
+<p align="center">
+  <img src="docs/assets/screenshots/dashboard-overview.png" alt="OpsPortal — dashboard overview with tool cards and status indicators" width="800">
+</p>
+
+### Tool Integration
+
+Tools run as managed subprocesses and are embedded via iframe with full
+theme synchronization. The portal provides server controls, process logs,
+and expandable layout modes.
+
+<p align="center">
+  <img src="docs/assets/screenshots/tool-integration.png" alt="OpsPortal — ReleasePilot embedded in the portal with server controls" width="800">
+</p>
+
+### First-Run Setup Wizard
+
+When a tool has no configuration yet, it launches its own guided setup
+wizard directly inside the portal. No manual JSON editing needed —
+define layers, connect providers, and start working in minutes.
+
+<p align="center">
+  <img src="docs/assets/screenshots/first-run-wizard.png" alt="OpsPortal — ReleaseBoard first-run config wizard with layer and provider setup" width="800">
+</p>
+
 ## Table of Contents
 
 - [What is OpsPortal?](#what-is-opsportal)
+- [Screenshots](#screenshots)
 - [Quick Start](#quick-start)
+- [First Run / Setup](#first-run--setup)
 - [Architecture](#architecture)
 - [Portal Endpoints](#portal-endpoints)
 - [Configuration](#configuration)
@@ -73,13 +108,33 @@ pip install "git+https://github.com/POLPROG-TECH/OpsPortal.git@main" && opsporta
 That's it. On first run `opsportal serve` auto-generates `opsportal.yaml`
 (with ReleaseBoard + ReleasePilot) and auto-installs both tools from GitHub.
 
+### Recommended: guided setup
+
+```bash
+# 1. Install OpsPortal
+pip install "git+https://github.com/POLPROG-TECH/OpsPortal.git@main"
+
+# 2. Run guided setup (creates manifest, installs tools, scaffolds configs)
+opsportal setup
+
+# 3. Start the portal
+opsportal serve
+# → http://127.0.0.1:8000
+```
+
+The `opsportal setup` command:
+- Creates `opsportal.yaml` if missing (default manifest with ReleasePilot + ReleaseBoard)
+- Installs declared tools from their remote Git sources
+- Scaffolds default config files from each tool's JSON Schema (when schemas provide defaults)
+- Reports setup status for each tool
+
 ### Step-by-step production deployment
 
 ```bash
 # 1. Install OpsPortal
 pip install "git+https://github.com/POLPROG-TECH/OpsPortal.git@main"
 
-# 2. Generate the default manifest (optional — created automatically on serve)
+# 2. Generate the default manifest (optional — created automatically on serve or setup)
 opsportal init              # creates opsportal.yaml in current directory
 # Edit to pin versions, change ports, add proxy env, etc.
 
@@ -105,6 +160,66 @@ pip3 install -e ./OpsPortal
 cd OpsPortal
 opsportal serve
 ```
+
+## First Run / Setup
+
+### What happens on first run
+
+When you run `opsportal serve` for the first time:
+
+1. **Manifest bootstrap** — if no `opsportal.yaml` exists in the current directory, a default manifest is created with ReleasePilot and ReleaseBoard pre-configured
+2. **Tool auto-install** — for each tool with a `source:` block, OpsPortal checks if the tool's CLI is available; if not, it runs `pip install` from the specified Git repository
+3. **Config scaffolding** — on portal startup, each adapter attempts to create default config files from its JSON Schema (if the schema provides default values for all required fields)
+4. **Dashboard** — the portal starts on `http://127.0.0.1:8000` with tool cards showing status
+
+### Where config files live
+
+| Tool | Default config location | Environment override |
+|------|------------------------|---------------------|
+| ReleasePilot | `work/tools/releasepilot/.releasepilot.json` | `OPSPORTAL_RELEASEPILOT_CONFIG` |
+| ReleaseBoard | `work/tools/releaseboard/releaseboard.json` | `OPSPORTAL_RELEASEBOARD_CONFIG` |
+
+Config files are searched in this order (first match wins):
+1. Environment variable override (if set and file exists)
+2. Tool's `repo_path` (local dev checkout, if configured)
+3. Tool's `work_dir` (default: `work/tools/{slug}/`)
+4. `tools_base_dir` (legacy)
+5. Current working directory
+
+### CLI commands
+
+| Command | Description |
+|---------|-------------|
+| `opsportal serve` | Start the portal web server |
+| `opsportal setup` | Guided first-run setup: create manifest, install tools, scaffold configs |
+| `opsportal init [PATH]` | Generate a default `opsportal.yaml` manifest file |
+| `opsportal version` | Show the installed OpsPortal version |
+
+### Verifying the installation
+
+```bash
+# Check OpsPortal is installed
+opsportal version
+
+# Run guided setup
+opsportal setup
+
+# Check tool CLIs are available
+releasepilot --version
+releaseboard --version
+
+# Start the portal
+opsportal serve
+```
+
+### Resolving "Setup required" states
+
+If the dashboard shows "Setup required" for a tool, it means the tool's config file was not found or could not be auto-scaffolded. To resolve:
+
+1. **Run `opsportal setup`** — this attempts to install tools and scaffold configs
+2. **Use the web UI** — click the gear icon on the tool card to open the Configuration page
+3. **Create config manually** — create the config file at the expected location (see table above)
+4. **Set environment variable** — point to an existing config file via the tool's env var
 
 ## Architecture
 
@@ -413,11 +528,49 @@ all iframes. This provides defense-in-depth while allowing tools to function nor
 
 **Symptom:** Error page shows "Configuration file 'releaseboard.json' not found."
 
-**Fix:** Create the config file in one of the search locations or set `OPSPORTAL_RELEASEBOARD_CONFIG`:
+**Fix:** Run `opsportal setup` to auto-scaffold configs, or create the config file manually:
 
 ```bash
+# Option 1: Run guided setup
+opsportal setup
+
+# Option 2: Set via environment variable
 export OPSPORTAL_RELEASEBOARD_CONFIG=/path/to/releaseboard.json
+
+# Option 3: Create in the work directory
+# The default location is work/tools/releaseboard/releaseboard.json
 ```
+
+Config resolution order for ReleaseBoard:
+1. `OPSPORTAL_RELEASEBOARD_CONFIG` environment variable
+2. `{repo_path}/releaseboard.json` (local dev checkout)
+3. `{work_dir}/releaseboard.json` (remote-managed tool — default: `work/tools/releaseboard/`)
+4. `{tools_base_dir}/releaseboard.json`
+5. `{CWD}/releaseboard.json`
+
+### ReleasePilot config not found
+
+**Symptom:** Error page shows "Configuration file '.releasepilot.json' not found."
+
+**Fix:** Run `opsportal setup` to auto-scaffold configs, or create the config file manually:
+
+```bash
+# Option 1: Run guided setup
+opsportal setup
+
+# Option 2: Set via environment variable
+export OPSPORTAL_RELEASEPILOT_CONFIG=/path/to/.releasepilot.json
+
+# Option 3: Create in the work directory
+# The default location is work/tools/releasepilot/.releasepilot.json
+```
+
+Config resolution order for ReleasePilot:
+1. `OPSPORTAL_RELEASEPILOT_CONFIG` environment variable
+2. `{repo_path}/.releasepilot.json` (local dev checkout)
+3. `{work_dir}/.releasepilot.json` (remote-managed tool — default: `work/tools/releasepilot/`)
+4. `{tools_base_dir}/.releasepilot.json`
+5. `{CWD}/.releasepilot.json`
 
 ### Tool fails to start / health check timeout
 
@@ -487,20 +640,6 @@ The hook will:
 ## CI/CD Pipelines
 
 Production-ready pipeline examples are included for both GitHub Actions and GitLab CI.
-
-### GitHub Actions
-
-File: `.github/workflows/ci.yml`
-
-Stages: lint → test (matrix: Python 3.12, 3.13) → validate config → build package
-
-```bash
-# Run locally to match CI behavior:
-ruff check src/ tests/
-ruff format --check src/ tests/
-pytest tests/ -v
-python -c "from opsportal.app.settings import PortalSettings; PortalSettings()"
-```
 
 ### GitLab CI
 

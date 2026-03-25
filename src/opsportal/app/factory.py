@@ -116,23 +116,30 @@ def _register_adapters(
 
     for tool in manifest.enabled_tools:
         slug = tool.slug
-        art_dir = settings.artifact_dir / slug
-        art_dir.mkdir(parents=True, exist_ok=True)
+        (settings.artifact_dir / slug).mkdir(parents=True, exist_ok=True)
+        _auto_install_tool(installer, tool)
+        _create_and_register(registry, slug, tool, app)
 
-        # Auto-install from source if needed
-        if tool.source:
-            try:
-                result = installer.ensure_installed(tool.source)
-                logger.info("Tool %s: %s", slug, result)
-            except Exception:
-                logger.exception("Failed to install %s from source", slug)
 
-        try:
-            adapter = _make_adapter(slug, tool, app)
-            if adapter:
-                registry.register(adapter)
-        except Exception:
-            logger.exception("Failed to create adapter for %s", slug)
+def _auto_install_tool(installer: ToolInstaller, tool: ToolConfig) -> None:
+    """Install a tool from its source definition if configured."""
+    if not tool.source:
+        return
+    try:
+        result = installer.ensure_installed(tool.source)
+        logger.info("Tool %s: %s", tool.slug, result)
+    except Exception:
+        logger.exception("Failed to install %s from source", tool.slug)
+
+
+def _create_and_register(registry: AdapterRegistry, slug: str, tool: ToolConfig, app) -> None:
+    """Create an adapter and register it, logging any errors."""
+    try:
+        adapter = _make_adapter(slug, tool, app)
+        if adapter:
+            registry.register(adapter)
+    except Exception:
+        logger.exception("Failed to create adapter for %s", slug)
 
 
 def _make_adapter(
@@ -158,6 +165,7 @@ def _make_adapter(
             cli_binary=tool.cli_binary or "releasepilot",
             env=tool.env,
             startup_timeout=tool.startup_timeout,
+            tools_base_dir=settings.tools_base_dir,
             portal_origins=portal_origins,
         )
     if slug == "releaseboard":

@@ -37,6 +37,7 @@ monitor, and manage internal engineering tools.
 |------|------|---------|
 | **ReleasePilot** | 8082 | Release notes generation from git history |
 | **ReleaseBoard** | 8081 | Release readiness dashboard across repos |
+| **LocaleSync** | 8083 | Translation file sync across projects |
 
 Every tool is a full web application — OpsPortal starts each on demand, monitors health,
 and embeds them in the portal UI via iframe with automatic theme and language forwarding.
@@ -53,24 +54,31 @@ inside the portal.
   <img src="docs/assets/screenshots/dashboard-overview.png" alt="OpsPortal — dashboard overview with tool cards and status indicators" width="800">
 </p>
 
-### Tool Integration
+### ReleasePilot — Release Notes Generator
 
-Tools run as managed subprocesses and are embedded via iframe with full
-theme synchronization. The portal provides server controls, process logs,
-and expandable layout modes.
+Generates professional changelogs and release notes from git history.
+Supports multiple output formats, template customisation, and CI/CD integration.
 
 <p align="center">
   <img src="docs/assets/screenshots/tool-integration.png" alt="OpsPortal — ReleasePilot embedded in the portal with server controls" width="800">
 </p>
 
-### First-Run Setup Wizard
+### ReleaseBoard — Release Readiness Dashboard
 
-When a tool has no configuration yet, it launches its own guided setup
-wizard directly inside the portal. No manual JSON editing needed —
-define layers, connect providers, and start working in minutes.
+Analyses repositories against branch naming conventions and scores release
+readiness in real time. Provides layer breakdown, provider integration, and a release calendar.
 
 <p align="center">
   <img src="docs/assets/screenshots/first-run-wizard.png" alt="OpsPortal — ReleaseBoard first-run config wizard with layer and provider setup" width="800">
+</p>
+
+### LocaleSync — Translation File Sync
+
+Keeps locale files consistent across projects and repositories. Detects
+missing keys, sorts entries, and supports JSON, YAML, and Properties formats.
+
+<p align="center">
+  <img src="docs/assets/screenshots/localesync.png" alt="OpsPortal — LocaleSync application card on the dashboard" width="800">
 </p>
 
 ## Table of Contents
@@ -406,6 +414,34 @@ the search locations (sanitized — no raw filesystem paths are exposed to end u
 **For containerized / CI deployments**, set `OPSPORTAL_RELEASEBOARD_CONFIG` to the
 absolute path of the mounted config file.
 
+## LocaleSync Integration
+
+LocaleSync is a localization synchronization tool that keeps translation files
+consistent across projects and repositories. It uses a `localesync.json` config
+file resolved using the same multi-strategy search as other tools:
+
+| Priority | Strategy | Example |
+|----------|----------|---------|
+| 1 | `OPSPORTAL_LOCALESYNC_CONFIG` env var | `/etc/opsportal/localesync.json` |
+| 2 | Inside `repo_path` (if set) | `../LocaleSync/localesync.json` |
+| 3 | Inside per-tool work directory | `work/tools/localesync/localesync.json` |
+| 4 | Inside `OPSPORTAL_TOOLS_BASE_DIR` | `../localesync.json` |
+| 5 | Current working directory | `./localesync.json` |
+
+If no config file exists on first run, OpsPortal automatically scaffolds a default
+`localesync.json` with sensible defaults (source locale `en`, target locales
+`pl`, `de`, `fr`, JSON format, merge sync mode). Users can then refine the
+configuration through the portal's Configuration page at `/tools/localesync/config`.
+
+**Version:** Resolved from installed package metadata (`importlib.metadata.version("localesync")`).
+Falls back to not displaying a version if the package is not installed.
+
+**Launch:** Subprocess web application on port **8083** (configurable in `opsportal.yaml`).
+Started automatically when the user navigates to the tool page.
+
+**For containerized / CI deployments**, set `OPSPORTAL_LOCALESYNC_CONFIG` to the
+absolute path of the mounted config file.
+
 ## Application Embedding
 
 OpsPortal embeds child tools in iframes. For this to work, two conditions must be met:
@@ -466,7 +502,8 @@ src/opsportal/
 │   ├── _config_mixin.py  # JSON schema config read/validate/save
 │   ├── registry.py   # AdapterRegistry
 │   ├── releaseboard.py   # ReleaseBoard adapter (auto-start, config resolution)
-│   └── releasepilot.py   # ReleasePilot adapter
+│   ├── releasepilot.py   # ReleasePilot adapter
+│   └── localesync.py     # LocaleSync adapter (translation sync)
 ├── services/
 │   ├── process_manager.py  # Subprocess lifecycle, health polling
 │   ├── artifact_manager.py
@@ -577,10 +614,10 @@ Config resolution order for ReleasePilot:
 **Symptom:** Error page shows "Server failed to start or health check timed out."
 
 **Fixes:**
-1. Verify the tool's CLI binary is installed: `which releaseboard` or `which releasepilot`
+1. Verify the tool's CLI binary is installed: `which releaseboard`, `which releasepilot`, or `which localesync`
 2. Check the tool can start independently: `releaseboard serve --port 8081`
 3. Increase startup timeout in `opsportal.yaml` if the tool is slow to boot
-4. Check port conflicts: `lsof -i :8081`
+4. Check port conflicts: `lsof -i :8081` (or `:8082`, `:8083`)
 5. Review diagnostic logs on the error page
 
 ### Admin diagnostics

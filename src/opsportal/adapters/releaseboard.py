@@ -311,20 +311,30 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
         ]
 
     async def run_action(self, action_name: str, params: dict[str, Any]) -> ActionResult:
-        if action_name == "start":
-            result = await self.ensure_ready()
-            if result.ready:
-                return ActionResult(success=True, output=result.message)
-            return ActionResult(success=False, error=result.error)
-        if action_name == "stop":
-            return await self._stop_server()
-        if action_name == "restart":
-            await self._stop_server()
-            result = await self.ensure_ready()
-            if result.ready:
-                return ActionResult(success=True, output=result.message)
-            return ActionResult(success=False, error=result.error)
-        return ActionResult(success=False, error=f"Unknown action: {action_name}")
+        actions = {
+            "start": self._action_start,
+            "stop": self._stop_server,
+            "restart": self._action_restart,
+        }
+        handler = actions.get(action_name)
+        if not handler:
+            return ActionResult(success=False, error=f"Unknown action: {action_name}")
+        return await handler()
+
+    async def _action_start(self) -> ActionResult:
+        result = await self.ensure_ready()
+        return self._ready_to_action(result)
+
+    async def _action_restart(self) -> ActionResult:
+        await self._stop_server()
+        result = await self.ensure_ready()
+        return self._ready_to_action(result)
+
+    @staticmethod
+    def _ready_to_action(result: EnsureReadyResult) -> ActionResult:
+        if result.ready:
+            return ActionResult(success=True, output=result.message)
+        return ActionResult(success=False, error=result.error)
 
     async def _stop_server(self) -> ActionResult:
         try:

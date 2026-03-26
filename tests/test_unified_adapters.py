@@ -16,6 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from opsportal.adapters.base import IntegrationMode, ToolCapability, ToolStatus
+from opsportal.adapters.localesync import LocaleSyncAdapter
 from opsportal.adapters.releaseboard import ReleaseBoardAdapter
 from opsportal.adapters.releasepilot import ReleasePilotAdapter
 from opsportal.services.process_manager import ManagedProcess, ProcessManager, ProcessStatus
@@ -40,6 +41,7 @@ def repo(tmp_path: Path) -> Path:
 _ADAPTER_CLASSES = [
     ("releasepilot", ReleasePilotAdapter, "releasepilot", 8082),
     ("releaseboard", ReleaseBoardAdapter, "releaseboard", 8081),
+    ("localesync", LocaleSyncAdapter, "locale-sync", 8083),
 ]
 
 
@@ -174,6 +176,15 @@ def test_releaseboard_sets_allow_framing(repo, pm):
 
     """THEN RELEASEBOARD_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("RELEASEBOARD_ALLOW_FRAMING") == "true"
+
+
+def test_localesync_sets_allow_framing(repo, pm):
+    """LocaleSyncAdapter sets LOCALESYNC_ALLOW_FRAMING=true in its env."""
+    """GIVEN a LocaleSync adapter."""
+    adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
+
+    """THEN LOCALESYNC_ALLOW_FRAMING is set to 'true'."""
+    assert adapter._env.get("LOCALESYNC_ALLOW_FRAMING") == "true"
 
 
 # ---------------------------------------------------------------------------

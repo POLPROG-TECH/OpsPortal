@@ -1,6 +1,6 @@
-"""ReleasePilot adapter — SUBPROCESS_WEB integration with auto-start.
+"""LocaleSync adapter — SUBPROCESS_WEB integration with auto-start.
 
-ReleasePilot now exposes a full FastAPI web application with its own UI.
+LocaleSync exposes a full web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
 The server is started automatically when the user enters the tool.
 """
@@ -28,37 +28,33 @@ from opsportal.adapters.base import (
 from opsportal.core.errors import get_logger
 from opsportal.services.process_manager import ProcessManager, ProcessStatus
 
-logger = get_logger("adapters.releasepilot")
+logger = get_logger("adapters.localesync")
 
 
-def _rp_validate(data: dict[str, Any]) -> list[str]:
-    """Validate using ReleasePilot's own validator (returns warnings)."""
-    from releasepilot.config.file_config import validate_config
-
-    warnings = validate_config(data)
-    return [w.message for w in warnings]
+def _ls_validate(data: dict[str, Any]) -> list[str]:
+    """Validate — LocaleSync does not expose a config validator yet."""
+    return []
 
 
-# Minimal valid config that lets ReleasePilot start without errors.
-# Users can refine via the Configuration page afterward.
-_RELEASEPILOT_DEFAULT_CONFIG: dict[str, Any] = {
-    "app_name": "Release Notes",
-    "language": "en",
-    "format": "markdown",
-    "show_authors": True,
-    "show_hashes": False,
+_LOCALESYNC_DEFAULT_CONFIG: dict[str, Any] = {
+    "source_locale": "en",
+    "target_locales": ["pl", "de", "fr"],
+    "format": "json",
+    "sync_mode": "merge",
+    "sort_keys": True,
 }
 
 
-class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
+class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
     def __init__(
         self,
         process_manager: ProcessManager,
         *,
         repo_path: Path | None = None,
         work_dir: Path | None = None,
-        port: int = 8082,
-        cli_binary: str = "releasepilot",
+        port: int = 8083,
+        config_file: str = "localesync.json",
+        cli_binary: str = "locale-sync",
         env: dict[str, str] | None = None,
         startup_timeout: int = 30,
         tools_base_dir: Path | None = None,
@@ -68,44 +64,44 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         self._work_dir = work_dir
         self._pm = process_manager
         self._port = port
+        self._config_file = config_file
         self._cli = cli_binary
         self._env = {
             **(env or {}),
-            "RELEASEPILOT_ALLOW_FRAMING": "true",
-            "RELEASEPILOT_CORS_ORIGINS": portal_origins,
+            "LOCALESYNC_ALLOW_FRAMING": "true",
+            "LOCALESYNC_CORS_ORIGINS": portal_origins,
         }
         self._startup_timeout = startup_timeout
         self._tools_base_dir = tools_base_dir
-        self._process_name = "releasepilot"
+        self._process_name = "localesync"
         self._http_client: httpx.AsyncClient | None = None
-        # Config mixin setup — ReleasePilot uses auto-discovered config files
-        self._config_file = ".releasepilot.json"
+        # Config mixin setup — LocaleSync uses auto-discovered config files
         self._schema_paths = self._build_schema_paths()
-        self._validate_fn = _rp_validate
-        self._builtin_default_config = _RELEASEPILOT_DEFAULT_CONFIG
+        self._validate_fn = _ls_validate
+        self._builtin_default_config = _LOCALESYNC_DEFAULT_CONFIG
 
     def _build_schema_paths(self) -> list[Path]:
         """Build schema search paths: installed package → repo → work_dir."""
         paths: list[Path] = []
         # Try installed package location
         try:
-            import releasepilot
+            import locale_sync
 
-            pkg_dir = Path(releasepilot.__file__).resolve().parent
-            paths.append(pkg_dir / "schema" / "releasepilot.schema.json")
+            pkg_dir = Path(locale_sync.__file__).resolve().parent
+            paths.append(pkg_dir / "schema" / "localesync.schema.json")
         except ImportError:
             pass
         if self._repo_path:
-            paths.append(self._repo_path / "schema" / "releasepilot.schema.json")
+            paths.append(self._repo_path / "schema" / "localesync.schema.json")
         if self._work_dir:
-            paths.append(self._work_dir / "releasepilot.schema.json")
+            paths.append(self._work_dir / "localesync.schema.json")
         return paths
 
     def _resolve_config_path(self) -> Path:
         """Multi-strategy config resolution for production use.
 
         Search order:
-        1. Environment variable OPSPORTAL_RELEASEPILOT_CONFIG (explicit override)
+        1. Environment variable OPSPORTAL_LOCALESYNC_CONFIG (explicit override)
         2. repo_path / config_file  (local dev checkout)
         3. work_dir / config_file   (remote-managed tool)
         4. tools_base_dir / config_file
@@ -114,13 +110,13 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         Returns the first path that exists, or falls back to the best
         canonical location for creation/save.
         """
-        env_path = os.environ.get("OPSPORTAL_RELEASEPILOT_CONFIG")
+        env_path = os.environ.get("OPSPORTAL_LOCALESYNC_CONFIG")
         if env_path:
             p = Path(env_path).resolve()
             if p.exists():
                 return p
             logger.warning(
-                "OPSPORTAL_RELEASEPILOT_CONFIG=%s does not exist, trying other locations",
+                "OPSPORTAL_LOCALESYNC_CONFIG=%s does not exist, trying other locations",
                 env_path,
             )
 
@@ -136,10 +132,9 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         for candidate in candidates:
             resolved = candidate.resolve()
             if resolved.exists():
-                logger.debug("ReleasePilot config found at %s", resolved)
+                logger.debug("LocaleSync config found at %s", resolved)
                 return resolved
 
-        # Return the canonical location for creation/error messages
         if self._work_dir:
             return (self._work_dir / self._config_file).resolve()
         if self._repo_path:
@@ -147,17 +142,18 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return (Path.cwd() / self._config_file).resolve()
 
     # -- Identity -----------------------------------------------------------
+
     @property
     def slug(self) -> str:
-        return "releasepilot"
+        return "localesync"
 
     @property
     def display_name(self) -> str:
-        return "ReleasePilot"
+        return "LocaleSync"
 
     @property
     def description(self) -> str:
-        return "Release notes generator — from git history to polished documents"
+        return "Translation file sync — keep locale files consistent across projects"
 
     @property
     def integration_mode(self) -> IntegrationMode:
@@ -174,11 +170,11 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def icon(self) -> str:
-        return "rocket"
+        return "globe"
 
     @property
     def color(self) -> str:
-        return "#4F46E5"
+        return "#0891B2"
 
     @property
     def repo_path(self) -> Path | None:
@@ -189,6 +185,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return self._work_dir
 
     # -- Status & health ----------------------------------------------------
+
     async def get_status(self) -> ToolStatus:
         proc = self._pm.get(self._process_name)
         if proc and proc.status == ProcessStatus.RUNNING:
@@ -222,16 +219,16 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
             return HealthResult(healthy=False, message=f"Connection error: {exc}")
 
     # -- Auto-start ---------------------------------------------------------
+
     async def ensure_ready(self) -> EnsureReadyResult:
-        """Start the ReleasePilot server if not running, wait for health."""
+        """Start the LocaleSync server if not running, wait for health."""
         if not shutil.which(self._cli):
             return EnsureReadyResult(
                 ready=False,
                 error=f"CLI binary '{self._cli}' not found in PATH. "
-                "Install ReleasePilot: pip install releasepilot",
+                "Install LocaleSync: pip install localesync",
             )
 
-        # Auto-scaffold default config from schema if missing
         self.scaffold_default_config()
 
         cmd = [
@@ -263,11 +260,12 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         web_url = f"http://127.0.0.1:{self._port}"
         return EnsureReadyResult(
             ready=True,
-            message=f"ReleasePilot running on port {self._port}",
+            message=f"LocaleSync running on port {self._port}",
             web_url=web_url,
         )
 
     # -- Web UI -------------------------------------------------------------
+
     def get_web_url(self) -> str | None:
         proc = self._pm.get(self._process_name)
         if proc and proc.status == ProcessStatus.RUNNING:
@@ -275,15 +273,16 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return None
 
     def get_version(self) -> str | None:
-        """Read version from ReleasePilot's installed package metadata."""
+        """Read version from LocaleSync's installed package metadata."""
         try:
             from importlib.metadata import version
 
-            return version("releasepilot")
+            return version("locale-sync")
         except Exception:
             return None
 
     # -- Actions ------------------------------------------------------------
+
     def get_actions(self) -> list[ToolAction]:
         return [
             ToolAction(
@@ -330,11 +329,12 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
     async def _stop_server(self) -> ActionResult:
         try:
             await self._pm.stop(self._process_name)
-            return ActionResult(success=True, output="ReleasePilot stopped")
+            return ActionResult(success=True, output="LocaleSync stopped")
         except Exception as exc:
             return ActionResult(success=False, error=str(exc))
 
     # -- Lifecycle ----------------------------------------------------------
+
     async def startup(self) -> None:
         """Scaffold default config on portal startup (proactive bootstrap)."""
         self.scaffold_default_config()

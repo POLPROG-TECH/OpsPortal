@@ -37,3 +37,22 @@ tools:
       ref: v1.1.0
       package: releaseboard
       install_strategy: pip_git
+
+  localesync:
+    display_name: LocaleSync
+    description: "Translation file sync — keep locale files consistent across projects"
+    integration_mode: subprocess_web
+    icon: globe
+    color: "#0891B2"
+    enabled: true
+    port: 8083
+    config_file: localesync.json
+    cli_binary: locale-sync
+    startup_timeout: 30
+    env: {}
+    source:
+      provider: github
+      repository: POLPROG-TECH/LocaleSync
+      ref: v1.1.0
+      package: locale-sync
+      install_strategy: pip_git

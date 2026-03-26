@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.templating import Jinja2Templates
 
 from opsportal import __version__
+from opsportal.adapters.localesync import LocaleSyncAdapter
 from opsportal.adapters.registry import AdapterRegistry
 from opsportal.adapters.releaseboard import ReleaseBoardAdapter
 from opsportal.adapters.releasepilot import ReleasePilotAdapter
@@ -176,6 +177,19 @@ def _make_adapter(
             port=tool.port or 8081,
             config_file=tool.config_file or "releaseboard.json",
             cli_binary=tool.cli_binary or "releaseboard",
+            env=tool.env,
+            startup_timeout=tool.startup_timeout,
+            tools_base_dir=settings.tools_base_dir,
+            portal_origins=portal_origins,
+        )
+    if slug == "localesync":
+        return LocaleSyncAdapter(
+            pm,
+            repo_path=tool.repo_path,
+            work_dir=work_dir,
+            port=tool.port or 8083,
+            config_file=tool.config_file or "localesync.json",
+            cli_binary=tool.cli_binary or "locale-sync",
             env=tool.env,
             startup_timeout=tool.startup_timeout,
             tools_base_dir=settings.tools_base_dir,

@@ -359,11 +359,12 @@ class TestManifestBootstrap:
         """WHEN loaded."""
         m = load_manifest(manifest_path, tmp_path, tools_work_dir=tmp_path / "tools")
 
-        """THEN both releasepilot and releaseboard are registered."""
-        assert len(m.enabled_tools) == 2
+        """THEN releasepilot, releaseboard, and localesync are registered."""
+        assert len(m.enabled_tools) == 3
         slugs = {t.slug for t in m.enabled_tools}
         assert "releasepilot" in slugs
         assert "releaseboard" in slugs
+        assert "localesync" in slugs
 
     def test_default_manifest_tools_have_sources(self, tmp_path):
         """GIVEN the default manifest."""

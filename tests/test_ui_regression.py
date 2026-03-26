@@ -36,16 +36,21 @@ def _extract_css_classes(css_text: str) -> set[str]:
 def _extract_html_classes(html_text: str) -> set[str]:
     """Extract all class names used in class='' attributes."""
     classes: set[str] = set()
+    # Match individual Jinja tags: {{ ... }}, {% ... %}, {# ... #}
+    jinja_tag = re.compile(r"\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}")
     for match in re.findall(r'class="([^"]*)"', html_text):
-        for cls in match.split():
-            # Skip Jinja expressions and template tokens
+        cleaned = jinja_tag.sub(" ", match)
+        for cls in cleaned.split():
             if "{" in cls or "%" in cls or "}" in cls:
                 continue
-            # Skip if it looks like Jinja syntax (operators, filters, variables)
             if (
-                cls in ("if", "else", "endif", "lower", "==", "|", "}}")
+                cls in ("if", "else", "endif", "lower", "==", "|")
                 or cls.startswith("'")
+                or cls.endswith("'")
+                or cls.endswith("-")
                 or "." in cls
+                or cls in (">=", "<=", "!=", ">", "<", "+", "-")
+                or cls.isdigit()
             ):
                 continue
             classes.add(cls)

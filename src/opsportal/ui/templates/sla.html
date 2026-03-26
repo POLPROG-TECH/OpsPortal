@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}SLA Report — OpsPortal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="section-header-row">
+    <div>
+      <h1 class="page-title">SLA Report</h1>
+      <p class="page-subtitle">Generated: {{ report.generated_at_str }} | Period: {{ report.period }}</p>
+    </div>
+    <div class="bulk-actions">
+      <a href="/api/sla/report/csv" class="btn btn-ghost btn-sm" download>📥 Export CSV</a>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-summary">
+  <div class="dash-stat-card">
+    <div class="dash-stat-value">{{ report.overall_percent }}%</div>
+    <div class="dash-stat-label">Overall Uptime</div>
+  </div>
+  <div class="dash-stat-card dash-stat-good">
+    <div class="dash-stat-value">{{ report.tools_meeting_sla }}</div>
+    <div class="dash-stat-label">Meeting SLA</div>
+  </div>
+  <div class="dash-stat-card dash-stat-warn">
+    <div class="dash-stat-value">{{ report.tools_total - report.tools_meeting_sla }}</div>
+    <div class="dash-stat-label">Below SLA</div>
+  </div>
+  <div class="dash-stat-card">
+    <div class="dash-stat-value">{{ report.tools_total }}</div>
+    <div class="dash-stat-label">Total Tools</div>
+  </div>
+</div>
+
+<div class="sla-table-wrap">
+  <table class="sla-table">
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>Target</th>
+        <th>Actual</th>
+        <th>Gap</th>
+        <th>Checks</th>
+        <th>Latency</th>
+        <th>Incidents</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in report.tool_reports %}
+      <tr class="{% if r.meets_sla %}sla-row-ok{% else %}sla-row-fail{% endif %}">
+        <td class="sla-tool-name">{{ r.tool_name }}</td>
+        <td>{{ r.target_percent }}%</td>
+        <td><strong>{{ r.actual_percent }}%</strong></td>
+        {% set gap_cls = "product-stat-good" if r.gap_percent >= 0 else "product-stat-bad" %}
+        <td class="{{ gap_cls }}">
+          {{ r.gap_percent }}%
+        </td>
+        <td>{{ r.total_checks }}</td>
+        <td>{{ r.avg_latency_ms }}ms</td>
+        <td>{{ r.incidents_count }}</td>
+        <td>
+          {% if r.meets_sla %}
+          <span class="badge badge-running">✓ OK</span>
+          {% else %}
+          <span class="badge badge-error">✗ Breach</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

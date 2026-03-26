@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — OpsPortal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title" data-i18n="dashboard.title">Monitoring Dashboard</h1>
+  <p class="page-subtitle" data-i18n="dashboard.subtitle">Real-time metrics and performance charts</p>
+</div>
+
+<div class="dashboard-summary">
+  <div class="dash-stat-card">
+    <div class="dash-stat-value" id="dash-total">{{ cards | length }}</div>
+    <div class="dash-stat-label" data-i18n="dashboard.total_tools">Total Tools</div>
+  </div>
+  <div class="dash-stat-card dash-stat-good">
+    <div class="dash-stat-value" id="dash-running">{{ cards | selectattr('status', 'equalto', 'running') | list | length }}</div>
+    <div class="dash-stat-label" data-i18n="dashboard.running">Running</div>
+  </div>
+  <div class="dash-stat-card dash-stat-warn">
+    <div class="dash-stat-value" id="dash-stopped">{{ cards | rejectattr('status', 'equalto', 'running') | list | length }}</div>
+    <div class="dash-stat-label" data-i18n="dashboard.stopped">Stopped</div>
+  </div>
+  <div class="dash-stat-card">
+    <div class="dash-stat-value" id="dash-alerts">0</div>
+    <div class="dash-stat-label" data-i18n="dashboard.active_alerts">Active Alerts</div>
+  </div>
+</div>
+
+<div class="dashboard-charts">
+  <div class="chart-card">
+    <h3 class="chart-title">CPU & Memory Usage</h3>
+    <canvas id="chart-resources" height="250"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3 class="chart-title">Response Latency (ms)</h3>
+    <canvas id="chart-latency" height="250"></canvas>
+  </div>
+</div>
+
+<div class="dashboard-charts">
+  <div class="chart-card">
+    <h3 class="chart-title">Uptime %</h3>
+    <canvas id="chart-uptime" height="200"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3 class="chart-title">Active Alerts</h3>
+    <div id="alerts-list" class="alerts-list">
+      <p class="uptime-no-data">Loading alerts...</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  var slugs = {{ cards | map(attribute='slug') | list | tojson }};
+  var names = {{ cards | map(attribute='name') | list | tojson }};
+  var colors = ['#6366f1','#22c55e','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899','#14b8a6'];
+
+  function colorFor(i) { return colors[i % colors.length]; }
+
+  // Resource chart (CPU + Memory bars)
+  var ctxRes = document.getElementById('chart-resources').getContext('2d');
+  var chartRes = new Chart(ctxRes, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        { label: 'CPU %', data: [], backgroundColor: 'rgba(99,102,241,0.7)' },
+        { label: 'Memory (MB)', data: [], backgroundColor: 'rgba(34,197,94,0.7)' }
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  // Latency chart
+  var ctxLat = document.getElementById('chart-latency').getContext('2d');
+  var chartLat = new Chart(ctxLat, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: 'Avg Latency (ms)', data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  // Uptime chart (horizontal bar)
+  var ctxUp = document.getElementById('chart-uptime').getContext('2d');
+  var chartUp = new Chart(ctxUp, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: 'Uptime %', data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
+    },
+    options: { indexAxis: 'y', responsive: true, scales: { x: { min: 0, max: 100 } } }
+  });
+
+  function safeFetch(url) {
+    return fetch(url)
+      .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
+      .catch(function(err) { console.warn('Dashboard fetch failed:', url, err); return null; });
+  }
+
+  function refresh() {
+    safeFetch('/api/metrics').then(function(data) {
+      if (!data) return;
+      var cpuData = [], memData = [];
+      slugs.forEach(function(s) {
+        var m = data[s] || {};
+        cpuData.push(m.cpu_percent || 0);
+        memData.push(m.memory_rss_mb || 0);
+      });
+      chartRes.data.datasets[0].data = cpuData;
+      chartRes.data.datasets[1].data = memData;
+      chartRes.update();
+    });
+
+    safeFetch('/api/uptime').then(function(data) {
+      if (!data) return;
+      var latData = [], upData = [];
+      slugs.forEach(function(s) {
+        var u = data[s] || {};
+        latData.push(u.avg_latency_ms || 0);
+        upData.push(u.uptime_percent || 0);
+      });
+      chartLat.data.datasets[0].data = latData;
+      chartLat.update();
+      chartUp.data.datasets[0].data = upData;
+      chartUp.update();
+    });
+
+    safeFetch('/api/alerts/active').then(function(alerts) {
+      if (!alerts) return;
+      document.getElementById('dash-alerts').textContent = alerts.length;
+      var el = document.getElementById('alerts-list');
+      if (!alerts.length) {
+        el.innerHTML = '<p class="uptime-no-data">No active alerts ✓</p>';
+        return;
+      }
+      el.innerHTML = alerts.map(function(a) {
+        var alertCls = 'alert-item alert-' + a.severity;
+        var div = document.createElement('div');
+        div.className = alertCls;
+        div.innerHTML = '<strong>' + a.tool_slug + '</strong>: ' + a.message +
+          '<span class="alert-time">' + a.triggered_at_str + '</span>';
+        return div.outerHTML;
+      }).join('');
+    });
+  }
+
+  refresh();
+  setInterval(refresh, 10000);
+})();
+</script>
+{% endblock %}

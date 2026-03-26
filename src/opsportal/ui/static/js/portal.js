@@ -143,6 +143,15 @@
   var modalResolve = null;
   var modalTrigger = null;
 
+  function trapFocus(e, focusable) {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    var idx = focusable.indexOf(document.activeElement);
+    var delta = e.shiftKey ? -1 : 1;
+    var next = (idx + delta + focusable.length) % focusable.length;
+    focusable[next].focus();
+  }
+
   function showModal(opts) {
     var overlay = document.getElementById("modal-overlay");
     var titleEl = document.getElementById("modal-title");
@@ -164,7 +173,6 @@
 
     return new Promise(function (resolve) {
       modalResolve = resolve;
-
       var focusable = [closeBtn, cancelBtn, confirmBtn];
 
       function cleanup() {
@@ -174,26 +182,15 @@
         closeBtn.removeEventListener("click", onCancel);
         document.removeEventListener("keydown", onKey);
         modalResolve = null;
-        if (modalTrigger && modalTrigger.focus) {
-          modalTrigger.focus();
-        }
+        if (modalTrigger && modalTrigger.focus) { modalTrigger.focus(); }
         modalTrigger = null;
       }
 
       function onConfirm() { cleanup(); resolve(true); }
       function onCancel() { cleanup(); resolve(false); }
       function onKey(e) {
-        if (e.key === "Escape") { e.preventDefault(); onCancel(); }
-        if (e.key === "Tab") {
-          var idx = focusable.indexOf(document.activeElement);
-          if (e.shiftKey) {
-            e.preventDefault();
-            focusable[(idx - 1 + focusable.length) % focusable.length].focus();
-          } else {
-            e.preventDefault();
-            focusable[(idx + 1) % focusable.length].focus();
-          }
-        }
+        if (e.key === "Escape") { e.preventDefault(); onCancel(); return; }
+        trapFocus(e, focusable);
       }
 
       confirmBtn.addEventListener("click", onConfirm);

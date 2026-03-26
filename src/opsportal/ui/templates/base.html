@@ -8,15 +8,15 @@
   <link rel="stylesheet" href="/static/css/portal-base.css">
   <link rel="stylesheet" href="/static/css/portal-components.css">
   <link rel="stylesheet" href="/static/css/portal-pages.css">
+  <link rel="stylesheet" href="/static/css/portal-features.css">
+  <link rel="stylesheet" href="/static/css/portal-advanced.css">
   <script>
-    // Apply saved theme immediately to avoid flash
     (function(){
       var t = localStorage.getItem('opsportal_theme') || 'system';
       if (t === 'system') {
         t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
       document.documentElement.setAttribute('data-theme', t);
-      // Apply saved language immediately to avoid FOUC
       var lang = localStorage.getItem('opsportal_lang');
       if (lang) document.documentElement.lang = lang;
     })();
@@ -26,22 +26,23 @@
 <body>
   <header class="header">
     <div class="header-inner">
-      <a href="/" class="brand">
-        <span class="brand-mark">
-          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </span>
-        <span class="brand-text">OpsPortal</span>
-      </a>
-      <nav class="header-right" aria-label="Main navigation" data-i18n-aria="aria.main_nav">
-        <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}" data-i18n="nav.dashboard">
-          <svg aria-hidden="true" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          Dashboard
+      <div class="header-left">
+        <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu" data-i18n-aria="aria.toggle_menu">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="/" class="brand">
+          <span class="brand-mark">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          <span class="brand-text">OpsPortal</span>
         </a>
+      </div>
+      <nav class="header-right" aria-label="Quick actions">
         <div class="gear-wrapper">
           <button type="button" class="gear-btn" id="gear-toggle" data-i18n-title="gear.settings_title" title="Settings" aria-label="Settings" aria-expanded="false">
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -75,33 +76,62 @@
               <div class="gear-section-label" data-i18n="gear.language">Language</div>
               <div class="gear-options">
                 <button type="button" class="gear-option" data-lang-set="en" role="menuitem">
-                  <span class="lang-flag">EN</span>
-                  <span>English</span>
+                  <span class="lang-flag">EN</span> <span>English</span>
                 </button>
                 <button type="button" class="gear-option" data-lang-set="pl" role="menuitem">
-                  <span class="lang-flag">PL</span>
-                  <span>Polski</span>
+                  <span class="lang-flag">PL</span> <span>Polski</span>
                 </button>
               </div>
             </div>
-            <div class="gear-divider"></div>
-            <a href="/health" class="gear-nav-link" role="menuitem">
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              <span data-i18n="nav.health">Health</span>
-            </a>
-            <a href="/config" class="gear-nav-link" role="menuitem">
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-              <span data-i18n="nav.settings">Settings</span>
-            </a>
-            <a href="/logs" class="gear-nav-link" role="menuitem">
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              <span data-i18n="nav.logs">Logs</span>
-            </a>
           </div>
         </div>
       </nav>
     </div>
   </header>
+
+  {# ── Collapsible Left Sidebar ── #}
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Navigation" data-i18n-aria="aria.nav_sidebar">
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label" data-i18n="sidebar.main">Main</div>
+      <a href="/" class="sidebar-link {% if request.url.path == '/' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span data-i18n="nav.home">Home</span>
+      </a>
+      <a href="/dashboard" class="sidebar-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+
+      <div class="sidebar-section-label" data-i18n="sidebar.monitoring">Monitoring</div>
+      <a href="/health" class="sidebar-link {% if request.url.path == '/health' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span data-i18n="nav.health">Health</span>
+      </a>
+      <a href="/uptime" class="sidebar-link {% if request.url.path == '/uptime' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span data-i18n="nav.uptime">Uptime</span>
+      </a>
+      <a href="/sla" class="sidebar-link {% if request.url.path == '/sla' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        <span data-i18n="nav.sla">SLA Report</span>
+      </a>
+
+      <div class="sidebar-section-label" data-i18n="sidebar.tools">Tools</div>
+      <a href="/dependencies" class="sidebar-link {% if request.url.path == '/dependencies' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span data-i18n="nav.depgraph">Dependencies</span>
+      </a>
+      <a href="/logs" class="sidebar-link {% if request.url.path == '/logs' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span data-i18n="nav.logs">Logs</span>
+      </a>
+      <a href="/config" class="sidebar-link {% if request.url.path == '/config' %}active{% endif %}">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span data-i18n="nav.settings">Settings</span>
+      </a>
+    </nav>
+  </aside>
 
   {% block breadcrumb %}{% endblock %}
 
@@ -142,9 +172,23 @@
 
   <div id="toast-container" aria-live="polite" role="status"></div>
 
+  {# ── Command Palette (⌘K) ── #}
+  <div class="cmd-palette-overlay" id="cmd-palette" style="display:none">
+    <div class="cmd-palette-card">
+      <input type="text" class="cmd-palette-input" id="cmd-palette-input"
+             placeholder="Search tools, actions, pages..." autocomplete="off" />
+      <div class="cmd-palette-results" id="cmd-palette-results"></div>
+      <div class="cmd-palette-hint">
+        <kbd>↑↓</kbd> navigate &nbsp; <kbd>Enter</kbd> select &nbsp; <kbd>Esc</kbd> close
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/portal-i18n-pl.js"></script>
   <script src="/static/js/portal-i18n.js"></script>
   <script src="/static/js/portal.js"></script>
+  <script src="/static/js/portal-features.js"></script>
+  <script src="/static/js/portal-advanced.js"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

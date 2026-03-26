@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Dependency Graph – OpsPortal{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>🔗 <span data-i18n="depgraph.title">Dependency Graph</span></h1>
+  <p class="page-subtitle" data-i18n="depgraph.subtitle">Visualize relationships between tools and services</p>
+</section>
+
+<div class="depgraph-controls">
+  <button type="button" id="dep-reset" class="btn btn-sm" data-i18n="depgraph.reset">Reset View</button>
+  <label class="dep-toggle">
+    <input type="checkbox" id="dep-labels" checked>
+    <span data-i18n="depgraph.show_labels">Show labels</span>
+  </label>
+</div>
+
+<div id="dep-graph" class="depgraph-container"></div>
+
+<script>
+(function() {
+  const container = document.getElementById('dep-graph');
+  const width = container.clientWidth || 800;
+  const height = 520;
+
+  const svg = d3.select('#dep-graph')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', [0, 0, width, height]);
+
+  const g = svg.append('g');
+
+  const zoom = d3.zoom()
+    .scaleExtent([0.3, 4])
+    .on('zoom', (ev) => g.attr('transform', ev.transform));
+  svg.call(zoom);
+
+  document.getElementById('dep-reset').addEventListener('click', function() {
+    svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+  });
+
+  fetch('/api/dependencies')
+    .then(r => r.json())
+    .then(function(data) {
+      const nodes = data.nodes || [];
+      const links = data.links || [];
+
+      if (nodes.length === 0) {
+        svg.append('text')
+          .attr('x', width / 2)
+          .attr('y', height / 2)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#94a3b8')
+          .attr('font-size', '16px')
+          .text('No tools registered');
+        return;
+      }
+
+      const colorMap = {
+        running: '#22c55e',
+        stopped: '#94a3b8',
+        error: '#ef4444',
+        unknown: '#6366f1',
+      };
+
+      const simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(40));
+
+      // Arrow markers
+      svg.append('defs').selectAll('marker')
+        .data(['arrow'])
+        .join('marker')
+        .attr('id', 'arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 28)
+        .attr('refY', 0)
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 8)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', '#94a3b8');
+
+      const link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', '#94a3b8')
+        .attr('stroke-opacity', 0.5)
+        .attr('stroke-width', 1.5)
+        .attr('marker-end', 'url(#arrow)');
+
+      const node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .call(d3.drag()
+          .on('start', (ev, d) => {
+            if (!ev.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x; d.fy = d.y;
+          })
+          .on('drag', (ev, d) => { d.fx = ev.x; d.fy = ev.y; })
+          .on('end', (ev, d) => {
+            if (!ev.active) simulation.alphaTarget(0);
+            d.fx = null; d.fy = null;
+          })
+        );
+
+      node.append('circle')
+        .attr('r', 18)
+        .attr('fill', d => colorMap[d.status] || colorMap.unknown)
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2);
+
+      node.append('text')
+        .text(d => d.icon || '⚙️')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('font-size', '14px');
+
+      const labels = node.append('text')
+        .text(d => d.label)
+        .attr('dy', 32)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '11px')
+        .attr('fill', '#64748b')
+        .attr('class', 'dep-label');
+
+      // Toggle labels
+      document.getElementById('dep-labels').addEventListener('change', function() {
+        labels.attr('display', this.checked ? null : 'none');
+      });
+
+      // Tooltip
+      node.append('title').text(d => d.label + ' (' + d.status + ')');
+
+      simulation.on('tick', function() {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      });
+    })
+    .catch(function(err) {
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#ef4444')
+        .text('Failed to load: ' + err.message);
+    });
+})();
+</script>
+{% endblock %}

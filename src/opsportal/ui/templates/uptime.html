@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Uptime — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.uptime">{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1 class="page-title" data-i18n="uptime.title">Uptime Dashboard</h1>
+  <p class="page-subtitle" data-i18n="uptime.subtitle">Historical availability and incident timeline for all tools.</p>
+</section>
+
+{% if summaries %}
+<div class="uptime-grid">
+  {% for adapter in adapters %}
+  {% set slug = adapter.slug %}
+  {% set summary = summaries.get(slug) %}
+  <div class="uptime-card" style="--accent: {{ adapter.color }}">
+    <div class="uptime-card-header">
+      <h3 class="uptime-card-name">{{ adapter.display_name }}</h3>
+      {% if summary %}
+      {% set pct = summary.uptime_percent %}
+      {% if pct >= 99 %}
+      <span class="uptime-percent uptime-good">
+      {% elif pct >= 95 %}
+      <span class="uptime-percent uptime-warn">
+      {% else %}
+      <span class="uptime-percent uptime-bad">
+      {% endif %}
+        {{ summary.uptime_percent }}%
+      </span>
+      {% else %}
+      <span class="uptime-percent uptime-neutral">—</span>
+      {% endif %}
+    </div>
+
+    {% if summary %}
+    <div class="uptime-stats">
+      <div class="uptime-stat">
+        <span class="uptime-stat-label" data-i18n="uptime.checks">Checks</span>
+        <span class="uptime-stat-value">{{ summary.total_checks }}</span>
+      </div>
+      <div class="uptime-stat">
+        <span class="uptime-stat-label" data-i18n="uptime.healthy">Healthy</span>
+        <span class="uptime-stat-value">{{ summary.healthy_checks }}</span>
+      </div>
+      <div class="uptime-stat">
+        <span class="uptime-stat-label" data-i18n="uptime.avg_latency">Avg Latency</span>
+        <span class="uptime-stat-value">{{ "%.1f"|format(summary.avg_latency_ms) }}ms</span>
+      </div>
+      <div class="uptime-stat">
+        <span class="uptime-stat-label" data-i18n="uptime.status">Status</span>
+        <span class="uptime-stat-value">
+          {% if summary.last_healthy %}
+          <span class="status-dot status-running"></span> <span data-i18n="uptime.up">Up</span>
+          {% else %}
+          <span class="status-dot status-error"></span> <span data-i18n="uptime.down">Down</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    {% if summary.incidents %}
+    <details class="uptime-incidents">
+      <summary data-i18n="uptime.recent_incidents">Recent Incidents ({{ summary.incidents | length }})</summary>
+      <div class="uptime-incident-list">
+        {% for incident in summary.incidents[-5:] | reverse %}
+        <div class="uptime-incident">
+          <span class="uptime-incident-time">{{ incident.start_str }}</span>
+          {% if incident.get('duration_seconds') %}
+          <span class="uptime-incident-duration">{{ incident.duration_seconds }}s</span>
+          {% else %}
+          <span class="uptime-incident-ongoing" data-i18n="uptime.ongoing">Ongoing</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+    {% else %}
+    <p class="uptime-no-data" data-i18n="uptime.no_data">No uptime data yet. Health checks will populate this automatically.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p class="empty-state-text" data-i18n="uptime.no_tools">No tools registered for uptime monitoring.</p>
+</div>
+{% endif %}
+{% endblock %}

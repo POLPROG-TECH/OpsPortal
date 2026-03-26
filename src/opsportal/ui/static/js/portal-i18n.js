@@ -165,10 +165,35 @@
       "modal.stop.title":           "Stop Application",
 
       /* ---------- navigation ---------- */
+      "nav.home":                    "Home",
       "nav.dashboard":              "Dashboard",
       "nav.health":                 "Health",
       "nav.logs":                   "Logs",
       "nav.settings":               "Settings",
+      "nav.sla":                    "SLA Report",
+
+      /* ---------- sidebar ---------- */
+      "sidebar.main":               "Main",
+      "sidebar.monitoring":         "Monitoring",
+      "sidebar.tools":              "Tools",
+
+      /* ---------- dashboard ---------- */
+      "dashboard.title":            "Monitoring Dashboard",
+      "dashboard.subtitle":         "Real-time metrics and performance charts",
+      "dashboard.total_tools":      "Total Tools",
+      "dashboard.running":          "Running",
+      "dashboard.stopped":          "Stopped",
+      "dashboard.active_alerts":    "Active Alerts",
+
+      /* ---------- activity feed ---------- */
+      "feed.title":                 "Live Activity",
+
+      /* ---------- dependency graph ---------- */
+      "nav.depgraph":               "Dependencies",
+      "depgraph.title":             "Dependency Graph",
+      "depgraph.subtitle":          "Visualize relationships between tools and services",
+      "depgraph.reset":             "Reset View",
+      "depgraph.show_labels":       "Show labels",
 
       /* ---------- onboarding ---------- */
       "onboarding.close":           "Close",
@@ -299,7 +324,41 @@
 
       /* ---------- units ---------- */
       "unit.kb":                    "KB",
-      "unit.ms":                    "ms"
+      "unit.ms":                    "ms",
+
+      /* ---------- bulk actions (#4) ---------- */
+      "bulk.start_all":             "Start All",
+      "bulk.stop_all":              "Stop All",
+      "bulk.restart_all":           "Restart All",
+      "bulk.title":                 "Bulk Action",
+      "bulk.confirm_stop":          "Are you sure you want to stop ALL tools? All embedded applications will become unavailable.",
+      "bulk.confirm_action":        "Are you sure you want to {action} all tools?",
+      "bulk.running":               "Running {action} on all tools\u2026",
+      "bulk.completed":             "{n}/{total} tools completed successfully",
+
+      /* ---------- fullscreen (#6) ---------- */
+      "tool.fullscreen":            "Fullscreen",
+      "tool.exit_fullscreen":       "Exit Fullscreen",
+      "tool.open_new_tab_short":    "New Tab",
+
+      /* ---------- uptime (#16) ---------- */
+      "nav.uptime":                 "Uptime",
+      "page.title.uptime":          "Uptime \u2014 OpsPortal",
+      "uptime.title":               "Uptime Dashboard",
+      "uptime.subtitle":            "Historical availability and incident timeline for all tools.",
+      "uptime.checks":              "Checks",
+      "uptime.healthy":             "Healthy",
+      "uptime.avg_latency":         "Avg Latency",
+      "uptime.status":              "Status",
+      "uptime.up":                  "Up",
+      "uptime.down":                "Down",
+      "uptime.recent_incidents":    "Recent Incidents",
+      "uptime.ongoing":             "Ongoing",
+      "uptime.no_data":             "No uptime data yet.",
+      "uptime.no_tools":            "No tools registered for monitoring.",
+
+      /* ---------- drag & drop (#5) ---------- */
+      "drag.hint":                  "Drag to reorder"
     },
 
     pl: window.__OPS_PL || {}

@@ -53,6 +53,47 @@ class PortalSettings(BaseSettings):
     log_buffer_size: int = Field(default=5000, ge=100, le=50000)
     health_check_interval: int = Field(default=30, ge=5, le=300)
 
+    # --- Authentication ---
+    auth_enabled: bool = Field(default=False, description="Enable basic authentication")
+    auth_username: str = Field(default="admin", description="Basic auth username")
+    auth_password: str = Field(
+        default="",
+        description="Basic auth password (required if auth_enabled)",
+    )
+
+    # --- Metrics & Monitoring ---
+    metrics_enabled: bool = Field(default=True, description="Enable /metrics Prometheus endpoint")
+    uptime_data_dir: Path = Field(
+        default=Path(""),
+        description="Dir for uptime data (default: work_dir/uptime)",
+    )
+
+    # --- Notifications ---
+    webhook_urls: str = Field(default="", description="Comma-separated webhook URLs for alerts")
+
+    # --- Scheduler ---
+    scheduler_enabled: bool = Field(default=True, description="Enable action scheduler")
+    scheduler_config_path: Path = Field(
+        default=Path(""), description="Scheduler jobs file (default: work_dir/scheduler.json)"
+    )
+
+    # --- Hot-reload ---
+    manifest_watch: bool = Field(default=True, description="Watch opsportal.yaml for changes")
+    manifest_watch_interval: float = Field(default=5.0, ge=1.0, le=60.0)
+
+    # --- Cache ---
+    cache_ttl: int = Field(
+        default=300,
+        ge=30,
+        le=3600,
+        description="TTL for logo/schema cache (seconds)",
+    )
+
+    # --- Artifact cleanup ---
+    artifact_cleanup_enabled: bool = Field(default=True, description="Auto-cleanup old artifacts")
+    artifact_max_age_days: int = Field(default=7, ge=1, le=365)
+    artifact_cleanup_interval: int = Field(default=3600, ge=300, le=86400)
+
     @field_validator("log_level")
     @classmethod
     def _normalise_log_level(cls, v: str) -> str:
@@ -63,7 +104,13 @@ class PortalSettings(BaseSettings):
         return v
 
     @field_validator(
-        "manifest_path", "artifact_dir", "work_dir", "tools_base_dir", "tools_work_dir"
+        "manifest_path",
+        "artifact_dir",
+        "work_dir",
+        "tools_base_dir",
+        "tools_work_dir",
+        "uptime_data_dir",
+        "scheduler_config_path",
     )
     @classmethod
     def _resolve_path(cls, v: Path) -> Path:
@@ -73,6 +120,10 @@ class PortalSettings(BaseSettings):
     def _derive_tools_work_dir(self) -> PortalSettings:
         if self.tools_work_dir == Path(""):
             object.__setattr__(self, "tools_work_dir", self.work_dir / "tools")
+        if self.uptime_data_dir == Path(""):
+            object.__setattr__(self, "uptime_data_dir", self.work_dir / "uptime")
+        if self.scheduler_config_path == Path(""):
+            object.__setattr__(self, "scheduler_config_path", self.work_dir / "scheduler.json")
         return self
 
 

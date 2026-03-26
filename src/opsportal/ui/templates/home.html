@@ -32,10 +32,17 @@
 {# ── Product Grid ── #}
 {% if cards %}
 <section class="product-section">
-  <h2 class="section-heading" data-i18n="section.apps">Applications</h2>
-  <div class="product-grid">
+  <div class="section-header-row">
+    <h2 class="section-heading" data-i18n="section.apps">Applications</h2>
+    <div class="bulk-actions">
+      <button type="button" class="btn btn-sm btn-primary" onclick="bulkAction('start')" data-i18n="bulk.start_all">Start All</button>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="bulkAction('restart')" data-i18n="bulk.restart_all">Restart All</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('stop')" data-i18n="bulk.stop_all">Stop All</button>
+    </div>
+  </div>
+  <div class="product-grid" id="product-grid">
     {% for card in cards %}
-    <a href="/tools/{{ card.slug }}" class="product-card" style="--accent: {{ card.color }}">
+    <a href="/tools/{{ card.slug }}" class="product-card" style="--accent: {{ card.color }}" draggable="true" data-slug="{{ card.slug }}">
       <div class="product-card-inner">
         <div class="product-logo-wrap" style="background: {{ card.color }}0d">
           {% if card.has_logo %}
@@ -83,6 +90,25 @@
             {% endif %}
           </div>
           <p class="product-desc" data-i18n="adapter.{{ card.slug }}.desc">{{ card.description }}</p>
+          {% if card.total_checks > 0 or card.memory_mb > 0 %}
+          <div class="product-stats">
+            {% if card.total_checks > 0 %}
+            {% if card.uptime_percent >= 99 %}
+            <span class="product-stat product-stat-good" title="Uptime">▲ {{ card.uptime_percent }}%</span>
+            {% elif card.uptime_percent >= 95 %}
+            <span class="product-stat product-stat-warn" title="Uptime">▲ {{ card.uptime_percent }}%</span>
+            {% else %}
+            <span class="product-stat product-stat-bad" title="Uptime">▼ {{ card.uptime_percent }}%</span>
+            {% endif %}
+            {% endif %}
+            {% if card.avg_latency_ms > 0 %}
+            <span class="product-stat" title="Avg latency">⚡ {{ card.avg_latency_ms }}ms</span>
+            {% endif %}
+            {% if card.memory_mb > 0 %}
+            <span class="product-stat" title="Memory RSS">🧠 {{ card.memory_mb }} MB</span>
+            {% endif %}
+          </div>
+          {% endif %}
           {% if not card.config_ok %}
           <span class="product-status-label product-status-setup" data-i18n="card.setup">Setup required</span>
           {% endif %}
@@ -102,6 +128,16 @@
     {% endfor %}
   </div>
 </section>
+
+{# ── Activity Feed (real-time) ── #}
+<section class="activity-feed">
+  <div class="activity-feed-title">
+    <div class="live-dot"></div>
+    <span data-i18n="feed.title">Live Activity</span>
+  </div>
+  <div id="activity-feed"></div>
+</section>
+
 {% else %}
 <section class="empty-hero">
   <div class="empty-hero-icon">

@@ -153,10 +153,35 @@ window.__OPS_PL = {
       "modal.stop.title":           "Zatrzymaj aplikacj\u0119",
 
       /* ---------- navigation ---------- */
+      "nav.home":                    "Strona g\u0142\u00f3wna",
       "nav.dashboard":              "Panel",
       "nav.health":                 "Stan systemu",
       "nav.logs":                   "Dziennik",
       "nav.settings":               "Ustawienia",
+      "nav.sla":                    "Raport SLA",
+
+      /* ---------- sidebar ---------- */
+      "sidebar.main":               "G\u0142\u00f3wne",
+      "sidebar.monitoring":         "Monitoring",
+      "sidebar.tools":              "Narz\u0119dzia",
+
+      /* ---------- dashboard ---------- */
+      "dashboard.title":            "Panel monitoringu",
+      "dashboard.subtitle":         "Metryki i wykresy wydajno\u015bci w czasie rzeczywistym",
+      "dashboard.total_tools":      "Wszystkie narz\u0119dzia",
+      "dashboard.running":          "Dzia\u0142aj\u0105ce",
+      "dashboard.stopped":          "Zatrzymane",
+      "dashboard.active_alerts":    "Aktywne alerty",
+
+      /* ---------- activity feed ---------- */
+      "feed.title":                 "Aktywno\u015b\u0107 na \u017cywo",
+
+      /* ---------- dependency graph ---------- */
+      "nav.depgraph":               "Zale\u017cno\u015bci",
+      "depgraph.title":             "Graf zale\u017cno\u015bci",
+      "depgraph.subtitle":          "Wizualizuj relacje mi\u0119dzy narz\u0119dziami i us\u0142ugami",
+      "depgraph.reset":             "Resetuj widok",
+      "depgraph.show_labels":       "Poka\u017c etykiety",
 
       /* ---------- onboarding ---------- */
       "onboarding.close":           "Zamknij",
@@ -287,5 +312,39 @@ window.__OPS_PL = {
 
       /* ---------- units ---------- */
       "unit.kb":                    "KB",
-      "unit.ms":                    "ms"
+      "unit.ms":                    "ms",
+
+      /* ---------- bulk actions (#4) ---------- */
+      "bulk.start_all":             "Uruchom wszystkie",
+      "bulk.stop_all":              "Zatrzymaj wszystkie",
+      "bulk.restart_all":           "Uruchom ponownie wszystkie",
+      "bulk.title":                 "Akcja zbiorcza",
+      "bulk.confirm_stop":          "Czy na pewno chcesz zatrzyma\u0107 WSZYSTKIE narz\u0119dzia? Wszystkie osadzone aplikacje stan\u0105 si\u0119 niedost\u0119pne.",
+      "bulk.confirm_action":        "Czy na pewno chcesz wykona\u0107 {action} na wszystkich narz\u0119dziach?",
+      "bulk.running":               "Wykonywanie {action} na wszystkich narz\u0119dziach\u2026",
+      "bulk.completed":             "{n}/{total} narz\u0119dzi zako\u0144czono pomy\u015blnie",
+
+      /* ---------- fullscreen (#6) ---------- */
+      "tool.fullscreen":            "Pe\u0142ny ekran",
+      "tool.exit_fullscreen":       "Zamknij pe\u0142ny ekran",
+      "tool.open_new_tab_short":    "Nowa karta",
+
+      /* ---------- uptime (#16) ---------- */
+      "nav.uptime":                 "Dost\u0119pno\u015b\u0107",
+      "page.title.uptime":          "Dost\u0119pno\u015b\u0107 \u2014 OpsPortal",
+      "uptime.title":               "Panel dost\u0119pno\u015bci",
+      "uptime.subtitle":            "Historyczna dost\u0119pno\u015b\u0107 i o\u015b czasu incydent\u00f3w dla wszystkich narz\u0119dzi.",
+      "uptime.checks":              "Sprawdzenia",
+      "uptime.healthy":             "Sprawne",
+      "uptime.avg_latency":         "\u015arednie op\u00f3\u017anienie",
+      "uptime.status":              "Status",
+      "uptime.up":                  "Dzia\u0142a",
+      "uptime.down":                "Niedost\u0119pny",
+      "uptime.recent_incidents":    "Ostatnie incydenty",
+      "uptime.ongoing":             "Trwa",
+      "uptime.no_data":             "Brak danych o dost\u0119pno\u015bci.",
+      "uptime.no_tools":            "Brak zarejestrowanych narz\u0119dzi do monitorowania.",
+
+      /* ---------- drag & drop (#5) ---------- */
+      "drag.hint":                  "Przeci\u0105gnij, aby zmieni\u0107 kolejno\u015b\u0107"
 };

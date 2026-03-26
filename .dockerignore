@@ -1,0 +1,19 @@
+# Ignore build artifacts, caches, local config
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.ruff_cache
+.mypy_cache
+*.egg-info
+dist/
+build/
+work/
+artifacts/
+.git
+.github
+.venv
+venv
+node_modules
+*.md
+!README.md

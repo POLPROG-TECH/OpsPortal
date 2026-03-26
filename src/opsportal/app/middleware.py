@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import base64
 import secrets
 from http.cookies import SimpleCookie
 
 from starlette.datastructures import MutableHeaders
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 _CSRF_COOKIE = "opsportal_csrf"
 _CSRF_HEADER = "x-csrf-token"
 _MUTATING_METHODS = {"POST", "PUT", "DELETE"}
+
+# Paths that bypass authentication (metrics, health probes)
+_AUTH_EXEMPT_PATHS = {"/api/health", "/metrics"}
 
 
 def _build_csp(child_tool_ports: list[int] | None = None) -> str:
@@ -26,10 +30,12 @@ def _build_csp(child_tool_ports: list[int] | None = None) -> str:
         frame_sources.append(f"http://localhost:{port}")
     frame_src = " ".join(frame_sources)
 
+    cdn_hosts = "https://cdn.jsdelivr.net"
+
     return (
         f"default-src 'self'; "
-        f"script-src 'self' 'unsafe-inline'; "
-        f"style-src 'self' 'unsafe-inline'; "
+        f"script-src 'self' 'unsafe-inline' {cdn_hosts}; "
+        f"style-src 'self' 'unsafe-inline' {cdn_hosts}; "
         f"img-src 'self' data:; "
         f"frame-src {frame_src}; "
         f"frame-ancestors 'self'"
@@ -37,11 +43,21 @@ def _build_csp(child_tool_ports: list[int] | None = None) -> str:
 
 
 class PortalSecurityMiddleware:
-    """Add baseline security headers and CSRF protection to every HTTP response."""
+    """Add baseline security headers, CSRF protection, and optional auth."""
 
-    def __init__(self, app: ASGIApp, child_tool_ports: list[int] | None = None) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        child_tool_ports: list[int] | None = None,
+        auth_enabled: bool = False,
+        auth_username: str = "",
+        auth_password: str = "",
+    ) -> None:
         self.app = app
         self._csp = _build_csp(child_tool_ports)
+        self._auth_enabled = auth_enabled and bool(auth_password)
+        self._auth_username = auth_username
+        self._auth_password = auth_password
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -51,6 +67,19 @@ class PortalSecurityMiddleware:
         method = scope.get("method", "GET")
         path = scope.get("path", "")
         raw_headers = dict(scope.get("headers", []))
+
+        # -- Basic Authentication (#12) --
+        if self._auth_enabled and path not in _AUTH_EXEMPT_PATHS:
+            auth_header = raw_headers.get(b"authorization", b"").decode("latin-1")
+            if not self._check_auth(auth_header):
+                resp = Response(
+                    "Unauthorized",
+                    status_code=401,
+                    headers={"WWW-Authenticate": 'Basic realm="OpsPortal"'},
+                )
+                await resp(scope, receive, send)
+                return
+
         cookie_header = raw_headers.get(b"cookie", b"").decode("latin-1")
 
         # Parse existing CSRF cookie
@@ -87,3 +116,16 @@ class PortalSecurityMiddleware:
             await send(message)
 
         await self.app(scope, receive, add_headers)
+
+    def _check_auth(self, auth_header: str) -> bool:
+        """Validate Basic auth header."""
+        if not auth_header.startswith("Basic "):
+            return False
+        try:
+            decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+            username, password = decoded.split(":", 1)
+            return secrets.compare_digest(
+                username, self._auth_username
+            ) and secrets.compare_digest(password, self._auth_password)
+        except (ValueError, UnicodeDecodeError):
+            return False

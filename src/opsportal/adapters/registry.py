@@ -22,6 +22,13 @@ class AdapterRegistry:
         self._adapters[slug] = adapter
         logger.info("Registered adapter: %s (%s)", slug, adapter.integration_mode.value)
 
+    def unregister(self, slug: str) -> ToolAdapter | None:
+        """Remove and return an adapter from the registry."""
+        adapter = self._adapters.pop(slug, None)
+        if adapter:
+            logger.info("Unregistered adapter: %s", slug)
+        return adapter
+
     def get(self, slug: str) -> ToolAdapter | None:
         return self._adapters.get(slug)
 
@@ -30,6 +37,9 @@ class AdapterRegistry:
 
     def enabled(self) -> list[ToolAdapter]:
         return list(self._adapters.values())
+
+    def slugs(self) -> list[str]:
+        return list(self._adapters.keys())
 
     def __len__(self) -> int:
         return len(self._adapters)

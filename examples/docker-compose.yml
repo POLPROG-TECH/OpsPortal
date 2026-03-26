@@ -1,0 +1,38 @@
+# =============================================================================
+# OpsPortal — Docker Compose
+#
+# Usage:
+#   docker compose up -d          # start
+#   docker compose logs -f        # follow logs
+#   docker compose down            # stop
+# =============================================================================
+
+services:
+  opsportal:
+    build: .
+    # Or use a pre-built image:
+    # image: registry.example.com/opsportal:latest
+    ports:
+      - "${OPSPORTAL_PORT:-8080}:8080"
+    volumes:
+      - ./opsportal.yaml:/app/opsportal.yaml:ro
+      - opsportal-work:/app/work
+      - opsportal-artifacts:/app/artifacts
+    environment:
+      OPSPORTAL_HOST: "0.0.0.0"
+      OPSPORTAL_PORT: "8080"
+      OPSPORTAL_LOG_LEVEL: "info"
+      # OPSPORTAL_AUTH_USERNAME: admin
+      # OPSPORTAL_AUTH_PASSWORD: changeme
+      # OPSPORTAL_WEBHOOK_URLS: "https://hooks.slack.com/services/..."
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8080/api/health').raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  opsportal-work:
+  opsportal-artifacts:

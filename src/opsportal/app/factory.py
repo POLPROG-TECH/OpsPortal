@@ -11,6 +11,8 @@ from starlette.responses import JSONResponse
 from starlette.templating import Jinja2Templates
 
 from opsportal import __version__
+from opsportal.adapters.appsecone import AppSecOneAdapter
+from opsportal.adapters.flowboard import FlowBoardAdapter
 from opsportal.adapters.localesync import LocaleSyncAdapter
 from opsportal.adapters.registry import AdapterRegistry
 from opsportal.adapters.releaseboard import ReleaseBoardAdapter
@@ -32,7 +34,7 @@ from opsportal.services.plugin_loader import PluginLoader
 from opsportal.services.process_manager import ProcessManager
 from opsportal.services.scheduler import Scheduler
 from opsportal.services.sla_reporter import SLAReporter
-from opsportal.services.tool_installer import ToolInstaller
+from opsportal.services.tool_installer import ToolInstaller, ToolInstallError
 from opsportal.services.uptime_tracker import UptimeTracker
 
 logger = get_logger("app.factory")
@@ -195,7 +197,7 @@ def _auto_install_tool(installer: ToolInstaller, tool: ToolConfig) -> None:
     try:
         result = installer.ensure_installed(tool.source)
         logger.info("Tool %s: %s", tool.slug, result)
-    except Exception:
+    except (ToolInstallError, OSError):
         logger.exception("Failed to install %s from source", tool.slug)
 
 
@@ -205,7 +207,7 @@ def _create_and_register(registry: AdapterRegistry, slug: str, tool: ToolConfig,
         adapter = _make_adapter(slug, tool, app)
         if adapter:
             registry.register(adapter)
-    except Exception:
+    except (ValueError, TypeError, OSError):
         logger.exception("Failed to create adapter for %s", slug)
 
 
@@ -256,6 +258,32 @@ def _make_adapter(
             port=tool.port or 8083,
             config_file=tool.config_file or "localesync.json",
             cli_binary=tool.cli_binary or "locale-sync",
+            env=tool.env,
+            startup_timeout=tool.startup_timeout,
+            tools_base_dir=settings.tools_base_dir,
+            portal_origins=portal_origins,
+        )
+    if slug == "flowboard":
+        return FlowBoardAdapter(
+            pm,
+            repo_path=tool.repo_path,
+            work_dir=work_dir,
+            port=tool.port or 8084,
+            config_file=tool.config_file or "flowboard.json",
+            cli_binary=tool.cli_binary or "flowboard",
+            env=tool.env,
+            startup_timeout=tool.startup_timeout,
+            tools_base_dir=settings.tools_base_dir,
+            portal_origins=portal_origins,
+        )
+    if slug == "appsecone":
+        return AppSecOneAdapter(
+            pm,
+            repo_path=tool.repo_path,
+            work_dir=work_dir,
+            port=tool.port or 8085,
+            config_file=tool.config_file or "appsecone.json",
+            cli_binary=tool.cli_binary or "appsecone",
             env=tool.env,
             startup_timeout=tool.startup_timeout,
             tools_base_dir=settings.tools_base_dir,

@@ -150,7 +150,7 @@ class Scheduler:
         if self._action_callback:
             try:
                 await self._action_callback(job.tool_slug, job.action_name, job.params)
-            except Exception:
+            except (OSError, RuntimeError):
                 logger.exception("Scheduled job %s failed", job.job_id)
         job.last_run = time.time()
         job.next_run = self._compute_next_run(job)
@@ -168,46 +168,55 @@ class Scheduler:
         now = time.time()
 
         if expr.startswith("interval:"):
-            try:
-                seconds = int(expr.split(":", 1)[1])
-                return max(now, job.last_run + seconds) if job.last_run else now + seconds
-            except (ValueError, IndexError):
-                return 0.0
-
+            return self._parse_interval(expr, now, job.last_run)
         if expr.startswith("daily:"):
-            try:
-                parts = expr.split(":", 2)
-                hour, minute = int(parts[1]), int(parts[2])
-                dt_now = datetime.now(tz=UTC)
-                candidate = dt_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-                if candidate.timestamp() <= now:
-                    from datetime import timedelta
-
-                    candidate += timedelta(days=1)
-                return candidate.timestamp()
-            except (ValueError, IndexError):
-                return 0.0
-
+            return self._parse_daily(expr, now)
         if expr.startswith("weekly:"):
-            try:
-                parts = expr.split(":", 3)
-                dow, hour, minute = int(parts[1]), int(parts[2]), int(parts[3])
-                dt_now = datetime.now(tz=UTC)
-                days_ahead = dow - dt_now.weekday()
-                if days_ahead < 0:
-                    days_ahead += 7
+            return self._parse_weekly(expr, now)
+        return 0.0
+
+    @staticmethod
+    def _parse_interval(expr: str, now: float, last_run: float) -> float:
+        try:
+            seconds = int(expr.split(":", 1)[1])
+            return max(now, last_run + seconds) if last_run else now + seconds
+        except (ValueError, IndexError):
+            return 0.0
+
+    @staticmethod
+    def _parse_daily(expr: str, now: float) -> float:
+        try:
+            parts = expr.split(":", 2)
+            hour, minute = int(parts[1]), int(parts[2])
+            dt_now = datetime.now(tz=UTC)
+            candidate = dt_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if candidate.timestamp() <= now:
                 from datetime import timedelta
 
-                candidate = dt_now.replace(
-                    hour=hour, minute=minute, second=0, microsecond=0
-                ) + timedelta(days=days_ahead)
-                if candidate.timestamp() <= now:
-                    candidate += timedelta(weeks=1)
-                return candidate.timestamp()
-            except (ValueError, IndexError):
-                return 0.0
+                candidate += timedelta(days=1)
+            return candidate.timestamp()
+        except (ValueError, IndexError):
+            return 0.0
 
-        return 0.0
+    @staticmethod
+    def _parse_weekly(expr: str, now: float) -> float:
+        try:
+            parts = expr.split(":", 3)
+            dow, hour, minute = int(parts[1]), int(parts[2]), int(parts[3])
+            dt_now = datetime.now(tz=UTC)
+            days_ahead = dow - dt_now.weekday()
+            if days_ahead < 0:
+                days_ahead += 7
+            from datetime import timedelta
+
+            candidate = dt_now.replace(
+                hour=hour, minute=minute, second=0, microsecond=0
+            ) + timedelta(days=days_ahead)
+            if candidate.timestamp() <= now:
+                candidate += timedelta(weeks=1)
+            return candidate.timestamp()
+        except (ValueError, IndexError):
+            return 0.0
 
     def _save(self) -> None:
         data = [job.to_dict() for job in self._jobs.values()]

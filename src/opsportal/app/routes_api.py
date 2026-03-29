@@ -200,7 +200,7 @@ async def api_bulk_action(request: Request, action: str):
             _log_store(request).add(
                 slug, action, f"Bulk {action}: {'ok' if result.success else 'failed'}"
             )
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             results[slug] = {"success": False, "error": str(exc)}
 
     _audit_log(request).record(
@@ -337,11 +337,12 @@ async def api_tool_logs_stream(request: Request, slug: str):
         try:
             while True:
                 logs = _process_manager(request).get_logs(slug, tail=500)
-                if len(logs) > seen_count:
-                    new_lines = logs[seen_count:]
-                    for line in new_lines:
-                        yield f"data: {json.dumps({'line': line})}\n\n"
-                    seen_count = len(logs)
+                if len(logs) <= seen_count:
+                    await asyncio.sleep(1)
+                    continue
+                for line in logs[seen_count:]:
+                    yield f"data: {json.dumps({'line': line})}\n\n"
+                seen_count = len(logs)
                 await asyncio.sleep(1)
         except asyncio.CancelledError:
             pass
@@ -366,20 +367,22 @@ async def api_activity_logs_stream(request: Request):
         try:
             while True:
                 current_count = _log_store(request).count()
-                if current_count > last_count:
-                    entries = _log_store(request).recent(current_count - last_count)
-                    for e in reversed(entries):
-                        payload = json.dumps(
-                            {
-                                "time": e.time_str,
-                                "level": e.level,
-                                "tool": e.tool_slug,
-                                "action": e.action,
-                                "message": e.message,
-                            }
-                        )
-                        yield f"data: {payload}\n\n"
-                    last_count = current_count
+                if current_count <= last_count:
+                    await asyncio.sleep(1)
+                    continue
+                entries = _log_store(request).recent(current_count - last_count)
+                for e in reversed(entries):
+                    payload = json.dumps(
+                        {
+                            "time": e.time_str,
+                            "level": e.level,
+                            "tool": e.tool_slug,
+                            "action": e.action,
+                            "message": e.message,
+                        }
+                    )
+                    yield f"data: {payload}\n\n"
+                last_count = current_count
                 await asyncio.sleep(1)
         except asyncio.CancelledError:
             pass

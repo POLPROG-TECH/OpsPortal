@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%2B-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+"></a>
-  <img src="https://img.shields.io/badge/tests-206%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 206 passed">
+  <img src="https://img.shields.io/badge/tests-256%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 256 passed">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-6366f1?style=flat-square" alt="License: AGPL-3.0"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>
@@ -38,9 +38,39 @@ monitor, and manage internal engineering tools.
 | **ReleasePilot** | 8082 | Release notes generation from git history |
 | **ReleaseBoard** | 8081 | Release readiness dashboard across repos |
 | **LocaleSync** | 8083 | Translation file sync across projects |
+| **FlowBoard** | 8084 | Delivery intelligence dashboards from Jira data |
+| **AppSecOne** | 8085 | Security posture dashboard powered by Fortify SSC |
 
 Every tool is a full web application — OpsPortal starts each on demand, monitors health,
 and embeds them in the portal UI via iframe with automatic theme and language forwarding.
+
+## Table of Contents
+
+- [What is OpsPortal?](#what-is-opsportal)
+- [Screenshots](#screenshots)
+- [Quick Start](#quick-start)
+- [First Run / Setup](#first-run--setup)
+- [Configuration](#configuration)
+- [Registering Applications](#registering-applications)
+- [Tool Configuration](#tool-configuration)
+- [Application Embedding](#application-embedding)
+- [Iframe Width Controls](#iframe-width-controls)
+- [ReleaseBoard Integration](#releaseboard-integration)
+- [LocaleSync Integration](#localesync-integration)
+- [FlowBoard Integration](#flowboard-integration)
+- [AppSecOne Integration](#appsecone-integration)
+- [Portal Endpoints](#portal-endpoints)
+- [Architecture](#architecture)
+- [Unified Platform Architecture](#unified-platform-architecture)
+- [Project Structure](#project-structure)
+- [CSP Considerations](#csp-considerations)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [CI/CD Pipelines](#cicd-pipelines)
+- [Corporate Proxy / SSL](#corporate-proxy--ssl)
+- [Remote Tool Sourcing](#remote-tool-sourcing)
+- [Migration Notes](#migration-notes)
+- [License](#license)
 
 ## Screenshots
 
@@ -81,28 +111,23 @@ missing keys, sorts entries, and supports JSON, YAML, and Properties formats.
   <img src="docs/assets/screenshots/localesync.png" alt="OpsPortal — LocaleSync application card on the dashboard" width="800">
 </p>
 
-## Table of Contents
+### FlowBoard — Delivery Intelligence Dashboards
 
-- [What is OpsPortal?](#what-is-opsportal)
-- [Screenshots](#screenshots)
-- [Quick Start](#quick-start)
-- [First Run / Setup](#first-run--setup)
-- [Architecture](#architecture)
-- [Portal Endpoints](#portal-endpoints)
-- [Configuration](#configuration)
-- [Registering Applications](#registering-applications)
-- [ReleaseBoard Integration](#releaseboard-integration)
-- [Application Embedding](#application-embedding)
-- [Iframe Width Controls](#iframe-width-controls)
-- [How Tool Auto-Start Works](#how-tool-auto-start-works)
-- [Corporate Proxy / SSL](#corporate-proxy--ssl)
-- [CSP Considerations](#csp-considerations)
-- [CI/CD Pipelines](#cicd-pipelines)
-- [Troubleshooting](#troubleshooting)
-- [Unified Platform Architecture](#unified-platform-architecture)
-- [Project Structure](#project-structure)
-- [Development](#development)
-- [License](#license)
+Generates Scrum, Kanban, and Waterfall dashboards from Jira data. Includes
+timeline views, workload analysis, sprint tracking, and planning conflict detection.
+
+<p align="center">
+  <img src="docs/assets/screenshots/flowboard.png" alt="OpsPortal — FlowBoard embedded with Gantt-style timeline view showing assignee swimlanes and sprint boundaries" width="800">
+</p>
+
+### AppSecOne — Security Posture Dashboard
+
+Security posture and release readiness dashboard powered by Fortify SSC. Features
+a guided setup wizard for connection, project mapping, and policy configuration.
+
+<p align="center">
+  <img src="docs/assets/screenshots/appsecone.png" alt="OpsPortal — AppSecOne embedded with Fortify SSC connection setup wizard" width="800">
+</p>
 
 ## Quick Start
 
@@ -131,7 +156,7 @@ opsportal serve
 ```
 
 The `opsportal setup` command:
-- Creates `opsportal.yaml` if missing (default manifest with ReleasePilot + ReleaseBoard)
+- Creates `opsportal.yaml` if missing (default manifest with all five tools)
 - Installs declared tools from their remote Git sources
 - Scaffolds default config files from each tool's JSON Schema (when schemas provide defaults)
 - Reports setup status for each tool
@@ -175,7 +200,7 @@ opsportal serve
 
 When you run `opsportal serve` for the first time:
 
-1. **Manifest bootstrap** — if no `opsportal.yaml` exists in the current directory, a default manifest is created with ReleasePilot and ReleaseBoard pre-configured
+1. **Manifest bootstrap** — if no `opsportal.yaml` exists in the current directory, a default manifest is created with all five tools pre-configured
 2. **Tool auto-install** — for each tool with a `source:` block, OpsPortal checks if the tool's CLI is available; if not, it runs `pip install` from the specified Git repository
 3. **Config scaffolding** — on portal startup, each adapter attempts to create default config files from its JSON Schema (if the schema provides default values for all required fields)
 4. **Dashboard** — the portal starts on `http://127.0.0.1:8000` with tool cards showing status
@@ -186,6 +211,9 @@ When you run `opsportal serve` for the first time:
 |------|------------------------|---------------------|
 | ReleasePilot | `work/tools/releasepilot/.releasepilot.json` | `OPSPORTAL_RELEASEPILOT_CONFIG` |
 | ReleaseBoard | `work/tools/releaseboard/releaseboard.json` | `OPSPORTAL_RELEASEBOARD_CONFIG` |
+| LocaleSync | `work/tools/localesync/localesync.json` | `OPSPORTAL_LOCALESYNC_CONFIG` |
+| FlowBoard | `work/tools/flowboard/flowboard.json` | `OPSPORTAL_FLOWBOARD_CONFIG` |
+| AppSecOne | `work/tools/appsecone/appsecone.json` | `OPSPORTAL_APPSECONE_CONFIG` |
 
 Config files are searched in this order (first match wins):
 1. Environment variable override (if set and file exists)
@@ -228,39 +256,6 @@ If the dashboard shows "Setup required" for a tool, it means the tool's config f
 2. **Use the web UI** — click the gear icon on the tool card to open the Configuration page
 3. **Create config manually** — create the config file at the expected location (see table above)
 4. **Set environment variable** — point to an existing config file via the tool's env var
-
-## Architecture
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    OpsPortal :9000 (FastAPI)                  │
-│                                                              │
-│  ┌──────────────┐ ┌──────────────┐                           │
-│  │ ReleasePilot │ │ ReleaseBoard │                           │
-│  │   Adapter    │ │   Adapter    │                           │
-│  └──────┬───────┘ └──────┬───────┘                           │
-│         │                │                                    │
-│    ProcessManager ───── ensure_running() + health poll       │
-└─────────┼────────────────┼────────────────────────────────────┘
-          │                │
-    :8082 ▼          :8081 ▼
-   ReleasePilot    ReleaseBoard
-   (FastAPI)       (FastAPI)
-```
-
-Every tool follows the same pattern:
-- **SUBPROCESS_WEB** integration — OpsPortal launches `{tool} serve --port N`
-- **Health check** via `GET /health/live` → `{"status": "alive"}`
-- **Iframe embedding** — each tool sets `{TOOL}_ALLOW_FRAMING=true`
-- **On-demand lifecycle** — started when user clicks, stopped at portal shutdown
-
-## Portal Endpoints
-
-OpsPortal provides both HTML pages and a JSON API:
-
-**Pages** — dashboard with tool tiles (`/`), per-tool context pages (`/tools/{slug}`), health overview, activity logs, and configuration viewer.
-
-**API** — JSON endpoints for tool health (`/api/health`), tool listing (`/api/tools`), individual tool status, and lifecycle control (start/stop/restart).
 
 ## Configuration
 
@@ -395,6 +390,51 @@ Each tool defines its own schema. See:
 - **ReleasePilot**: `ReleasePilot/schema/releasepilot.schema.json`
 - **ReleaseBoard**: `ReleaseBoard/schema/releaseboard.schema.json`
 
+## Application Embedding
+
+OpsPortal embeds child tools in iframes. For this to work, two conditions must be met:
+
+1. **Portal CSP** — OpsPortal's Content-Security-Policy includes `frame-src` directives
+   for each tool's origin (built automatically from configured ports).
+2. **Tool framing headers** — each tool must allow framing from the portal's origin.
+   OpsPortal sets `{TOOL}_ALLOW_FRAMING=true` and `{TOOL}_CORS_ORIGINS` environment
+   variables when launching child processes.
+
+### Embedding compatibility model
+
+| App type | Behavior |
+|----------|----------|
+| **Embeddable** | Rendered in iframe within the portal UI |
+| **Non-embeddable** | Fallback UI shown with "Open in New Tab" button |
+| **External** | Direct link, no iframe attempted |
+
+If a tool's iframe fails to load (due to CSP, `X-Frame-Options`, or network errors),
+the portal displays a clear fallback message with an "Open in New Tab" action. Users
+are never shown a blank or cryptic "blocked content" page.
+
+The detection logic handles:
+- **Cross-origin frames** (SecurityError on `contentDocument` access) — treated as successful embedding
+- **Same-origin blank pages** — content length check with retry after 1 second
+- **Error events** — immediate fallback display
+- **Timeout** — 15-second deadline triggers fallback if nothing loads
+
+## Iframe Width Controls
+
+When viewing an embedded application, users can expand the iframe width for tools
+that need more horizontal space (dashboards, wide tables, etc.).
+
+| Mode | Behavior |
+|------|----------|
+| **Normal** | Standard container width (1280px max) |
+| **Expand Left** | Container stretches to fill left side, reduced right padding |
+| **Expand Right** | Container stretches to fill right side, reduced left padding |
+
+Controls appear as a button group above the iframe. The selected width mode is
+persisted in `localStorage` (`opsportal_frame_width`) so it survives page reloads.
+
+The skeleton is replaced by the iframe content once the frame fires its `load` event,
+or by the fallback UI if loading fails. Transitions use a 0.3s opacity fade.
+
 ## ReleaseBoard Integration
 
 ReleaseBoard requires a `releaseboard.json` config file. OpsPortal resolves this
@@ -442,50 +482,97 @@ Started automatically when the user navigates to the tool page.
 **For containerized / CI deployments**, set `OPSPORTAL_LOCALESYNC_CONFIG` to the
 absolute path of the mounted config file.
 
-## Application Embedding
+## FlowBoard Integration
 
-OpsPortal embeds child tools in iframes. For this to work, two conditions must be met:
+FlowBoard is a Jira-powered delivery intelligence tool that generates self-contained
+HTML dashboards. It uses a `flowboard.json` config file resolved using the same
+multi-strategy search as other tools:
 
-1. **Portal CSP** — OpsPortal's Content-Security-Policy includes `frame-src` directives
-   for each tool's origin (built automatically from configured ports).
-2. **Tool framing headers** — each tool must allow framing from the portal's origin.
-   OpsPortal sets `{TOOL}_ALLOW_FRAMING=true` and `{TOOL}_CORS_ORIGINS` environment
-   variables when launching child processes.
+| Priority | Strategy | Example |
+|----------|----------|---------|
+| 1 | `OPSPORTAL_FLOWBOARD_CONFIG` env var | `/etc/opsportal/flowboard.json` |
+| 2 | Inside `repo_path` (if set) | `../FlowBoard/flowboard.json` |
+| 3 | Inside per-tool work directory | `work/tools/flowboard/flowboard.json` |
+| 4 | Inside `OPSPORTAL_TOOLS_BASE_DIR` | `../flowboard.json` |
+| 5 | Current working directory | `./flowboard.json` |
 
-### Embedding compatibility model
+If no config file exists on first run, OpsPortal scaffolds a default `flowboard.json`
+with empty Jira connection settings. Users configure their Jira URL, token, and
+project keys through the portal's Configuration page at `/tools/flowboard/config`.
 
-| App type | Behavior |
-|----------|----------|
-| **Embeddable** | Rendered in iframe within the portal UI |
-| **Non-embeddable** | Fallback UI shown with "Open in New Tab" button |
-| **External** | Direct link, no iframe attempted |
+**Version:** Resolved from installed package metadata (`importlib.metadata.version("flowboard")`).
 
-If a tool's iframe fails to load (due to CSP, `X-Frame-Options`, or network errors),
-the portal displays a clear fallback message with an "Open in New Tab" action. Users
-are never shown a blank or cryptic "blocked content" page.
+**Launch:** Subprocess web application on port **8084** (configurable in `opsportal.yaml`).
 
-The detection logic handles:
-- **Cross-origin frames** (SecurityError on `contentDocument` access) — treated as successful embedding
-- **Same-origin blank pages** — content length check with retry after 1 second
-- **Error events** — immediate fallback display
-- **Timeout** — 15-second deadline triggers fallback if nothing loads
+## AppSecOne Integration
 
-## Iframe Width Controls
+AppSecOne is a security posture dashboard powered by Fortify SSC. It uses an
+`appsecone.json` config file with the same multi-strategy resolution:
 
-When viewing an embedded application, users can expand the iframe width for tools
-that need more horizontal space (dashboards, wide tables, etc.).
+| Priority | Strategy | Example |
+|----------|----------|---------|
+| 1 | `OPSPORTAL_APPSECONE_CONFIG` env var | `/etc/opsportal/appsecone.json` |
+| 2 | Inside `repo_path` (if set) | `../AppSecOne/appsecone.json` |
+| 3 | Inside per-tool work directory | `work/tools/appsecone/appsecone.json` |
+| 4 | Inside `OPSPORTAL_TOOLS_BASE_DIR` | `../appsecone.json` |
+| 5 | Current working directory | `./appsecone.json` |
 
-| Mode | Behavior |
-|------|----------|
-| **Normal** | Standard container width (1280px max) |
-| **Expand Left** | Container stretches to fill left side, reduced right padding |
-| **Expand Right** | Container stretches to fill right side, reduced left padding |
+AppSecOne has a built-in first-run setup wizard. When the config file does not exist,
+it launches in setup mode — guiding the user through Fortify SSC connection, project
+discovery, repository mapping, and policy configuration.
 
-Controls appear as a button group above the iframe. The selected width mode is
-persisted in `localStorage` (`opsportal_frame_width`) so it survives page reloads.
+**Version:** Resolved from installed package metadata (`importlib.metadata.version("appsecone")`).
 
-The skeleton is replaced by the iframe content once the frame fires its `load` event,
-or by the fallback UI if loading fails. Transitions use a 0.3s opacity fade.
+**Launch:** Subprocess web application on port **8085** (configurable in `opsportal.yaml`).
+
+## Portal Endpoints
+
+OpsPortal provides both HTML pages and a JSON API:
+
+**Pages** — dashboard with tool tiles (`/`), per-tool context pages (`/tools/{slug}`), health overview, activity logs, and configuration viewer.
+
+**API** — JSON endpoints for tool health (`/api/health`), tool listing (`/api/tools`), individual tool status, and lifecycle control (start/stop/restart).
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           OpsPortal :9000 (FastAPI)                             │
+│                                                                                 │
+│  ┌──────────────┐ ┌──────────────┐ ┌────────────┐ ┌───────────┐ ┌────────────┐  │
+│  │ ReleasePilot │ │ ReleaseBoard │ │ LocaleSync │ │ FlowBoard │ │ AppSecOne  │  │
+│  │   Adapter    │ │   Adapter    │ │  Adapter   │ │  Adapter  │ │  Adapter   │  │
+│  └──────┬───────┘ └──────┬───────┘ └─────┬──────┘ └─────┬─────┘ └─────┬──────┘  │
+│         │                │               │              │             │         │
+│    ProcessManager ───── ensure_running() + health poll  │             │         │
+└─────────┼────────────────┼───────────────┼──────────────┼─────────────┼─────────┘
+          │                │               │              │             │
+    :8082 ▼          :8081 ▼         :8083 ▼        :8084 ▼       :8085 ▼
+     ReleasePilot    ReleaseBoard     LocaleSync      FlowBoard     AppSecOne
+      (FastAPI)       (FastAPI)        (FastAPI)      (FastAPI)     (FastAPI)
+```
+
+Every tool follows the same pattern:
+- **SUBPROCESS_WEB** integration — OpsPortal launches `{tool} serve --port N`
+- **Health check** via `GET /health/live` → `{"status": "alive"}`
+- **Iframe embedding** — each tool sets `{TOOL}_ALLOW_FRAMING=true`
+- **On-demand lifecycle** — started when user clicks, stopped at portal shutdown
+
+## Unified Platform Architecture
+
+Both tools share the same architectural model (defined by ReleaseBoard):
+
+| Convention | Value |
+|------------|-------|
+| Framework | FastAPI with Jinja2 SSR |
+| App factory | `create_app(config, *, root_path="")` |
+| Liveness | `GET /health/live` → `{"status": "alive"}` |
+| Readiness | `GET /health/ready` → 200 or 503 |
+| SSE | Real-time progress via `StreamingResponse` |
+| Middleware | Pure ASGI (SecurityHeaders, RequestLogging) |
+| Logging | `get_logger(name)` → structured formatter |
+| CLI | Typer/Click with `serve` subcommand |
+| Iframe support | `{TOOL}_ALLOW_FRAMING=true` env var |
 
 ## Project Structure
 
@@ -501,9 +588,11 @@ src/opsportal/
 │   ├── base.py       # ToolAdapter ABC, enums, dataclasses
 │   ├── _config_mixin.py  # JSON schema config read/validate/save
 │   ├── registry.py   # AdapterRegistry
+│   ├── appsecone.py      # AppSecOne adapter (security dashboard, setup wizard)
+│   ├── flowboard.py      # FlowBoard adapter (delivery intelligence)
+│   ├── localesync.py     # LocaleSync adapter (translation sync)
 │   ├── releaseboard.py   # ReleaseBoard adapter (auto-start, config resolution)
-│   ├── releasepilot.py   # ReleasePilot adapter
-│   └── localesync.py     # LocaleSync adapter (translation sync)
+│   └── releasepilot.py   # ReleasePilot adapter
 ├── services/
 │   ├── process_manager.py  # Subprocess lifecycle, health polling
 │   ├── artifact_manager.py
@@ -628,22 +717,6 @@ Full diagnostic details are available in:
 - Process logs on the tool error page
 - The portal's Activity Logs page (`/logs`)
 - Server console output (set `OPSPORTAL_LOG_LEVEL=debug` for verbose logging)
-
-## Unified Platform Architecture
-
-Both tools share the same architectural model (defined by ReleaseBoard):
-
-| Convention | Value |
-|------------|-------|
-| Framework | FastAPI with Jinja2 SSR |
-| App factory | `create_app(config, *, root_path="")` |
-| Liveness | `GET /health/live` → `{"status": "alive"}` |
-| Readiness | `GET /health/ready` → 200 or 503 |
-| SSE | Real-time progress via `StreamingResponse` |
-| Middleware | Pure ASGI (SecurityHeaders, RequestLogging) |
-| Logging | `get_logger(name)` → structured formatter |
-| CLI | Typer/Click with `serve` subcommand |
-| Iframe support | `{TOOL}_ALLOW_FRAMING=true` env var |
 
 ## Development
 

@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+import httpx
+
 from opsportal.core.errors import get_logger
 from opsportal.core.network import ssl_proxy_env
 
@@ -141,7 +143,7 @@ class ProcessManager:
 
             logger.info("Process %r started (PID %d)", name, proc.pid)
 
-        except Exception as exc:
+        except (OSError, ValueError) as exc:
             managed.status = ProcessStatus.FAILED
             managed.logs.append(f"Failed to start: {exc}")
             logger.exception("Failed to start process %r", name)
@@ -168,47 +170,17 @@ class ProcessManager:
             managed = self._processes.get(name)
 
             # Already running — check if process is still alive
-            if managed and managed.status == ProcessStatus.RUNNING and managed.process:
-                if managed.process.returncode is None:
-                    # Process still alive — optionally verify health
-                    if health_endpoint and port:
-                        if await self._probe_health(port, health_endpoint):
-                            return managed
-                        # Process alive but not healthy — restart
-                        logger.warning(
-                            "Process %r alive but health check failed, restarting", name
-                        )
-                        await self.stop(name)
-                    else:
-                        return managed
-                else:
-                    # Process died — mark failed
-                    managed.status = ProcessStatus.FAILED
-                    logger.warning(
-                        "Process %r found dead (rc=%d)", name, managed.process.returncode
-                    )
+            reuse = await self._check_existing(managed, name, port, health_endpoint)
+            if reuse is not None:
+                return reuse
 
             # Before starting, check if port already has a healthy service
             # (e.g. zombie from previous session, or manually started)
-            if port and health_endpoint and await self._probe_health(port, health_endpoint):
-                logger.info(
-                    "Healthy service already on port %d, adopting for %r",
-                    port,
-                    name,
-                )
-                if not managed:
-                    managed = ManagedProcess(
-                        name=name,
-                        command=command,
-                        cwd=cwd,
-                        env=env or {},
-                        port=port,
-                        health_endpoint=health_endpoint,
-                    )
-                    self._processes[name] = managed
-                managed.status = ProcessStatus.RUNNING
-                managed.started_at = managed.started_at or time.time()
-                return managed
+            adopted = await self._try_adopt_existing(
+                managed, name, command, cwd, env, port, health_endpoint
+            )
+            if adopted is not None:
+                return adopted
 
             # Need to start
             managed = await self.start(
@@ -225,25 +197,92 @@ class ProcessManager:
                 return managed
 
             # Wait for readiness
-            if health_endpoint and port:
-                ready = await self._wait_for_health(
-                    port, health_endpoint, timeout=startup_timeout, process=managed
-                )
-                if not ready:
-                    managed.status = ProcessStatus.FAILED
-                    managed.logs.append(
-                        f"[portal] Health endpoint {health_endpoint} not ready "
-                        f"after {startup_timeout}s"
-                    )
-                    logger.error("Process %r started but health endpoint never became ready", name)
-            elif port:
-                # No health endpoint — just probe the port
-                ready = await self._wait_for_port(port, timeout=startup_timeout, process=managed)
-                if not ready:
-                    managed.status = ProcessStatus.FAILED
-                    managed.logs.append(f"[portal] Port {port} not ready after {startup_timeout}s")
-
+            await self._await_readiness(managed, port, health_endpoint, startup_timeout)
             return managed
+
+    async def _check_existing(
+        self,
+        managed: ManagedProcess | None,
+        name: str,
+        port: int | None,
+        health_endpoint: str | None,
+    ) -> ManagedProcess | None:
+        """Return the managed process if it's already alive and healthy, else None."""
+        if not managed or managed.status != ProcessStatus.RUNNING or not managed.process:
+            return None
+
+        if managed.process.returncode is not None:
+            managed.status = ProcessStatus.FAILED
+            logger.warning("Process %r found dead (rc=%d)", name, managed.process.returncode)
+            return None
+
+        # Process still alive — optionally verify health
+        if not (health_endpoint and port):
+            return managed
+
+        if await self._probe_health(port, health_endpoint):
+            return managed
+
+        # Process alive but not healthy — restart
+        logger.warning("Process %r alive but health check failed, restarting", name)
+        await self.stop(name)
+        return None
+
+    async def _try_adopt_existing(
+        self,
+        managed: ManagedProcess | None,
+        name: str,
+        command: list[str],
+        cwd: Path | None,
+        env: dict[str, str] | None,
+        port: int | None,
+        health_endpoint: str | None,
+    ) -> ManagedProcess | None:
+        """Adopt an already-healthy service on the expected port, if any."""
+        if not (port and health_endpoint and await self._probe_health(port, health_endpoint)):
+            return None
+
+        logger.info("Healthy service already on port %d, adopting for %r", port, name)
+        if not managed:
+            managed = ManagedProcess(
+                name=name,
+                command=command,
+                cwd=cwd,
+                env=env or {},
+                port=port,
+                health_endpoint=health_endpoint,
+            )
+            self._processes[name] = managed
+        managed.status = ProcessStatus.RUNNING
+        managed.started_at = managed.started_at or time.time()
+        return managed
+
+    async def _await_readiness(
+        self,
+        managed: ManagedProcess,
+        port: int | None,
+        health_endpoint: str | None,
+        startup_timeout: int,
+    ) -> None:
+        """Wait for the started process to become ready."""
+        if health_endpoint and port:
+            ready = await self._wait_for_health(
+                port, health_endpoint, timeout=startup_timeout, process=managed
+            )
+            if not ready:
+                managed.status = ProcessStatus.FAILED
+                managed.logs.append(
+                    f"[portal] Health endpoint {health_endpoint} not ready "
+                    f"after {startup_timeout}s"
+                )
+                logger.error(
+                    "Process %r started but health endpoint never became ready", managed.name
+                )
+        elif port:
+            ready = await self._wait_for_port(port, timeout=startup_timeout, process=managed)
+            if not ready:
+                managed.status = ProcessStatus.FAILED
+                managed.logs.append(f"[portal] Port {port} not ready after {startup_timeout}s")
 
     async def stop(self, name: str) -> None:
         """Gracefully stop a managed process."""
@@ -316,14 +355,13 @@ class ProcessManager:
 
     async def _probe_health(self, port: int, endpoint: str) -> bool:
         """Single health probe — returns True if endpoint responds 2xx."""
-        import httpx
-
         url = f"http://127.0.0.1:{port}{endpoint}"
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:
                 resp = await client.get(url)
                 return 200 <= resp.status_code < 300
-        except Exception:
+        except (httpx.HTTPError, OSError) as exc:
+            logger.debug("Health probe failed for %s: %s", url, exc)
             return False
 
     async def _wait_for_health(
@@ -398,5 +436,5 @@ class ProcessManager:
                 managed.logs.append(f"[{label}] {line}")
         except asyncio.CancelledError:
             pass
-        except Exception:
+        except OSError:
             logger.exception("Error reading %s for process %r", label, managed.name)

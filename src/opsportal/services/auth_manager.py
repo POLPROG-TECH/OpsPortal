@@ -141,7 +141,7 @@ class AuthManager:
                     enabled=u.get("enabled", True),
                 )
                 self._users[user.username] = user
-        except Exception:
+        except (json.JSONDecodeError, KeyError, OSError):
             logger.exception("Failed to load users file")
             self._create_default_admin()
 

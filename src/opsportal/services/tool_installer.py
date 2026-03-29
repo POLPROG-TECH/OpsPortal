@@ -45,7 +45,7 @@ class ToolInstaller:
 
             distribution(package)
             return True
-        except Exception:
+        except Exception:  # PackageNotFoundError, ImportError, or other metadata errors
             return False
 
     def installed_version(self, package: str) -> str | None:
@@ -54,7 +54,7 @@ class ToolInstaller:
             from importlib.metadata import version
 
             return version(package)
-        except Exception:
+        except Exception:  # PackageNotFoundError, ImportError, or other metadata errors
             return None
 
     def cli_available(self, cli_binary: str) -> bool:

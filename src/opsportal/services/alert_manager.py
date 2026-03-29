@@ -153,7 +153,7 @@ class AlertManager:
                     cooldown_seconds=r.get("cooldown_seconds", 300),
                 )
                 self._rules[rule.rule_id] = rule
-        except Exception:
+        except (json.JSONDecodeError, KeyError, OSError):
             logger.exception("Failed to load alert rules")
             self._add_defaults()
 

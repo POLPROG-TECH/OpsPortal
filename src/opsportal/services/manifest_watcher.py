@@ -89,5 +89,5 @@ class ManifestWatcher:
             if asyncio.iscoroutine(result):
                 await result
             logger.info("Manifest reload completed")
-        except Exception:
+        except (OSError, ValueError):
             logger.exception("Error during manifest reload")

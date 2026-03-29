@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         try:
             await adapter.startup()
             logger.info("Adapter %s started", adapter.slug)
-        except Exception:
+        except (OSError, RuntimeError):
             logger.exception("Failed to start adapter %s", adapter.slug)
 
     # Start background tasks
@@ -86,7 +86,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     for adapter in registry.all():
         try:
             await adapter.shutdown()
-        except Exception:
+        except (OSError, RuntimeError):
             logger.exception("Error shutting down adapter %s", adapter.slug)
 
     # Shutdown process manager
@@ -137,7 +137,7 @@ async def _check_adapter_health(app: FastAPI, adapter) -> None:
                 tool_slug=slug,
                 event_type="health_fail",
             )
-    except Exception as exc:
+    except (OSError, RuntimeError) as exc:
         latency = (time.monotonic() - start) * 1000
         uptime_tracker.record(slug, False, latency)
         metrics.record_health_check(slug, False, latency)
@@ -209,5 +209,5 @@ def _reload_manifest(app: FastAPI) -> None:
             details={"tools": [t.slug for t in new_manifest.enabled_tools]},
         )
         logger.info("Manifest reloaded: %d tools", len(new_manifest.enabled_tools))
-    except Exception:
+    except (OSError, ValueError):
         logger.exception("Failed to reload manifest")

@@ -1,6 +1,6 @@
-"""ReleasePilot adapter — SUBPROCESS_WEB integration with auto-start.
+"""FlowBoard adapter — SUBPROCESS_WEB integration with auto-start.
 
-ReleasePilot now exposes a full FastAPI web application with its own UI.
+FlowBoard exposes a full FastAPI web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
 The server is started automatically when the user enters the tool.
 """
@@ -28,37 +28,33 @@ from opsportal.adapters.base import (
 from opsportal.core.errors import get_logger
 from opsportal.services.process_manager import ProcessManager, ProcessStatus
 
-logger = get_logger("adapters.releasepilot")
+logger = get_logger("adapters.flowboard")
 
 
-def _rp_validate(data: dict[str, Any]) -> list[str]:
-    """Validate using ReleasePilot's own validator (returns warnings)."""
-    from releasepilot.config.file_config import validate_config
-
-    warnings = validate_config(data)
-    return [w.message for w in warnings]
+def _fb_validate(data: dict[str, Any]) -> list[str]:
+    """Validate — FlowBoard does not expose a config validator yet."""
+    return []
 
 
-# Minimal valid config that lets ReleasePilot start without errors.
-# Users can refine via the Configuration page afterward.
-_RELEASEPILOT_DEFAULT_CONFIG: dict[str, Any] = {
-    "app_name": "Release Notes",
-    "language": "en",
-    "format": "markdown",
-    "show_authors": True,
-    "show_hashes": False,
+_FLOWBOARD_DEFAULT_CONFIG: dict[str, Any] = {
+    "jira_url": "",
+    "jira_token": "",
+    "project_keys": [],
+    "output_dir": "./output",
+    "dashboard_layout": "executive",
 }
 
 
-class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
+class FlowBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
     def __init__(
         self,
         process_manager: ProcessManager,
         *,
         repo_path: Path | None = None,
         work_dir: Path | None = None,
-        port: int = 8082,
-        cli_binary: str = "releasepilot",
+        port: int = 8084,
+        config_file: str = "flowboard.json",
+        cli_binary: str = "flowboard",
         env: dict[str, str] | None = None,
         startup_timeout: int = 30,
         tools_base_dir: Path | None = None,
@@ -68,59 +64,54 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         self._work_dir = work_dir
         self._pm = process_manager
         self._port = port
+        self._config_file = config_file
         self._cli = cli_binary
         self._env = {
             **(env or {}),
-            "RELEASEPILOT_ALLOW_FRAMING": "true",
-            "RELEASEPILOT_CORS_ORIGINS": portal_origins,
+            "FLOWBOARD_ALLOW_FRAMING": "true",
+            "FLOWBOARD_CORS_ORIGINS": portal_origins,
         }
         self._startup_timeout = startup_timeout
         self._tools_base_dir = tools_base_dir
-        self._process_name = "releasepilot"
+        self._process_name = "flowboard"
         self._http_client: httpx.AsyncClient | None = None
-        # Config mixin setup — ReleasePilot uses auto-discovered config files
-        self._config_file = ".releasepilot.json"
         self._schema_paths = self._build_schema_paths()
-        self._validate_fn = _rp_validate
-        self._builtin_default_config = _RELEASEPILOT_DEFAULT_CONFIG
+        self._validate_fn = _fb_validate
+        self._builtin_default_config = _FLOWBOARD_DEFAULT_CONFIG
 
     def _build_schema_paths(self) -> list[Path]:
         """Build schema search paths: installed package → repo → work_dir."""
         paths: list[Path] = []
-        # Try installed package location
         try:
-            import releasepilot
+            import flowboard
 
-            pkg_dir = Path(releasepilot.__file__).resolve().parent
-            paths.append(pkg_dir / "schema" / "releasepilot.schema.json")
+            pkg_dir = Path(flowboard.__file__).resolve().parent
+            paths.append(pkg_dir / "schema" / "flowboard.schema.json")
         except ImportError:
             pass
         if self._repo_path:
-            paths.append(self._repo_path / "schema" / "releasepilot.schema.json")
+            paths.append(self._repo_path / "schema" / "flowboard.schema.json")
         if self._work_dir:
-            paths.append(self._work_dir / "releasepilot.schema.json")
+            paths.append(self._work_dir / "flowboard.schema.json")
         return paths
 
     def _resolve_config_path(self) -> Path:
-        """Multi-strategy config resolution for production use.
+        """Multi-strategy config resolution.
 
         Search order:
-        1. Environment variable OPSPORTAL_RELEASEPILOT_CONFIG (explicit override)
-        2. repo_path / config_file  (local dev checkout)
-        3. work_dir / config_file   (remote-managed tool)
+        1. Environment variable OPSPORTAL_FLOWBOARD_CONFIG
+        2. repo_path / config_file
+        3. work_dir / config_file
         4. tools_base_dir / config_file
         5. CWD / config_file
-
-        Returns the first path that exists, or falls back to the best
-        canonical location for creation/save.
         """
-        env_path = os.environ.get("OPSPORTAL_RELEASEPILOT_CONFIG")
+        env_path = os.environ.get("OPSPORTAL_FLOWBOARD_CONFIG")
         if env_path:
             p = Path(env_path).resolve()
             if p.exists():
                 return p
             logger.warning(
-                "OPSPORTAL_RELEASEPILOT_CONFIG=%s does not exist, trying other locations",
+                "OPSPORTAL_FLOWBOARD_CONFIG=%s does not exist, trying other locations",
                 env_path,
             )
 
@@ -136,10 +127,9 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         for candidate in candidates:
             resolved = candidate.resolve()
             if resolved.exists():
-                logger.debug("ReleasePilot config found at %s", resolved)
+                logger.debug("FlowBoard config found at %s", resolved)
                 return resolved
 
-        # Return the canonical location for creation/error messages
         if self._work_dir:
             return (self._work_dir / self._config_file).resolve()
         if self._repo_path:
@@ -147,17 +137,18 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return (Path.cwd() / self._config_file).resolve()
 
     # -- Identity -----------------------------------------------------------
+
     @property
     def slug(self) -> str:
-        return "releasepilot"
+        return "flowboard"
 
     @property
     def display_name(self) -> str:
-        return "ReleasePilot"
+        return "FlowBoard"
 
     @property
     def description(self) -> str:
-        return "Release notes generator — from git history to polished documents"
+        return "Delivery intelligence dashboards — from Jira data to actionable insights"
 
     @property
     def integration_mode(self) -> IntegrationMode:
@@ -174,11 +165,11 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def icon(self) -> str:
-        return "rocket"
+        return "bar-chart-2"
 
     @property
     def color(self) -> str:
-        return "#4F46E5"
+        return "#2563EB"
 
     @property
     def repo_path(self) -> Path | None:
@@ -189,6 +180,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return self._work_dir
 
     # -- Status & health ----------------------------------------------------
+
     async def get_status(self) -> ToolStatus:
         proc = self._pm.get(self._process_name)
         if proc and proc.status == ProcessStatus.RUNNING:
@@ -222,16 +214,16 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
             return HealthResult(healthy=False, message=f"Connection error: {exc}")
 
     # -- Auto-start ---------------------------------------------------------
+
     async def ensure_ready(self) -> EnsureReadyResult:
-        """Start the ReleasePilot server if not running, wait for health."""
+        """Start the FlowBoard server if not running, wait for health."""
         if not shutil.which(self._cli):
             return EnsureReadyResult(
                 ready=False,
                 error=f"CLI binary '{self._cli}' not found in PATH. "
-                "Install ReleasePilot: pip install releasepilot",
+                "Install FlowBoard: pip install flowboard",
             )
 
-        # Auto-scaffold default config from schema if missing
         self.scaffold_default_config()
 
         cmd = [
@@ -263,11 +255,12 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         web_url = f"http://127.0.0.1:{self._port}"
         return EnsureReadyResult(
             ready=True,
-            message=f"ReleasePilot running on port {self._port}",
+            message=f"FlowBoard running on port {self._port}",
             web_url=web_url,
         )
 
     # -- Web UI -------------------------------------------------------------
+
     def get_web_url(self) -> str | None:
         proc = self._pm.get(self._process_name)
         if proc and proc.status == ProcessStatus.RUNNING:
@@ -275,15 +268,16 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         return None
 
     def get_version(self) -> str | None:
-        """Read version from ReleasePilot's installed package metadata."""
+        """Read version from FlowBoard's installed package metadata."""
         try:
             from importlib.metadata import version
 
-            return version("releasepilot")
-        except Exception:  # PackageNotFoundError, ImportError, or other metadata errors
+            return version("flowboard")
+        except Exception:
             return None
 
     # -- Actions ------------------------------------------------------------
+
     def get_actions(self) -> list[ToolAction]:
         return [
             ToolAction(
@@ -330,13 +324,14 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
     async def _stop_server(self) -> ActionResult:
         try:
             await self._pm.stop(self._process_name)
-            return ActionResult(success=True, output="ReleasePilot stopped")
+            return ActionResult(success=True, output="FlowBoard stopped")
         except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))
 
     # -- Lifecycle ----------------------------------------------------------
+
     async def startup(self) -> None:
-        """Scaffold default config on portal startup (proactive bootstrap)."""
+        """Scaffold default config on portal startup."""
         self.scaffold_default_config()
 
     async def shutdown(self) -> None:

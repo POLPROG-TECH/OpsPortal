@@ -11,7 +11,7 @@
      ================================================================ */
 
   function _csrfToken() {
-    var m = document.cookie.match(/opsportal_csrf=([^;]+)/);
+    const m = document.cookie.match(/opsportal_csrf=([^;]+)/);
     return m ? m[1] : "";
   }
 
@@ -20,7 +20,7 @@
      ================================================================ */
 
   function broadcastToIframes(msg) {
-    var frames = document.querySelectorAll('iframe.tool-iframe');
+    const frames = document.querySelectorAll('iframe.tool-iframe');
     frames.forEach(function(f) {
       try { f.contentWindow.postMessage(msg, '*'); } catch(e) { /* cross-origin ok */ }
     });
@@ -43,7 +43,7 @@
 
   function applyTheme(pref) {
     localStorage.setItem("opsportal_theme", pref);
-    var resolved = resolveTheme(pref);
+    const resolved = resolveTheme(pref);
     document.documentElement.setAttribute("data-theme", resolved);
     updateThemeButtons(pref);
     broadcastToIframes({type: "opsportal:theme", theme: resolved});
@@ -66,8 +66,8 @@
      ================================================================ */
 
   function initGearMenu() {
-    var toggle = document.getElementById("gear-toggle");
-    var dropdown = document.getElementById("gear-dropdown");
+    const toggle = document.getElementById("gear-toggle");
+    const dropdown = document.getElementById("gear-dropdown");
     if (!toggle || !dropdown) return;
 
     function openDropdown() {

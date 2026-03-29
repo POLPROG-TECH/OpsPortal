@@ -14,8 +14,11 @@ from opsportal.app.routes_api import (
     _config_versions,
     _registry,
 )
+from opsportal.core.errors import get_logger
 
 router = APIRouter()
+
+logger = get_logger("app.routes_admin")
 
 
 # ---------------------------------------------------------------------------
@@ -59,7 +62,7 @@ async def api_config_import(request: Request):
     try:
         body = await request.body()
         data = yaml.safe_load(body.decode("utf-8"))
-    except Exception as exc:
+    except (yaml.YAMLError, UnicodeDecodeError, ValueError) as exc:
         return JSONResponse(
             {"success": False, "error": f"Invalid YAML: {exc}"},
             status_code=400,
@@ -348,8 +351,8 @@ async def api_create_backup(request: Request):
     try:
         body = await request.json()
         label = body.get("label", "")
-    except Exception:
-        pass
+    except (ValueError, TypeError, KeyError) as exc:
+        logger.debug("Could not parse backup label from request body: %s", exc)
     backup = request.app.state.backup_service.create_backup(label)
     _audit_log(request).record(
         category="backup",

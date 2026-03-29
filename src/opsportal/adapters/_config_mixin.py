@@ -171,7 +171,7 @@ class JsonSchemaConfigMixin:
                 len(data),
             )
             return True
-        except Exception:
+        except OSError:
             logger.exception("Failed to scaffold default config")
             return False
 
@@ -181,7 +181,7 @@ class JsonSchemaConfigMixin:
             return None
         try:
             return json.loads(schema_path.read_text(encoding="utf-8"))
-        except Exception:
+        except (json.JSONDecodeError, OSError):
             logger.exception("Failed to load schema from %s", schema_path)
             return None
 
@@ -192,7 +192,7 @@ class JsonSchemaConfigMixin:
         try:
             data = json.loads(config_path.read_text(encoding="utf-8"))
             return _mask_sensitive(data)
-        except Exception:
+        except (json.JSONDecodeError, OSError):
             logger.exception("Failed to read config from %s", config_path)
             return {}
 
@@ -212,32 +212,42 @@ class JsonSchemaConfigMixin:
         merged = _unmask_merge(data, original)
 
         if self._validate_fn is not None:
-            try:
-                result = self._validate_fn(merged)
-                # Some validators return a list of errors/warnings
-                if isinstance(result, list):
-                    error_strings = [str(getattr(w, "message", w)) for w in result]
-                    if error_strings:
-                        return ConfigValidationResult(valid=False, errors=error_strings)
-                    return ConfigValidationResult(valid=True)
-                # Some validators return None on success
-                return ConfigValidationResult(valid=True)
-            except Exception as exc:
-                errors = getattr(exc, "errors", None) or [str(exc)]
-                return ConfigValidationResult(valid=False, errors=list(errors))
+            return self._validate_with_fn(merged)
 
         # Fallback: raw jsonschema validation
-        schema = self.config_schema()
-        if schema:
-            import jsonschema
+        return self._validate_with_schema(merged)
 
-            validator = jsonschema.Draft7Validator(schema)
-            errors = []
-            for err in sorted(validator.iter_errors(merged), key=lambda e: list(e.path)):
-                path = ".".join(str(p) for p in err.absolute_path) or "(root)"
-                errors.append(f"{path}: {err.message}")
-            if errors:
-                return ConfigValidationResult(valid=False, errors=errors)
+    def _validate_with_fn(self, merged: dict[str, Any]) -> ConfigValidationResult:
+        """Run the adapter-specific validation function."""
+        try:
+            result = self._validate_fn(merged)
+        except (ValueError, TypeError, KeyError) as exc:
+            errors = getattr(exc, "errors", None) or [str(exc)]
+            return ConfigValidationResult(valid=False, errors=list(errors))
+
+        if not isinstance(result, list):
+            return ConfigValidationResult(valid=True)
+
+        error_strings = [str(getattr(w, "message", w)) for w in result]
+        if error_strings:
+            return ConfigValidationResult(valid=False, errors=error_strings)
+        return ConfigValidationResult(valid=True)
+
+    def _validate_with_schema(self, merged: dict[str, Any]) -> ConfigValidationResult:
+        """Validate using raw JSON Schema (fallback)."""
+        schema = self.config_schema()
+        if not schema:
+            return ConfigValidationResult(valid=True)
+
+        import jsonschema
+
+        validator = jsonschema.Draft7Validator(schema)
+        errors = []
+        for err in sorted(validator.iter_errors(merged), key=lambda e: list(e.path)):
+            path = ".".join(str(p) for p in err.absolute_path) or "(root)"
+            errors.append(f"{path}: {err.message}")
+        if errors:
+            return ConfigValidationResult(valid=False, errors=errors)
         return ConfigValidationResult(valid=True)
 
     def save_config(self, data: dict[str, Any]) -> ActionResult:
@@ -265,6 +275,6 @@ class JsonSchemaConfigMixin:
             tmp.replace(config_path)
             logger.info("Config saved to %s", config_path)
             return ActionResult(success=True, output=f"Configuration saved to {config_path.name}")
-        except Exception as exc:
+        except OSError as exc:
             logger.exception("Failed to save config to %s", config_path)
             return ActionResult(success=False, error=str(exc))

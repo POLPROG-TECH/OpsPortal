@@ -117,7 +117,7 @@ class BackupService:
                     self._restore_member(zf, member)
             logger.info("Backup restored: %s", filename)
             return True
-        except Exception:
+        except (OSError, zipfile.BadZipFile):
             logger.exception("Failed to restore backup: %s", filename)
             return False
 

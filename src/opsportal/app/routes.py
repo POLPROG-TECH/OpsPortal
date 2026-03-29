@@ -127,7 +127,7 @@ async def tool_page(request: Request, slug: str):
 
     try:
         ready_result = await adapter.ensure_ready()
-    except Exception as exc:
+    except (OSError, RuntimeError) as exc:
         proc_logs = _process_manager(request).get_logs(slug, tail=100)
         return _templates(request).TemplateResponse(
             request,

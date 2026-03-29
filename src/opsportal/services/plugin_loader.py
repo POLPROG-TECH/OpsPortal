@@ -52,7 +52,7 @@ class PluginLoader:
                     continue
                 self._discovered[ep.name] = adapter_cls
                 logger.info("Discovered plugin adapter: %s → %s", ep.name, adapter_cls.__name__)
-            except Exception:
+            except (ImportError, AttributeError):
                 logger.exception("Failed to load plugin %r", ep.name)
 
         return dict(self._discovered)
@@ -68,7 +68,7 @@ class PluginLoader:
             adapter = cls(process_manager, **kwargs)
             logger.info("Created plugin adapter: %s", slug)
             return adapter
-        except Exception:
+        except (TypeError, ValueError, OSError):
             logger.exception("Failed to create plugin adapter %s", slug)
             return None
 

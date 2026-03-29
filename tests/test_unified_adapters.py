@@ -15,7 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from opsportal.adapters.appsecone import AppSecOneAdapter
 from opsportal.adapters.base import IntegrationMode, ToolCapability, ToolStatus
+from opsportal.adapters.flowboard import FlowBoardAdapter
 from opsportal.adapters.localesync import LocaleSyncAdapter
 from opsportal.adapters.releaseboard import ReleaseBoardAdapter
 from opsportal.adapters.releasepilot import ReleasePilotAdapter
@@ -42,6 +44,8 @@ _ADAPTER_CLASSES = [
     ("releasepilot", ReleasePilotAdapter, "releasepilot", 8082),
     ("releaseboard", ReleaseBoardAdapter, "releaseboard", 8081),
     ("localesync", LocaleSyncAdapter, "locale-sync", 8083),
+    ("flowboard", FlowBoardAdapter, "flowboard", 8084),
+    ("appsecone", AppSecOneAdapter, "appsecone", 8085),
 ]
 
 
@@ -185,6 +189,24 @@ def test_localesync_sets_allow_framing(repo, pm):
 
     """THEN LOCALESYNC_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("LOCALESYNC_ALLOW_FRAMING") == "true"
+
+
+def test_flowboard_sets_allow_framing(repo, pm):
+    """FlowBoardAdapter sets FLOWBOARD_ALLOW_FRAMING=true in its env."""
+    """GIVEN a FlowBoard adapter."""
+    adapter = FlowBoardAdapter(repo_path=repo, process_manager=pm)
+
+    """THEN FLOWBOARD_ALLOW_FRAMING is set to 'true'."""
+    assert adapter._env.get("FLOWBOARD_ALLOW_FRAMING") == "true"
+
+
+def test_appsecone_sets_allow_framing(repo, pm):
+    """AppSecOneAdapter sets APPSECONE_ALLOW_FRAMING=true in its env."""
+    """GIVEN an AppSecOne adapter."""
+    adapter = AppSecOneAdapter(repo_path=repo, process_manager=pm)
+
+    """THEN APPSECONE_ALLOW_FRAMING is set to 'true'."""
+    assert adapter._env.get("APPSECONE_ALLOW_FRAMING") == "true"
 
 
 # ---------------------------------------------------------------------------

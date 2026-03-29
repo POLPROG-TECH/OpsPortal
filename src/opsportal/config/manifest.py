@@ -79,6 +79,42 @@ DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
           ref: v1.1.0
           package: locale-sync
           install_strategy: pip_git
+
+      flowboard:
+        display_name: FlowBoard
+        description: "Delivery intelligence dashboards — from Jira data to actionable insights"
+        integration_mode: subprocess_web
+        icon: bar-chart-2
+        color: "#2563EB"
+        enabled: true
+        port: 8084
+        config_file: flowboard.json
+        startup_timeout: 30
+        env: {}
+        source:
+          provider: github
+          repository: POLPROG-TECH/FlowBoard
+          ref: v1.0.0
+          package: flowboard
+          install_strategy: pip_git
+
+      appsecone:
+        display_name: AppSecOne
+        description: "Security posture dashboard — release readiness powered by Fortify SSC"
+        integration_mode: subprocess_web
+        icon: shield
+        color: "#DC2626"
+        enabled: true
+        port: 8085
+        config_file: appsecone.json
+        startup_timeout: 30
+        env: {}
+        source:
+          provider: github
+          repository: POLPROG-TECH/AppSecOne
+          ref: v1.0.0
+          package: appsecone
+          install_strategy: pip_git
 """)
 
 

@@ -39,7 +39,7 @@ async def check_all_health(registry: AdapterRegistry) -> PortalHealth:
         try:
             result = await adapter.health_check()
             results[slug] = result
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             logger.exception("Health check failed for %s", slug)
             results[slug] = HealthResult(healthy=False, message=str(exc))
             errors.append(f"{slug}: {exc}")

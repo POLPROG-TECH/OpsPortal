@@ -141,7 +141,7 @@ class NotificationService:
                 )
                 if resp.status_code >= 400:
                     logger.warning("Webhook %s returned %d", webhook.url[:50], resp.status_code)
-        except Exception:
+        except (httpx.HTTPError, OSError):
             logger.exception("Failed to send webhook to %s", webhook.url[:50])
 
     def recent(self, limit: int = 50) -> list[dict]:

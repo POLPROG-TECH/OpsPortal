@@ -97,7 +97,7 @@ def setup(
     their remote sources, and scaffolds default configuration files.
     """
     from opsportal.config.manifest import DEFAULT_MANIFEST_YAML, load_manifest
-    from opsportal.services.tool_installer import ToolInstaller
+    from opsportal.services.tool_installer import ToolInstaller, ToolInstallError
 
     # Step 1: Ensure manifest exists
     if not manifest.exists():
@@ -127,7 +127,7 @@ def setup(
                 result = installer.ensure_installed(tool.source)
                 ver = result.get("version", "?")
                 typer.echo(f"  ✔ {result['action']}: {result['package']} v{ver}")
-            except Exception as exc:
+            except (ToolInstallError, OSError) as exc:
                 typer.echo(f"  ✗ Install failed: {exc}", err=True)
                 continue
 

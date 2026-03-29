@@ -215,7 +215,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
                     details={"port": self._port, "pid": proc.pid},
                 )
             return HealthResult(healthy=False, message=f"HTTP {resp.status_code}")
-        except Exception as exc:
+        except (httpx.HTTPError, OSError) as exc:
             return HealthResult(healthy=False, message=f"Connection error: {exc}")
 
     # -- Auto-start ---------------------------------------------------------
@@ -278,7 +278,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
             from importlib.metadata import version
 
             return version("locale-sync")
-        except Exception:
+        except Exception:  # PackageNotFoundError, ImportError, or other metadata errors
             return None
 
     # -- Actions ------------------------------------------------------------
@@ -330,7 +330,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
         try:
             await self._pm.stop(self._process_name)
             return ActionResult(success=True, output="LocaleSync stopped")
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))
 
     # -- Lifecycle ----------------------------------------------------------

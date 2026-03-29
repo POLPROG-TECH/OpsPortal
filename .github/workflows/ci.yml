@@ -170,10 +170,13 @@ jobs:
           p = Path('/tmp/test-manifest.yaml')
           p.write_text(DEFAULT_MANIFEST_YAML)
           m = load_manifest(p, Path('/tmp'), Path('/tmp/tools'))
-          assert len(m.enabled_tools) == 2, f'Expected 2 tools, got {len(m.enabled_tools)}'
+          assert len(m.enabled_tools) == 5, f'Expected 5 tools, got {len(m.enabled_tools)}'
           slugs = {t.slug for t in m.enabled_tools}
           assert 'releasepilot' in slugs, 'releasepilot not found'
           assert 'releaseboard' in slugs, 'releaseboard not found'
+          assert 'localesync' in slugs, 'localesync not found'
+          assert 'flowboard' in slugs, 'flowboard not found'
+          assert 'appsecone' in slugs, 'appsecone not found'
           for t in m.enabled_tools:
               assert t.source is not None, f'{t.slug} missing source'
               assert t.port is not None, f'{t.slug} missing port'

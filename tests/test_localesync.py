@@ -231,8 +231,9 @@ def test_version_returns_installed_version(repo: Path, pm: ProcessManager) -> No
     """GIVEN a LocaleSync adapter."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
-    """WHEN reading the version."""
-    version = adapter.get_version()
+    """WHEN importlib.metadata.version finds the package."""
+    with patch("importlib.metadata.version", return_value="1.1.0"):
+        version = adapter.get_version()
 
     """THEN it returns the installed version string."""
     assert version == "1.1.0"

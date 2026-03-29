@@ -511,7 +511,27 @@
 .badge-log-debug { background: var(--bg-subtle); color: var(--text-muted); }
 
 /* ============================================================
+   Ops widget helpers
+   ============================================================ */
+
+.ops-tags-warn { font-size: 0.78rem; margin-top: 0.5rem; }
+.ops-rn-prompt { padding: 0.75rem 0; }
+.ops-rn-error-summary { color: var(--danger); }
+.ops-rn-error-detail { padding: 0.5rem 0; }
+.ops-error-list { margin: 0.25rem 0 0 1rem; padding: 0; font-size: 0.78rem; }
+.ops-progress-bar-zero { width: 0; }
+
+/* ============================================================
    Utility classes
    ============================================================ */
 
 .text-muted { color: var(--text-muted); font-size: 0.9rem; }
+.u-hidden { display: none !important; }
+.u-visually-hidden { opacity: 0; }
+.icon-inline-svg { vertical-align: -2px; }
+.admin-subtitle { margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.9rem; }
+.admin-section-desc { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 0.75rem; }
+.admin-field-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.admin-toggle-label { margin-left: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+.restart-btn-gap { margin-left: 12px; }
+.raw-json-actions { margin-top: 10px; display: flex; gap: 8px; }

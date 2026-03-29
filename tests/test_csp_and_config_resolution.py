@@ -20,7 +20,8 @@ class TestCSPFrameSrc:
     """Verify that the portal's CSP allows framing child tools."""
 
     def test_csp_includes_frame_src_for_child_ports(self):
-        """CSP frame-src includes entries for child tool ports."""
+        """GIVEN child tool ports 8081 and 8082."""
+
         """WHEN building CSP for ports 8081 and 8082."""
         csp = _build_csp([8081, 8082])
 
@@ -32,7 +33,8 @@ class TestCSPFrameSrc:
         assert "http://localhost:8082" in csp
 
     def test_csp_self_only_when_no_ports(self):
-        """CSP falls back to 'self' when no child ports are registered."""
+        """GIVEN no child tool ports registered."""
+
         """WHEN building CSP with an empty port list."""
         csp = _build_csp([])
 
@@ -41,7 +43,8 @@ class TestCSPFrameSrc:
         assert "127.0.0.1" not in csp
 
     def test_csp_none_ports_handled(self):
-        """CSP handles None as port list gracefully."""
+        """GIVEN None passed as the port list."""
+
         """WHEN building CSP with None instead of a list."""
         csp = _build_csp(None)
 
@@ -49,7 +52,8 @@ class TestCSPFrameSrc:
         assert "frame-src 'self'" in csp
 
     def test_csp_includes_frame_ancestors(self):
-        """CSP includes frame-ancestors 'self' directive."""
+        """GIVEN a single child tool port 8081."""
+
         """WHEN building CSP for a single port."""
         csp = _build_csp([8081])
 
@@ -322,7 +326,8 @@ class TestVersionDisplay:
         assert v is None
 
     def test_card_data_includes_version(self, client: TestClient):
-        """API /api/tools endpoint returns a list of tool cards."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the tools API."""
         resp = client.get("/api/tools")
 

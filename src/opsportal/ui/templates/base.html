@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}OpsPortal{% endblock %}</title>
   {% block head_extra %}{% endblock %}
-  <link rel="stylesheet" href="/static/css/portal-base.css">
-  <link rel="stylesheet" href="/static/css/portal-components.css">
-  <link rel="stylesheet" href="/static/css/portal-pages.css">
-  <link rel="stylesheet" href="/static/css/portal-features.css">
-  <link rel="stylesheet" href="/static/css/portal-advanced.css">
+  <link rel="stylesheet" href="/static/css/portal-base.css?v={{ asset_hash }}">
+  <link rel="stylesheet" href="/static/css/portal-components.css?v={{ asset_hash }}">
+  <link rel="stylesheet" href="/static/css/portal-pages.css?v={{ asset_hash }}">
+  <link rel="stylesheet" href="/static/css/portal-features.css?v={{ asset_hash }}">
+  <link rel="stylesheet" href="/static/css/portal-advanced.css?v={{ asset_hash }}">
   <script>
     (function(){
       var t = localStorage.getItem('opsportal_theme') || 'system';
@@ -128,7 +128,7 @@
       </a>
       <a href="/config" class="sidebar-link {% if request.url.path == '/config' %}active{% endif %}">
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <span data-i18n="nav.settings">Settings</span>
+        <span data-i18n="nav.settings">Admin &amp; Settings</span>
       </a>
     </nav>
   </aside>
@@ -173,7 +173,7 @@
   <div id="toast-container" aria-live="polite" role="status"></div>
 
   {# ── Command Palette (⌘K) ── #}
-  <div class="cmd-palette-overlay" id="cmd-palette" style="display:none">
+  <div class="cmd-palette-overlay u-hidden" id="cmd-palette">
     <div class="cmd-palette-card">
       <input type="text" class="cmd-palette-input" id="cmd-palette-input"
              placeholder="Search tools, actions, pages..." autocomplete="off" />
@@ -184,11 +184,11 @@
     </div>
   </div>
 
-  <script src="/static/js/portal-i18n-pl.js"></script>
-  <script src="/static/js/portal-i18n.js"></script>
-  <script src="/static/js/portal.js"></script>
-  <script src="/static/js/portal-features.js"></script>
-  <script src="/static/js/portal-advanced.js"></script>
+  <script src="/static/js/portal-i18n-pl.js?v={{ asset_hash }}"></script>
+  <script src="/static/js/portal-i18n.js?v={{ asset_hash }}"></script>
+  <script src="/static/js/portal.js?v={{ asset_hash }}"></script>
+  <script src="/static/js/portal-features.js?v={{ asset_hash }}"></script>
+  <script src="/static/js/portal-advanced.js?v={{ asset_hash }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -34,6 +34,7 @@ def tmp_settings(tmp_path: Path) -> PortalSettings:
         artifact_dir=tmp_path / "artifacts",
         work_dir=tmp_path / "work",
         tools_base_dir=tmp_path,
+        ops_overview_enabled=True,
     )
 
 

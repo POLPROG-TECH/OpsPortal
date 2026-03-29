@@ -89,6 +89,12 @@ class PortalSettings(BaseSettings):
         description="TTL for logo/schema cache (seconds)",
     )
 
+    # --- Operations Overview ---
+    ops_overview_enabled: bool = Field(
+        default=False,
+        description="Enable the Operations Overview dashboard",
+    )
+
     # --- Artifact cleanup ---
     artifact_cleanup_enabled: bool = Field(default=True, description="Auto-cleanup old artifacts")
     artifact_max_age_days: int = Field(default=7, ge=1, le=365)

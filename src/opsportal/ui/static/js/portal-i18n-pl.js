@@ -158,6 +158,7 @@ window.__OPS_PL = {
       "nav.health":                 "Stan systemu",
       "nav.logs":                   "Dziennik",
       "nav.settings":               "Ustawienia",
+      "nav.config":                 "Konfiguracja",
       "nav.sla":                    "Raport SLA",
 
       /* ---------- sidebar ---------- */
@@ -172,6 +173,57 @@ window.__OPS_PL = {
       "dashboard.running":          "Dzia\u0142aj\u0105ce",
       "dashboard.stopped":          "Zatrzymane",
       "dashboard.active_alerts":    "Aktywne alerty",
+      "dashboard.chart_cpu_memory": "U\u017cycie CPU i pami\u0119ci",
+      "dashboard.chart_latency":    "Op\u00f3\u017anienie odpowiedzi (ms)",
+      "dashboard.chart_uptime":     "Dost\u0119pno\u015b\u0107 %",
+      "dashboard.chart_alerts":     "Aktywne alerty",
+      "dashboard.loading_alerts":   "\u0141adowanie alert\u00f3w\u2026",
+      "dashboard.no_alerts":        "Brak aktywnych alert\u00f3w \u2713",
+      "dashboard.label_cpu":        "CPU %",
+      "dashboard.label_memory":     "Pami\u0119\u0107 (MB)",
+      "dashboard.label_latency":    "\u015arednie op\u00f3\u017anienie (ms)",
+      "dashboard.label_uptime":     "Dost\u0119pno\u015b\u0107 %",
+
+      /* ---------- sla report ---------- */
+      "sla.title":                  "Raport SLA",
+      "sla.generated":              "Wygenerowano:",
+      "sla.period":                 "Okres:",
+      "sla.export_csv":             "Eksportuj CSV",
+      "sla.overall_uptime":         "Ca\u0142kowita dost\u0119pno\u015b\u0107",
+      "sla.meeting_sla":            "Spe\u0142niaj\u0105 SLA",
+      "sla.below_sla":              "Poni\u017cej SLA",
+      "sla.total_tools":            "Wszystkie narz\u0119dzia",
+      "sla.col_tool":               "Narz\u0119dzie",
+      "sla.col_target":             "Cel",
+      "sla.col_actual":             "Rzeczywista",
+      "sla.col_gap":                "R\u00f3\u017cnica",
+      "sla.col_checks":             "Sprawdzenia",
+      "sla.col_latency":            "Op\u00f3\u017anienie",
+      "sla.col_incidents":          "Incydenty",
+      "sla.col_status":             "Status",
+      "sla.badge_ok":               "\u2713 OK",
+      "sla.badge_breach":           "\u2717 Naruszenie",
+
+      /* ---------- admin config page ---------- */
+      "admin.subtitle":             "Konfiguracja portalu i zarz\u0105dzanie funkcjami. Zmiany obowi\u0105zuj\u0105 natychmiast.",
+      "admin.ops_overview":         "Przegl\u0105d operacji",
+      "admin.ops_overview_desc":    "Po w\u0142\u0105czeniu strona g\u0142\u00f3wna wy\u015bwietla zintegrowany panel z wid\u017cetami kalendarza wyda\u0144, przegl\u0105du tag\u00f3w, t\u0142umaczenia JSON i notatek do wydania ze wszystkich pod\u0142\u0105czonych narz\u0119dzi. Domy\u015blnie wy\u0142\u0105czone.",
+      "admin.ops_overview_enable":  "W\u0142\u0105cz przegl\u0105d operacji",
+      "admin.ops_overview_help":    "Ustawienie jest zapisywane i zachowywane po ponownym uruchomieniu. Warto\u015b\u0107 domy\u015blna przez",
+      "admin.enabled":              "W\u0142\u0105czono",
+      "admin.disabled":             "Wy\u0142\u0105czono",
+      "admin.saving":               "Zapisywanie\u2026",
+      "admin.saved_suffix":         "\u2713 Zapisano",
+      "admin.save_failed":          "Zapis nie powi\u00f3d\u0142 si\u0119",
+
+      /* ---------- config section labels ---------- */
+      "config.section.general":     "Og\u00f3lne",
+      "config.section.source":      "Kontrola \u017ar\u00f3d\u0142a",
+      "config.section.output":      "Wyj\u015bcie i wy\u015bwietlanie",
+      "config.section.connectivity":"Po\u0142\u0105czenia i tokeny",
+      "config.section.ci":          "CI / CD",
+      "config.section.display":     "Wy\u015bwietlanie",
+      "config.section.advanced":    "Zaawansowane",
 
       /* ---------- activity feed ---------- */
       "feed.title":                 "Aktywno\u015b\u0107 na \u017cywo",
@@ -214,11 +266,15 @@ window.__OPS_PL = {
       "stats.attention":            "Wymaga uwagi",
       "stats.running":              "Uruchomione",
 
-      /* ---------- status dots ---------- */
+      /* ---------- status ---------- */
+      "status.running":             "Dzia\u0142a",
+      "status.stopped":             "Zatrzymany",
+      "status.starting":            "Uruchamianie",
       "status.error":               "B\u0142\u0105d",
+      "status.idle":                "Bezczynny",
+      "status.ready":               "Gotowy",
       "status.needs_config":        "Wymaga konfiguracji",
-      "status.ready":               "Gotowy do uruchomienia",
-      "status.running":             "Uruchomiony",
+      "status.not_running":         "Nie dzia\u0142a",
 
       /* ---------- theme ---------- */
       "theme.dark":                 "Ciemny",
@@ -243,17 +299,6 @@ window.__OPS_PL = {
       "tool.expand_left":           "Rozszerz w lewo",
       "tool.expand_right":          "Rozszerz w prawo",
       "tool.reset_width":           "Normalny",
-
-
-      /* ---------- status badges ---------- */
-      "status.running":             "Dzia\u0142a",
-      "status.stopped":             "Zatrzymany",
-      "status.starting":            "Uruchamianie",
-      "status.error":               "B\u0142\u0105d",
-      "status.idle":                "Bezczynny",
-      "status.ready":               "Gotowy",
-      "status.needs_config":        "Wymaga konfiguracji",
-      "status.not_running":         "Nie dzia\u0142a",
 
       /* ---------- action names (for toasts) ---------- */
       "action.name.start":          "Uruchom",
@@ -285,14 +330,12 @@ window.__OPS_PL = {
       "adapter.flowboard.desc":     "Panel metryk Jira \u2014 czas cyklu, przepustowo\u015b\u0107, CFD i wi\u0119cej",
 
       /* ---------- config / validation ---------- */
-      "config.saved":               "Konfiguracja zapisana",
       "config.dir_required":        "Katalog jest wymagany",
       "config.source_required":     "J\u0119zyk \u017ar\u00f3d\u0142owy jest wymagany",
       "config.invalid_locale":      "Nieprawid\u0142owy kod lokalizacji",
       "config.unknown_property":    "Nieznana w\u0142a\u015bciwo\u015b\u0107",
 
       /* ---------- error defaults ---------- */
-      "error.unexpected":           "Wyst\u0105pi\u0142 nieoczekiwany b\u0142\u0105d.",
       "error.tool_not_found":       "Nie znaleziono narz\u0119dzia",
       "error.action_not_supported": "Akcja nie jest obs\u0142ugiwana",
 
@@ -302,6 +345,9 @@ window.__OPS_PL = {
       "page.title.logs":            "Logi — OpsPortal",
       "page.title.config":          "Konfiguracja — OpsPortal",
       "page.title.error":           "Błąd — OpsPortal",
+      "page.title.dashboard":       "Panel — OpsPortal",
+      "page.title.sla":             "Raport SLA — OpsPortal",
+      "page.title.depgraph":        "Zale\u017cno\u015bci — OpsPortal",
 
       /* ---------- aria / accessibility ---------- */
       "aria.main_nav":              "Nawigacja główna",
@@ -314,7 +360,7 @@ window.__OPS_PL = {
       "unit.kb":                    "KB",
       "unit.ms":                    "ms",
 
-      /* ---------- bulk actions (#4) ---------- */
+      /* ---------- bulk actions ---------- */
       "bulk.start_all":             "Uruchom wszystkie",
       "bulk.stop_all":              "Zatrzymaj wszystkie",
       "bulk.restart_all":           "Uruchom ponownie wszystkie",
@@ -323,13 +369,27 @@ window.__OPS_PL = {
       "bulk.confirm_action":        "Czy na pewno chcesz wykona\u0107 {action} na wszystkich narz\u0119dziach?",
       "bulk.running":               "Wykonywanie {action} na wszystkich narz\u0119dziach\u2026",
       "bulk.completed":             "{n}/{total} narz\u0119dzi zako\u0144czono pomy\u015blnie",
+      "bulk.waiting":               "Oczekiwanie\u2026",
+      "bulk.queued":                "W kolejce",
+      "bulk.starting":              "Uruchamianie\u2026",
+      "bulk.stopping":              "Zatrzymywanie\u2026",
+      "bulk.error_prefix":          "B\u0142\u0105d",
+      "bulk.tools_started":         "{n} / {total} narz\u0119dzi uruchomiono",
+      "bulk.tools_stopped":         "{n} / {total} narz\u0119dzi zatrzymano",
 
-      /* ---------- fullscreen (#6) ---------- */
+      /* ---------- fullscreen ---------- */
       "tool.fullscreen":            "Pe\u0142ny ekran",
       "tool.exit_fullscreen":       "Zamknij pe\u0142ny ekran",
       "tool.open_new_tab_short":    "Nowa karta",
 
-      /* ---------- uptime (#16) ---------- */
+      /* ---------- command palette ---------- */
+      "cmd.no_results":             "Brak wynik\u00f3w",
+      "cmd.start_tool":             "Uruchom {name}",
+      "cmd.stop_tool":              "Zatrzymaj {name}",
+      "cmd.action_executed":        "{label} \u2014 wykonano",
+      "cmd.action_failed":          "{label} \u2014 niepowodzenie",
+
+      /* ---------- uptime ---------- */
       "nav.uptime":                 "Dost\u0119pno\u015b\u0107",
       "page.title.uptime":          "Dost\u0119pno\u015b\u0107 \u2014 OpsPortal",
       "uptime.title":               "Panel dost\u0119pno\u015bci",
@@ -345,6 +405,103 @@ window.__OPS_PL = {
       "uptime.no_data":             "Brak danych o dost\u0119pno\u015bci.",
       "uptime.no_tools":            "Brak zarejestrowanych narz\u0119dzi do monitorowania.",
 
-      /* ---------- drag & drop (#5) ---------- */
-      "drag.hint":                  "Przeci\u0105gnij, aby zmieni\u0107 kolejno\u015b\u0107"
+      /* ---------- drag & drop ---------- */
+      "drag.hint":                  "Przeciągnij, aby zmienić kolejność",
+
+      /* ---------- operations overview ---------- */
+      "ops.section_title":          "Przegląd operacji",
+      "ops.refresh":                "Odśwież",
+      "ops.calendar_title":         "Kalendarz wydań",
+      "ops.tags_title":             "Przegląd tagów",
+      "ops.quick_actions":          "Szybkie akcje",
+      "ops.loading_milestones":     "Ładowanie kamieni milowych\u2026",
+      "ops.loading_tags":           "Ładowanie tagów\u2026",
+      "ops.no_milestones":          "Brak nadchodzących kamieni milowych",
+      "ops.no_tags":                "Brak dostępnych danych o tagach",
+      "ops.no_analysis":            "Brak danych analizy",
+      "ops.start_tool":             "Uruchom {tool}",
+      "ops.to_load_calendar":       "aby załadować dane kalendarza",
+      "ops.to_see_tags":            "aby zobaczyć tagi",
+      "ops.open_releaseboard_calendar": "Otwórz ReleaseBoard, aby skonfigurować harmonogram wydań \u2192",
+      "ops.open_releaseboard_analysis": "Otwórz {tool} i uruchom analizę \u2192",
+      "ops.view_full_calendar":     "Zobacz pełny kalendarz \u2192",
+      "ops.view_in_releaseboard":   "Zobacz w ReleaseBoard \u2192",
+      "ops.sources_unavailable":    "Niedostępne źródła: {n}",
+      "ops.more_items":             "Jeszcze {n}\u2026",
+      "ops.could_not_load":         "Nie udało się załadować danych: {name}.",
+      "ops.retry":                  "Ponów",
+      "ops.generate_release_notes": "Generuj notatki wydania",
+      "ops.translate_json":         "Tłumacz JSON",
+      "ops.modal_rn_title":         "Generuj notatki wydania",
+      "ops.modal_tr_title":         "Tłumacz JSON",
+      "ops.audience":               "Odbiorcy",
+      "ops.format":                 "Format",
+      "ops.generate":               "Generuj",
+      "ops.generating":             "Generowanie\u2026",
+      "ops.generation_failed":      "Generowanie nie powiodło się",
+      "ops.generated_summary":      "Wygenerowano: {succeeded}/{total} repozytoriów w {apps} aplikacji",
+      "ops.target_language":        "Język docelowy",
+      "ops.json_input":             "Dane wejściowe JSON",
+      "ops.translate":              "Tłumacz",
+      "ops.translating":            "Tłumaczenie {keys} kluczy na {lang}\u2026",
+      "ops.translation_complete":   "Tłumaczenie zakończone!",
+      "ops.download_json":          "Pobierz przetłumaczony JSON",
+      "ops.copy_clipboard":         "Kopiuj do schowka",
+      "ops.copied":                 "Skopiowano!",
+      "ops.loading_languages":      "Ładowanie języków\u2026",
+      "ops.no_languages":           "Brak dostępnych języków",
+      "ops.languages_failed":       "Nie udało się załadować języków",
+      "ops.translation_unavailable":"Usługa tłumaczeniowa niedostępna. Upewnij się, że LocaleSync jest zainstalowany i uruchomiony.",
+      "ops.drop_json":              "Upuść plik .json tutaj lub kliknij, aby wybrać",
+      "ops.no_repos":               "Nie znaleziono repozytoriów.",
+      "ops.open_tool_config":       "Otwórz ReleaseBoard, aby skonfigurować repozytoria i uruchomić analizę.",
+      "ops.view_timeline":          "Oś czasu",
+      "ops.view_table":             "Tabela",
+      "ops.days_today":             "Dziś",
+      "ops.days_ago":               "{n} dn. temu",
+      "ops.days_in":                "za {n} dn.",
+      "ops.tag_no_tags":            "Brak tagów",
+      "ops.tag_today":              "dziś",
+      "ops.connected":              "połączono",
+      "ops.no_tools_available":     "brak dostępnych narzędzi",
+      "ops.service_unavailable":    "usługa niedostępna",
+      "ops.phase.feature_freeze":   "Zamrożenie funkcji",
+      "ops.phase.code_freeze":      "Zamrożenie kodu",
+      "ops.phase.promote_sit":      "Promocja do SIT",
+      "ops.phase.promote_uat":      "Promocja do UAT",
+      "ops.phase.promote_prod":     "Promocja do PROD",
+      "ops.phase.sit_start":        "Początek SIT",
+      "ops.phase.sit_end":          "Koniec SIT",
+      "ops.phase.uat_start":        "Początek UAT",
+      "ops.phase.uat_end":          "Koniec UAT",
+      "ops.phase.fov_readiness":    "Gotowość FOV",
+      "ops.phase.fov":              "Przegląd FOV",
+      "ops.phase.go_live":          "Go Live",
+      "ops.phase.release":          "Wydanie",
+      "ops.phase.deploy":           "Wdrożenie",
+      "ops.phase.regression":       "Testy regresji",
+      "ops.phase.sign_off":         "Podpisanie",
+      "ops.phase.approval":         "Zatwierdzenie",
+      "ops.phase.kickoff":          "Rozpoczęcie",
+      "ops.phase.planning":         "Planowanie",
+      "ops.phase.review":           "Przegląd",
+      "ops.audience.changelog":     "Dziennik zmian",
+      "ops.audience.internal":      "Wewnętrzny",
+      "ops.audience.customer":      "Dla klienta",
+      "ops.format.markdown":        "Markdown",
+      "ops.format.html":            "HTML",
+      "ops.cancel":                 "Anuluj",
+      "ops.cancelled":              "Anulowano",
+      "ops.language":               "J\u0119zyk",
+      "ops.processing_repo":        "Przetwarzanie {repo} ({n}/{total})\u2026",
+      "ops.tags_pending_analysis":  "Uruchom analiz\u0119, aby zaktualizowa\u0107",
+      "ops.tags_not_current":       "Dane mog\u0105 nie by\u0107 aktualne",
+      "ops.no_language_selected":   "Nie wybrano j\u0119zyka docelowego. Us\u0142uga t\u0142umaczenia mo\u017ce by\u0107 niedost\u0119pna.",
+      "ops.invalid_json_input":     "Nieprawid\u0142owy format JSON \u2014 sprawd\u017a sk\u0142adni\u0119.",
+      "ops.translation_failed_prefix": "T\u0142umaczenie nie powiod\u0142o si\u0119: ",
+      "ops.start_rn_tool_hint":     "Uruchom narz\u0119dzie z obs\u0142ug\u0105 notatek wydania.",
+      "ops.errors_label":           "B\u0142\u0119dy:",
+      "ops.cal_header_phase":       "Faza",
+      "ops.cal_header_date":        "Data",
+      "ops.cal_header_status":      "Status"
 };

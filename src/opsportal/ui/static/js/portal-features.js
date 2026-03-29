@@ -9,7 +9,42 @@
   "use strict";
 
   /* ================================================================
-     Fullscreen Mode (#6)
+     Constants
+     ================================================================ */
+
+  var BULK_RELOAD_DELAY_MS = 2500;
+  var MAX_NAV_HISTORY = 20;
+  var LOG_RECONNECT_DELAY_MS = 5000;
+  var MAX_LOG_RETRIES = 5;
+  var STORAGE_KEY_CARD_ORDER = 'opsportal_card_order';
+  var STORAGE_KEY_NAV_HISTORY = 'opsportal_nav_history';
+
+  /* ================================================================
+     Shared DOM Helpers
+     ================================================================ */
+
+  function _clearBadges(nameRow) {
+    nameRow.querySelectorAll('.card-status-badge').forEach(function(b) { b.remove(); });
+  }
+
+  function _updateStatusDot(card, className, title) {
+    var dot = card.querySelector('.status-dot');
+    if (dot) { dot.className = 'status-dot ' + className; dot.title = title; }
+  }
+
+  function _setCardBadge(card, badgeClass, text, title) {
+    var nameRow = card.querySelector('.product-name-row');
+    if (!nameRow) return;
+    _clearBadges(nameRow);
+    var badge = document.createElement('span');
+    badge.className = 'card-status-badge ' + badgeClass;
+    badge.textContent = text;
+    if (title) badge.title = title;
+    nameRow.appendChild(badge);
+  }
+
+  /* ================================================================
+     Fullscreen Mode
      ================================================================ */
 
   function toggleFullscreen() {
@@ -22,11 +57,11 @@
     var footer = document.querySelector('.app-footer');
     var isFullscreen = wrapper.classList.toggle('iframe-fullscreen');
 
-    if (header) header.style.display = isFullscreen ? 'none' : '';
-    if (breadcrumb) breadcrumb.style.display = isFullscreen ? 'none' : '';
-    if (controls) controls.style.display = isFullscreen ? 'none' : '';
-    if (iframeControls) iframeControls.style.display = isFullscreen ? 'none' : '';
-    if (footer) footer.style.display = isFullscreen ? 'none' : '';
+    if (header) header.classList.toggle('u-hidden', isFullscreen);
+    if (breadcrumb) breadcrumb.classList.toggle('u-hidden', isFullscreen);
+    if (controls) controls.classList.toggle('u-hidden', isFullscreen);
+    if (iframeControls) iframeControls.classList.toggle('u-hidden', isFullscreen);
+    if (footer) footer.classList.toggle('u-hidden', isFullscreen);
 
     var btn = document.getElementById('fullscreen-btn');
     if (btn) {
@@ -35,10 +70,9 @@
     }
 
     var fab = document.getElementById('fullscreen-exit-fab');
-    if (fab) fab.style.display = isFullscreen ? '' : 'none';
+    if (fab) fab.classList.toggle('u-hidden', !isFullscreen);
   }
 
-  // Exit fullscreen with Escape key
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       var wrapper = document.getElementById('iframe-wrapper');
@@ -49,7 +83,7 @@
   });
 
   /* ================================================================
-     Bulk Actions (#4)
+     Bulk Actions
      ================================================================ */
 
   function bulkAction(actionName) {
@@ -65,64 +99,215 @@
       danger: actionName === 'stop',
     }).then(function (confirmed) {
       if (!confirmed) return;
-      window.showToast(t('bulk.running').replace('{action}', actionName), 'info');
       _executeBulk(actionName);
     });
   }
 
-  function _executeBulk(actionName) {
-    fetch('/api/tools/bulk/' + actionName, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window._csrfToken() },
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) { _handleBulkResult(data, actionName); })
-      .catch(function (err) {
-        window.showToast(t('action.request_failed') + err.message, 'error');
-      });
+  function _prepareBulkCards(cards) {
+    cards.forEach(function(card) {
+      card.classList.add('product-card-loading');
+      _updateStatusDot(card, 'status-idle', t('bulk.waiting'));
+      _setCardBadge(card, 'card-status-queued', t('bulk.queued'));
+    });
   }
 
-  function _handleBulkResult(data, actionName) {
-    if (data.error) {
-      window.showToast(data.error, 'error');
-      return;
+  function _executeBulk(actionName) {
+    var cards = document.querySelectorAll('.product-card[data-slug]');
+    _prepareBulkCards(cards);
+
+    fetch('/api/tools/bulk/' + actionName, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': (document.cookie.match(/opsportal_csrf=([^;]+)/) || [])[1] || ''
+      },
+    }).then(function(response) {
+      if (!response.ok) {
+        return response.text().then(function(body) {
+          _clearAllLoadingStates(cards);
+          var msg = t('bulk.error_prefix') + response.status;
+          try { msg = JSON.parse(body).error || msg; } catch(e) {}
+          window.showToast(msg, 'error');
+        });
+      }
+      if (response.body && typeof response.body.getReader === 'function') {
+        return _readBulkStream(response, actionName, cards);
+      }
+      return response.text().then(function(text) {
+        _processBulkSSEText(text, actionName, cards);
+      });
+    }).catch(function(err) {
+      _clearAllLoadingStates(cards);
+      window.showToast(t('action.request_failed') + (err.message || err), 'error');
+    });
+  }
+
+  function _readBulkStream(response, actionName, cards) {
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    function pump() {
+      return reader.read().then(function(chunk) {
+        if (chunk.value) {
+          buffer += decoder.decode(chunk.value, { stream: true });
+          _flushSSEBuffer();
+        }
+        if (chunk.done) {
+          _flushSSEBuffer();
+          return;
+        }
+        return pump();
+      });
     }
-    if (!data.results) {
-      window.showToast(t('action.request_failed') + 'Unexpected response', 'error');
-      return;
+    function _flushSSEBuffer() {
+      var lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      lines.forEach(function(line) {
+        if (line.indexOf('data: ') !== 0) return;
+        try {
+          var evt = JSON.parse(line.slice(6));
+          _handleBulkStreamEvent(evt, actionName);
+        } catch(e) { /* skip malformed SSE line */ }
+      });
     }
-    var total = Object.keys(data.results).length;
-    var succeeded = Object.values(data.results).filter(function(r) { return r.success; }).length;
-    var level = succeeded === total ? 'success' : 'error';
-    window.showToast(
-      t('bulk.completed').replace('{n}', succeeded).replace('{total}', total), level
-    );
-    setTimeout(function() { location.reload(); }, 1500);
+    return pump().catch(function() {
+      if (buffer) _flushSSEBuffer();
+      _clearAllLoadingStates(cards);
+    });
+  }
+
+  function _processBulkSSEText(text, actionName, cards) {
+    var lines = text.split('\n');
+    lines.forEach(function(line) {
+      if (line.indexOf('data: ') !== 0) return;
+      try {
+        var evt = JSON.parse(line.slice(6));
+        _handleBulkStreamEvent(evt, actionName);
+      } catch(e) {}
+    });
+    if (text.indexOf('"phase": "complete"') === -1 && text.indexOf('"phase":"complete"') === -1) {
+      _clearAllLoadingStates(cards);
+    }
+  }
+
+  /* -- Bulk stream event handlers -- */
+
+  function _handleBulkStreamEvent(evt, actionName) {
+    if (evt.phase === 'starting') {
+      _onBulkStarting(evt, actionName);
+    } else if (evt.phase === 'done') {
+      _onBulkDone(evt, actionName);
+    } else if (evt.phase === 'complete') {
+      _onBulkComplete(evt, actionName);
+    }
+  }
+
+  function _onBulkStarting(evt, actionName) {
+    var card = document.querySelector('.product-card[data-slug="' + evt.slug + '"]');
+    if (!card) return;
+    card.classList.add('product-card-active');
+    if (!card.querySelector('.product-card-spinner')) {
+      var spinner = document.createElement('div');
+      spinner.className = 'product-card-spinner';
+      card.appendChild(spinner);
+    }
+    var statusTitle = actionName === 'stop' ? t('bulk.stopping') : t('bulk.starting');
+    _updateStatusDot(card, 'status-starting', statusTitle);
+    _setCardBadge(card, 'card-status-starting', statusTitle);
+    _updateBulkBanner(actionName, evt.index, evt.total, evt.slug);
+  }
+
+  function _onBulkDone(evt, actionName) {
+    var card = document.querySelector('.product-card[data-slug="' + evt.slug + '"]');
+    if (!card) return;
+    card.classList.remove('product-card-loading', 'product-card-active');
+    var spinner = card.querySelector('.product-card-spinner');
+    if (spinner) spinner.remove();
+
+    if (evt.success) {
+      var dotClass = actionName === 'stop' ? 'status-idle' : 'status-running';
+      var dotTitle = actionName === 'stop' ? t('status.stopped') : t('status.running');
+      _updateStatusDot(card, dotClass, dotTitle);
+      var badgeText = actionName === 'stop' ? t('status.stopped') : t('status.ready');
+      _setCardBadge(card, 'card-status-ok', badgeText);
+    } else {
+      _updateStatusDot(card, 'status-error', evt.error || t('status.failed'));
+      _setCardBadge(card, 'card-status-failed', t('status.failed'), evt.error || '');
+    }
+  }
+
+  function _onBulkComplete(evt, actionName) {
+    document.querySelectorAll('.product-card-loading').forEach(function(c) {
+      c.classList.remove('product-card-loading', 'product-card-active');
+      var sp = c.querySelector('.product-card-spinner');
+      if (sp) sp.remove();
+    });
+    _removeBulkBanner();
+    var level = evt.succeeded === evt.total ? 'success' : 'error';
+    var verb = actionName === 'stop' ? t('bulk.tools_stopped') : t('bulk.tools_started');
+    window.showToast(evt.succeeded + ' / ' + evt.total + ' ' + verb, level);
+    setTimeout(function() { location.reload(); }, BULK_RELOAD_DELAY_MS);
+  }
+
+  function _clearAllLoadingStates(cards) {
+    cards.forEach(function(card) {
+      card.classList.remove('product-card-loading', 'product-card-active');
+      var sp = card.querySelector('.product-card-spinner');
+      if (sp) sp.remove();
+      var nameRow = card.querySelector('.product-name-row');
+      if (nameRow) _clearBadges(nameRow);
+    });
+    _removeBulkBanner();
+  }
+
+  function _updateBulkBanner(actionName, index, total, slug) {
+    var banner = document.getElementById('bulk-progress-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'bulk-progress-banner';
+      banner.className = 'bulk-progress-banner';
+      var grid = document.getElementById('product-grid');
+      if (grid && grid.parentNode) {
+        grid.parentNode.insertBefore(banner, grid);
+      } else {
+        return;
+      }
+    }
+    var progressPercent = Math.round(((index + 1) / total) * 100);
+    var verb = actionName === 'stop' ? t('bulk.stopping') : t('bulk.starting');
+    banner.innerHTML =
+      '<div class="bulk-banner-text">' + verb + ' <strong>' + slug + '</strong> (' + (index + 1) + '/' + total + ')</div>' +
+      '<div class="ops-progress-wrap"><div class="ops-progress-bar" style="width:' + progressPercent + '%"></div></div>';
+  }
+
+  function _removeBulkBanner() {
+    var banner = document.getElementById('bulk-progress-banner');
+    if (banner) banner.remove();
   }
 
   /* ================================================================
-     Drag & Drop Card Reorder (#5)
+     Drag & Drop Card Reorder
      ================================================================ */
 
   function initDragAndDrop() {
     var grid = document.getElementById('product-grid');
     if (!grid) return;
 
-    var draggedEl = null;
+    var _draggedCard = null;
 
     grid.addEventListener('dragstart', function (e) {
       var card = e.target.closest('.product-card');
       if (!card) return;
-      draggedEl = card;
+      _draggedCard = card;
       card.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', card.getAttribute('data-slug'));
     });
 
     grid.addEventListener('dragend', function () {
-      if (draggedEl) {
-        draggedEl.classList.remove('dragging');
-        draggedEl = null;
+      if (_draggedCard) {
+        _draggedCard.classList.remove('dragging');
+        _draggedCard = null;
       }
       grid.querySelectorAll('.product-card').forEach(function(c) {
         c.classList.remove('drag-over');
@@ -133,7 +318,7 @@
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       var target = e.target.closest('.product-card');
-      if (target && target !== draggedEl) {
+      if (target && target !== _draggedCard) {
         grid.querySelectorAll('.product-card').forEach(function(c) { c.classList.remove('drag-over'); });
         target.classList.add('drag-over');
       }
@@ -142,22 +327,22 @@
     grid.addEventListener('drop', function (e) {
       e.preventDefault();
       var target = e.target.closest('.product-card');
-      if (!target || !draggedEl || target === draggedEl) return;
+      if (!target || !_draggedCard || target === _draggedCard) return;
 
       var allCards = Array.from(grid.querySelectorAll('.product-card'));
-      var draggedIdx = allCards.indexOf(draggedEl);
+      var draggedIdx = allCards.indexOf(_draggedCard);
       var targetIdx = allCards.indexOf(target);
 
       if (draggedIdx < targetIdx) {
-        grid.insertBefore(draggedEl, target.nextSibling);
+        grid.insertBefore(_draggedCard, target.nextSibling);
       } else {
-        grid.insertBefore(draggedEl, target);
+        grid.insertBefore(_draggedCard, target);
       }
 
       var newOrder = Array.from(grid.querySelectorAll('.product-card')).map(function(c) {
         return c.getAttribute('data-slug');
       });
-      try { localStorage.setItem('opsportal_card_order', JSON.stringify(newOrder)); } catch(ignore) {}
+      try { localStorage.setItem(STORAGE_KEY_CARD_ORDER, JSON.stringify(newOrder)); } catch(ignore) {}
     });
 
     _restoreCardOrder(grid);
@@ -165,7 +350,7 @@
 
   function _restoreCardOrder(grid) {
     try {
-      var saved = JSON.parse(localStorage.getItem('opsportal_card_order') || '[]');
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY_CARD_ORDER) || '[]');
       if (!saved.length) return;
       var cards = {};
       grid.querySelectorAll('.product-card').forEach(function(c) {
@@ -178,24 +363,26 @@
   }
 
   /* ================================================================
-     Breadcrumb Navigation History (#7)
+     Breadcrumb Navigation History
      ================================================================ */
 
   function initBreadcrumbHistory() {
     var current = window.location.pathname;
     try {
-      var history = JSON.parse(sessionStorage.getItem('opsportal_nav_history') || '[]');
+      var history = JSON.parse(sessionStorage.getItem(STORAGE_KEY_NAV_HISTORY) || '[]');
       if (history[history.length - 1] !== current) {
         history.push(current);
-        if (history.length > 20) history = history.slice(-20);
-        sessionStorage.setItem('opsportal_nav_history', JSON.stringify(history));
+        if (history.length > MAX_NAV_HISTORY) history = history.slice(-MAX_NAV_HISTORY);
+        sessionStorage.setItem(STORAGE_KEY_NAV_HISTORY, JSON.stringify(history));
       }
     } catch(ignore) {}
   }
 
   /* ================================================================
-     SSE Log Streaming (#2)
+     SSE Log Streaming
      ================================================================ */
+
+  var _logStreamRetries = 0;
 
   function initLogStreaming() {
     var logArea = document.querySelector('.output-area');
@@ -224,8 +411,11 @@
       } catch(err) {}
     };
     source.onerror = function() {
-      setTimeout(function() { _startLogStream(url, container); }, 5000);
       source.close();
+      if (_logStreamRetries < MAX_LOG_RETRIES) {
+        _logStreamRetries++;
+        setTimeout(function() { _startLogStream(url, container); }, LOG_RECONNECT_DELAY_MS);
+      }
     };
     window.addEventListener('beforeunload', function() { source.close(); });
   }

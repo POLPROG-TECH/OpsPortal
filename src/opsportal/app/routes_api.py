@@ -187,28 +187,76 @@ async def api_tools(request: Request):
 
 @router.post("/api/tools/bulk/{action}")
 async def api_bulk_action(request: Request, action: str):
-    """Execute a lifecycle action on all tools."""
+    """Execute a lifecycle action on all tools sequentially (SSE stream).
+
+    Yields one SSE event per tool with ``{slug, phase, success, error, index,
+    total}`` so the UI can update each card as it progresses.  The final event
+    has ``phase: "complete"`` with a summary.
+    """
     if action not in ("start", "stop", "restart"):
         raise HTTPException(400, f"Invalid bulk action: {action}")
 
-    results = {}
-    for adapter in _registry(request).all():
-        slug = adapter.slug
-        try:
-            result = await adapter.run_action(action, {})
-            results[slug] = {"success": result.success, "error": result.error}
-            _log_store(request).add(
-                slug, action, f"Bulk {action}: {'ok' if result.success else 'failed'}"
-            )
-        except (OSError, RuntimeError) as exc:
-            results[slug] = {"success": False, "error": str(exc)}
+    adapters = list(_registry(request).all())
+    total = len(adapters)
 
-    _audit_log(request).record(
-        category="lifecycle",
-        action=f"bulk_{action}",
-        details={"results": results},
+    async def _event_generator():
+        results: dict[str, dict] = {}
+        for idx, adapter in enumerate(adapters):
+            slug = adapter.slug
+            # Notify client this tool is now starting
+            yield _sse({"slug": slug, "phase": "starting", "index": idx, "total": total})
+
+            try:
+                result = await adapter.run_action(action, {})
+                _log_store(request).add(
+                    slug,
+                    action,
+                    f"Bulk {action}: {'ok' if result.success else 'failed'}",
+                )
+                outcome = {"success": result.success, "error": result.error}
+            except (OSError, RuntimeError) as exc:
+                outcome = {"success": False, "error": str(exc)}
+
+            results[slug] = outcome
+            yield _sse(
+                {
+                    "slug": slug,
+                    "phase": "done",
+                    "index": idx,
+                    "total": total,
+                    **outcome,
+                }
+            )
+
+        _audit_log(request).record(
+            category="lifecycle",
+            action=f"bulk_{action}",
+            details={"results": results},
+        )
+        succeeded = sum(1 for r in results.values() if r["success"])
+        yield _sse(
+            {
+                "phase": "complete",
+                "succeeded": succeeded,
+                "total": total,
+                "results": results,
+            }
+        )
+
+    return StreamingResponse(
+        _event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
-    return JSONResponse({"action": action, "results": results})
+
+
+def _sse(data: dict) -> str:
+    """Format a dict as an SSE ``data:`` line."""
+    return f"data: {json.dumps(data)}\n\n"
 
 
 # ---------------------------------------------------------------------------

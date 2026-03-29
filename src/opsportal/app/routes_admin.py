@@ -483,3 +483,39 @@ async def api_update_user_role(request: Request, username: str):
 
     ok = request.app.state.auth_manager.update_role(username, Role(body["role"]))
     return JSONResponse({"success": ok})
+
+
+# ---------------------------------------------------------------------------
+# Operations Overview toggle
+# ---------------------------------------------------------------------------
+
+
+@router.get("/api/config/ops-overview")
+async def api_ops_overview_status(request: Request):
+    """Return current Operations Overview enabled state."""
+    enabled = request.app.state.settings.ops_overview_enabled
+    return JSONResponse({"enabled": enabled})
+
+
+@router.put("/api/config/ops-overview")
+async def api_ops_overview_toggle(request: Request):
+    """Toggle Operations Overview on or off at runtime.
+
+    Persists the value to ``portal_state.json`` so it survives restarts.
+    """
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, ValueError):
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+    enabled = bool(body.get("enabled", False))
+    # Update in-memory settings
+    object.__setattr__(request.app.state.settings, "ops_overview_enabled", enabled)
+    # Persist to disk so the value survives restarts
+    request.app.state.portal_state.set("ops_overview_enabled", enabled)
+    _audit_log(request).record(
+        category="config",
+        action="toggle_ops_overview",
+        details={"enabled": enabled},
+    )
+    logger.info("Operations Overview %s", "enabled" if enabled else "disabled")
+    return JSONResponse({"success": True, "enabled": enabled, "persisted": True})

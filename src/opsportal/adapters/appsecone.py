@@ -337,7 +337,7 @@ class AppSecOneAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     async def _stop_server(self) -> ActionResult:
         try:
-            await self._pm.stop(self._process_name)
+            await self._pm.stop(self._process_name, port=self._port)
             return ActionResult(success=True, output="AppSecOne stopped")
         except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))

@@ -170,6 +170,7 @@
       "nav.health":                 "Health",
       "nav.logs":                   "Logs",
       "nav.settings":               "Settings",
+      "nav.config":                 "Config",
       "nav.sla":                    "SLA Report",
 
       /* ---------- sidebar ---------- */
@@ -184,6 +185,57 @@
       "dashboard.running":          "Running",
       "dashboard.stopped":          "Stopped",
       "dashboard.active_alerts":    "Active Alerts",
+      "dashboard.chart_cpu_memory": "CPU & Memory Usage",
+      "dashboard.chart_latency":    "Response Latency (ms)",
+      "dashboard.chart_uptime":     "Uptime %",
+      "dashboard.chart_alerts":     "Active Alerts",
+      "dashboard.loading_alerts":   "Loading alerts\u2026",
+      "dashboard.no_alerts":        "No active alerts \u2713",
+      "dashboard.label_cpu":        "CPU %",
+      "dashboard.label_memory":     "Memory (MB)",
+      "dashboard.label_latency":    "Avg Latency (ms)",
+      "dashboard.label_uptime":     "Uptime %",
+
+      /* ---------- sla report ---------- */
+      "sla.title":                  "SLA Report",
+      "sla.generated":              "Generated:",
+      "sla.period":                 "Period:",
+      "sla.export_csv":             "Export CSV",
+      "sla.overall_uptime":         "Overall Uptime",
+      "sla.meeting_sla":            "Meeting SLA",
+      "sla.below_sla":              "Below SLA",
+      "sla.total_tools":            "Total Tools",
+      "sla.col_tool":               "Tool",
+      "sla.col_target":             "Target",
+      "sla.col_actual":             "Actual",
+      "sla.col_gap":                "Gap",
+      "sla.col_checks":             "Checks",
+      "sla.col_latency":            "Latency",
+      "sla.col_incidents":          "Incidents",
+      "sla.col_status":             "Status",
+      "sla.badge_ok":               "\u2713 OK",
+      "sla.badge_breach":           "\u2717 Breach",
+
+      /* ---------- admin config page ---------- */
+      "admin.subtitle":             "Portal configuration and feature management. Changes take effect immediately.",
+      "admin.ops_overview":         "Operations Overview",
+      "admin.ops_overview_desc":    "When enabled, the Home page displays an integrated dashboard with widgets for Release Calendar, Tags Overview, JSON Translation, and Release Notes from all connected tools. Disabled by default.",
+      "admin.ops_overview_enable":  "Enable Operations Overview",
+      "admin.ops_overview_help":    "Setting is saved and persists across restarts. Initial default can be set via",
+      "admin.enabled":              "Enabled",
+      "admin.disabled":             "Disabled",
+      "admin.saving":               "Saving\u2026",
+      "admin.saved_suffix":         "\u2713 Saved",
+      "admin.save_failed":          "Save failed",
+
+      /* ---------- config section labels ---------- */
+      "config.section.general":     "General",
+      "config.section.source":      "Source Control",
+      "config.section.output":      "Output & Display",
+      "config.section.connectivity":"Connectivity & Tokens",
+      "config.section.ci":          "CI / CD",
+      "config.section.display":     "Display",
+      "config.section.advanced":    "Advanced",
 
       /* ---------- activity feed ---------- */
       "feed.title":                 "Live Activity",
@@ -226,11 +278,15 @@
       "stats.attention":            "Needs Attention",
       "stats.running":              "Running",
 
-      /* ---------- status dots ---------- */
-      "status.error":               "Error",
-      "status.needs_config":        "Needs configuration",
-      "status.ready":               "Ready to launch",
+      /* ---------- status ---------- */
       "status.running":             "Running",
+      "status.stopped":             "Stopped",
+      "status.starting":            "Starting",
+      "status.error":               "Error",
+      "status.idle":                "Idle",
+      "status.ready":               "Ready",
+      "status.needs_config":        "Needs configuration",
+      "status.not_running":         "Not running",
 
       /* ---------- theme ---------- */
       "theme.dark":                 "Dark",
@@ -255,17 +311,6 @@
       "tool.expand_left":           "Expand Left",
       "tool.expand_right":          "Expand Right",
       "tool.reset_width":           "Normal",
-
-
-      /* ---------- status badges ---------- */
-      "status.running":             "Running",
-      "status.stopped":             "Stopped",
-      "status.starting":            "Starting",
-      "status.error":               "Error",
-      "status.idle":                "Idle",
-      "status.ready":               "Ready",
-      "status.needs_config":        "Needs configuration",
-      "status.not_running":         "Not running",
 
       /* ---------- action names (for toasts) ---------- */
       "action.name.start":          "Start",
@@ -297,14 +342,12 @@
       "adapter.flowboard.desc":     "Jira flow-metrics dashboard \u2014 cycle time, throughput, CFD & more",
 
       /* ---------- config / validation ---------- */
-      "config.saved":               "Configuration saved",
       "config.dir_required":        "Directory is required",
       "config.source_required":     "Source locale is required",
       "config.invalid_locale":      "Invalid locale code",
       "config.unknown_property":    "Unknown property",
 
       /* ---------- error defaults ---------- */
-      "error.unexpected":           "An unexpected error occurred.",
       "error.tool_not_found":       "Tool not found",
       "error.action_not_supported": "Action not supported",
 
@@ -314,6 +357,9 @@
       "page.title.logs":            "Logs — OpsPortal",
       "page.title.config":          "Configuration — OpsPortal",
       "page.title.error":           "Error — OpsPortal",
+      "page.title.dashboard":       "Dashboard — OpsPortal",
+      "page.title.sla":             "SLA Report — OpsPortal",
+      "page.title.depgraph":        "Dependencies — OpsPortal",
 
       /* ---------- aria / accessibility ---------- */
       "aria.main_nav":              "Main navigation",
@@ -326,7 +372,7 @@
       "unit.kb":                    "KB",
       "unit.ms":                    "ms",
 
-      /* ---------- bulk actions (#4) ---------- */
+      /* ---------- bulk actions ---------- */
       "bulk.start_all":             "Start All",
       "bulk.stop_all":              "Stop All",
       "bulk.restart_all":           "Restart All",
@@ -335,13 +381,27 @@
       "bulk.confirm_action":        "Are you sure you want to {action} all tools?",
       "bulk.running":               "Running {action} on all tools\u2026",
       "bulk.completed":             "{n}/{total} tools completed successfully",
+      "bulk.waiting":               "Waiting\u2026",
+      "bulk.queued":                "Queued",
+      "bulk.starting":              "Starting\u2026",
+      "bulk.stopping":              "Stopping\u2026",
+      "bulk.error_prefix":          "Error",
+      "bulk.tools_started":         "{n} / {total} tools started",
+      "bulk.tools_stopped":         "{n} / {total} tools stopped",
 
-      /* ---------- fullscreen (#6) ---------- */
+      /* ---------- fullscreen ---------- */
       "tool.fullscreen":            "Fullscreen",
       "tool.exit_fullscreen":       "Exit Fullscreen",
       "tool.open_new_tab_short":    "New Tab",
 
-      /* ---------- uptime (#16) ---------- */
+      /* ---------- command palette ---------- */
+      "cmd.no_results":             "No results",
+      "cmd.start_tool":             "Start {name}",
+      "cmd.stop_tool":              "Stop {name}",
+      "cmd.action_executed":        "{label} executed",
+      "cmd.action_failed":          "{label} failed",
+
+      /* ---------- uptime ---------- */
       "nav.uptime":                 "Uptime",
       "page.title.uptime":          "Uptime \u2014 OpsPortal",
       "uptime.title":               "Uptime Dashboard",
@@ -357,8 +417,105 @@
       "uptime.no_data":             "No uptime data yet.",
       "uptime.no_tools":            "No tools registered for monitoring.",
 
-      /* ---------- drag & drop (#5) ---------- */
-      "drag.hint":                  "Drag to reorder"
+      /* ---------- drag & drop ---------- */
+      "drag.hint":                  "Drag to reorder",
+
+      /* ---------- operations overview ---------- */
+      "ops.section_title":          "Operations Overview",
+      "ops.refresh":                "Refresh",
+      "ops.calendar_title":         "Release Calendar",
+      "ops.tags_title":             "Tags Overview",
+      "ops.quick_actions":          "Quick Actions",
+      "ops.loading_milestones":     "Loading milestones\u2026",
+      "ops.loading_tags":           "Loading tags\u2026",
+      "ops.no_milestones":          "No upcoming milestones",
+      "ops.no_tags":                "No tags data available",
+      "ops.no_analysis":            "No analysis data yet",
+      "ops.start_tool":             "Start {tool}",
+      "ops.to_load_calendar":       "to load calendar data",
+      "ops.to_see_tags":            "to see tags",
+      "ops.open_releaseboard_calendar": "Open ReleaseBoard to configure release schedule \u2192",
+      "ops.open_releaseboard_analysis": "Open {tool} and run analysis \u2192",
+      "ops.view_full_calendar":     "View full calendar \u2192",
+      "ops.view_in_releaseboard":   "View in ReleaseBoard \u2192",
+      "ops.sources_unavailable":    "{n} source(s) unavailable",
+      "ops.more_items":             "{n} more\u2026",
+      "ops.could_not_load":         "Could not load {name} data.",
+      "ops.retry":                  "Retry",
+      "ops.generate_release_notes": "Generate Release Notes",
+      "ops.translate_json":         "Translate JSON",
+      "ops.modal_rn_title":         "Generate Release Notes",
+      "ops.modal_tr_title":         "Translate JSON",
+      "ops.audience":               "Audience",
+      "ops.format":                 "Format",
+      "ops.generate":               "Generate",
+      "ops.generating":             "Generating\u2026",
+      "ops.generation_failed":      "Generation failed",
+      "ops.generated_summary":      "Generated: {succeeded}/{total} repos across {apps} app(s)",
+      "ops.target_language":        "Target Language",
+      "ops.json_input":             "JSON Input",
+      "ops.translate":              "Translate",
+      "ops.translating":            "Translating {keys} keys to {lang}\u2026",
+      "ops.translation_complete":   "Translation complete!",
+      "ops.download_json":          "Download translated JSON",
+      "ops.copy_clipboard":         "Copy to clipboard",
+      "ops.copied":                 "Copied!",
+      "ops.loading_languages":      "Loading languages\u2026",
+      "ops.no_languages":           "No languages available",
+      "ops.languages_failed":       "Failed to load languages",
+      "ops.translation_unavailable":"Translation service unavailable. Ensure LocaleSync is installed and running.",
+      "ops.drop_json":              "Drop a .json file here or click to browse",
+      "ops.no_repos":               "No repositories found.",
+      "ops.open_tool_config":       "Open ReleaseBoard to configure repositories and run analysis first.",
+      "ops.view_timeline":          "Timeline",
+      "ops.view_table":             "Table",
+      "ops.days_today":             "Today",
+      "ops.days_ago":               "{n}d ago",
+      "ops.days_in":                "in {n}d",
+      "ops.tag_no_tags":            "No tags",
+      "ops.tag_today":              "today",
+      "ops.connected":              "connected",
+      "ops.no_tools_available":     "no tools available",
+      "ops.service_unavailable":    "service unavailable",
+      "ops.phase.feature_freeze":   "Feature Freeze",
+      "ops.phase.code_freeze":      "Code Freeze",
+      "ops.phase.promote_sit":      "Promote to SIT",
+      "ops.phase.promote_uat":      "Promote to UAT",
+      "ops.phase.promote_prod":     "Promote to PROD",
+      "ops.phase.sit_start":        "SIT Start",
+      "ops.phase.sit_end":          "SIT Complete",
+      "ops.phase.uat_start":        "UAT Start",
+      "ops.phase.uat_end":          "UAT Complete",
+      "ops.phase.fov_readiness":    "FOV Readiness",
+      "ops.phase.fov":              "FOV Review",
+      "ops.phase.go_live":          "Go Live",
+      "ops.phase.release":          "Release",
+      "ops.phase.deploy":           "Deploy",
+      "ops.phase.regression":       "Regression Testing",
+      "ops.phase.sign_off":         "Sign-Off",
+      "ops.phase.approval":         "Approval",
+      "ops.phase.kickoff":          "Kickoff",
+      "ops.phase.planning":         "Planning",
+      "ops.phase.review":           "Review",
+      "ops.audience.changelog":     "Changelog",
+      "ops.audience.internal":      "Internal",
+      "ops.audience.customer":      "Customer-facing",
+      "ops.format.markdown":        "Markdown",
+      "ops.format.html":            "HTML",
+      "ops.cancel":                 "Cancel",
+      "ops.cancelled":              "Cancelled",
+      "ops.language":               "Language",
+      "ops.processing_repo":        "Processing {repo} ({n}/{total})\u2026",
+      "ops.tags_pending_analysis":  "Run analysis to update",
+      "ops.tags_not_current":       "Data may not be current",
+      "ops.no_language_selected":   "No target language selected. Translation service may be unavailable.",
+      "ops.invalid_json_input":     "Invalid JSON input \u2014 please check syntax.",
+      "ops.translation_failed_prefix": "Translation failed: ",
+      "ops.start_rn_tool_hint":     "Start a tool with release notes capability.",
+      "ops.errors_label":           "Errors:",
+      "ops.cal_header_phase":       "Phase",
+      "ops.cal_header_date":        "Date",
+      "ops.cal_header_status":      "Status"
     },
 
     pl: window.__OPS_PL || {}

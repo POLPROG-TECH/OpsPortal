@@ -204,11 +204,13 @@ class TestConfigResolution:
     def test_releasepilot_falls_back_to_work_dir_canonical(self, pm, work_dir):
         """GIVEN no config file exists anywhere."""
         adapter = ReleasePilotAdapter(pm, work_dir=work_dir, port=8082, cli_binary="releasepilot")
-        resolved = adapter._resolve_config_path()
-        expected = (work_dir / ".releasepilot.json").resolve()
-        assert resolved == expected
 
         """WHEN _resolve_config_path is called."""
+        resolved = adapter._resolve_config_path()
+
+        """THEN the canonical work_dir config path is returned."""
+        expected = (work_dir / ".releasepilot.json").resolve()
+        assert resolved == expected
 
     def test_releaseboard_finds_config_in_work_dir(self, pm, work_dir):
         """GIVEN a config file in work_dir."""
@@ -421,13 +423,15 @@ class TestStaticAssets:
         """GIVEN the installed opsportal package."""
         ui_dir = Path(__file__).resolve().parent.parent / "src" / "opsportal" / "ui"
         templates = ui_dir / "templates"
+
+        """WHEN checking ui/templates."""
+
+        """THEN the directory exists with expected template files."""
         assert templates.is_dir()
         assert (templates / "home.html").is_file()
         assert (templates / "base.html").is_file()
         assert (templates / "tool_web.html").is_file()
         assert (templates / "tool_config.html").is_file()
-
-        """WHEN checking ui/templates."""
 
     def test_static_directory_exists(self):
         """GIVEN the installed opsportal package."""

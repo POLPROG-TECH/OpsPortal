@@ -1,13 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}{{ "Configuration" | default("Configuration") }} — OpsPortal{% endblock %}
+{% block title %}{{ "Admin & Settings" | default("Admin & Settings") }} — OpsPortal{% endblock %}
 {% block head_extra %}<meta data-i18n-doc-title="page.title.config">{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title" data-i18n="page.config">Configuration</h1>
+  <h1 class="page-title" data-i18n="page.config">Admin &amp; Settings</h1>
+  <p class="page-subtitle admin-subtitle" data-i18n="admin.subtitle">
+    Portal configuration and feature management. Changes take effect immediately.
+  </p>
 </div>
 
+{# ── Operations Overview (Feature Toggle) ── #}
+<div class="section" id="ops-overview-config">
+  <h2 class="section-title" data-i18n="admin.ops_overview">Operations Overview</h2>
+  <p class="admin-section-desc" data-i18n="admin.ops_overview_desc">
+    When enabled, the Home page displays an integrated dashboard with widgets
+    for Release Calendar, Tags Overview, JSON Translation, and Release Notes
+    from all connected tools. Disabled by default.
+  </p>
+  <div class="table-wrapper">
+    <table class="table table-kv" aria-label="Operations Overview settings">
+      <thead>
+        <tr><th data-i18n="config.setting">Setting</th><th data-i18n="config.value">Value</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <span data-i18n="admin.ops_overview_enable">Enable Operations Overview</span>
+            <div class="admin-field-hint">
+              <span data-i18n="admin.ops_overview_help">Setting is saved and persists across restarts.
+              Initial default can be set via</span> <code>OPSPORTAL_OPS_OVERVIEW_ENABLED=true</code>
+            </div>
+          </td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ops-overview-toggle"
+                     {{ 'checked' if settings.ops_overview_enabled else '' }}
+                     onchange="toggleOpsOverview(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span id="ops-overview-label" class="admin-toggle-label" data-i18n="{{ 'admin.enabled' if settings.ops_overview_enabled else 'admin.disabled' }}">
+              {{ 'Enabled' if settings.ops_overview_enabled else 'Disabled' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Portal Settings ── #}
 <div class="section">
   <h2 class="section-title" data-i18n="config.portal_settings">Portal Settings</h2>
   <div class="table-wrapper">
@@ -66,4 +109,33 @@
   </div>
 </div>
 {% endif %}
+
+<script>
+function toggleOpsOverview(enabled) {
+  var label = document.getElementById('ops-overview-label');
+  label.textContent = t('admin.saving');
+  label.style.color = 'var(--text-muted)';
+  fetch('/api/config/ops-overview', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': (document.cookie.match(/opsportal_csrf=([^;]+)/) || [])[1] || ''
+    },
+    body: JSON.stringify({ enabled: enabled })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) {
+      var stateText = t(data.enabled ? 'admin.enabled' : 'admin.disabled');
+      label.textContent = stateText + ' ' + t('admin.saved_suffix');
+      label.style.color = data.enabled ? 'var(--success, #16a34a)' : 'var(--text-secondary)';
+      setTimeout(function() {
+        label.textContent = stateText;
+      }, 2000);
+    }
+  }).catch(function() {
+    document.getElementById('ops-overview-toggle').checked = !enabled;
+    label.textContent = t('admin.save_failed');
+    label.style.color = 'var(--danger, #dc2626)';
+  });
+}
+</script>
 {% endblock %}

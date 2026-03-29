@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% block title %}SLA Report — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.sla">{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="section-header-row">
     <div>
-      <h1 class="page-title">SLA Report</h1>
-      <p class="page-subtitle">Generated: {{ report.generated_at_str }} | Period: {{ report.period }}</p>
+      <h1 class="page-title" data-i18n="sla.title">SLA Report</h1>
+      <p class="page-subtitle"><span data-i18n="sla.generated">Generated:</span> {{ report.generated_at_str }} | <span data-i18n="sla.period">Period:</span> {{ report.period }}</p>
     </div>
     <div class="bulk-actions">
-      <a href="/api/sla/report/csv" class="btn btn-ghost btn-sm" download>📥 Export CSV</a>
+      <a href="/api/sla/report/csv" class="btn btn-ghost btn-sm" download>📥 <span data-i18n="sla.export_csv">Export CSV</span></a>
     </div>
   </div>
 </div>
@@ -17,19 +18,19 @@
 <div class="dashboard-summary">
   <div class="dash-stat-card">
     <div class="dash-stat-value">{{ report.overall_percent }}%</div>
-    <div class="dash-stat-label">Overall Uptime</div>
+    <div class="dash-stat-label" data-i18n="sla.overall_uptime">Overall Uptime</div>
   </div>
   <div class="dash-stat-card dash-stat-good">
     <div class="dash-stat-value">{{ report.tools_meeting_sla }}</div>
-    <div class="dash-stat-label">Meeting SLA</div>
+    <div class="dash-stat-label" data-i18n="sla.meeting_sla">Meeting SLA</div>
   </div>
   <div class="dash-stat-card dash-stat-warn">
     <div class="dash-stat-value">{{ report.tools_total - report.tools_meeting_sla }}</div>
-    <div class="dash-stat-label">Below SLA</div>
+    <div class="dash-stat-label" data-i18n="sla.below_sla">Below SLA</div>
   </div>
   <div class="dash-stat-card">
     <div class="dash-stat-value">{{ report.tools_total }}</div>
-    <div class="dash-stat-label">Total Tools</div>
+    <div class="dash-stat-label" data-i18n="sla.total_tools">Total Tools</div>
   </div>
 </div>
 
@@ -37,14 +38,14 @@
   <table class="sla-table">
     <thead>
       <tr>
-        <th>Tool</th>
-        <th>Target</th>
-        <th>Actual</th>
-        <th>Gap</th>
-        <th>Checks</th>
-        <th>Latency</th>
-        <th>Incidents</th>
-        <th>Status</th>
+        <th data-i18n="sla.col_tool">Tool</th>
+        <th data-i18n="sla.col_target">Target</th>
+        <th data-i18n="sla.col_actual">Actual</th>
+        <th data-i18n="sla.col_gap">Gap</th>
+        <th data-i18n="sla.col_checks">Checks</th>
+        <th data-i18n="sla.col_latency">Latency</th>
+        <th data-i18n="sla.col_incidents">Incidents</th>
+        <th data-i18n="sla.col_status">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -62,9 +63,9 @@
         <td>{{ r.incidents_count }}</td>
         <td>
           {% if r.meets_sla %}
-          <span class="badge badge-running">✓ OK</span>
+          <span class="badge badge-running" data-i18n="sla.badge_ok">✓ OK</span>
           {% else %}
-          <span class="badge badge-error">✗ Breach</span>
+          <span class="badge badge-error" data-i18n="sla.badge_breach">✗ Breach</span>
           {% endif %}
         </td>
       </tr>

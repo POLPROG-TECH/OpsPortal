@@ -6,6 +6,10 @@
 (function () {
   "use strict";
 
+  var TOAST_DURATION_MS = 4000;
+  var TOAST_FADE_DURATION_MS = 300;
+  var LIFECYCLE_RELOAD_DELAY_MS = 1000;
+
   /* ================================================================
      CSRF Token Helper
      ================================================================ */
@@ -73,8 +77,8 @@
     function openDropdown() {
       dropdown.classList.add("open");
       toggle.setAttribute("aria-expanded", "true");
-      var first = dropdown.querySelector("button, a");
-      if (first) first.focus();
+      var firstItem = dropdown.querySelector("button, a");
+      if (firstItem) firstItem.focus();
     }
 
     function closeDropdown() {
@@ -140,8 +144,8 @@
      Custom Modal (with focus trap and focus restore)
      ================================================================ */
 
-  var modalResolve = null;
-  var modalTrigger = null;
+  var _pendingResolve = null;
+  var _focusReturnTarget = null;
 
   function trapFocus(e, focusable) {
     if (e.key !== "Tab") return;
@@ -160,7 +164,7 @@
     var cancelBtn = document.getElementById("modal-cancel");
     var closeBtn = document.getElementById("modal-close-x");
 
-    modalTrigger = document.activeElement;
+    _focusReturnTarget = document.activeElement;
 
     titleEl.textContent = opts.title || t("modal.dangerous.title");
     msgEl.textContent = opts.message || t("modal.dangerous.message");
@@ -172,7 +176,7 @@
     cancelBtn.focus();
 
     return new Promise(function (resolve) {
-      modalResolve = resolve;
+      _pendingResolve = resolve;
       var focusable = [closeBtn, cancelBtn, confirmBtn];
 
       function cleanup() {
@@ -181,9 +185,9 @@
         cancelBtn.removeEventListener("click", onCancel);
         closeBtn.removeEventListener("click", onCancel);
         document.removeEventListener("keydown", onKey);
-        modalResolve = null;
-        if (modalTrigger && modalTrigger.focus) { modalTrigger.focus(); }
-        modalTrigger = null;
+        _pendingResolve = null;
+        if (_focusReturnTarget && _focusReturnTarget.focus) { _focusReturnTarget.focus(); }
+        _focusReturnTarget = null;
       }
 
       function onConfirm() { cleanup(); resolve(true); }
@@ -216,9 +220,9 @@
     container.appendChild(toast);
 
     setTimeout(function () {
-      toast.style.animation = "toast-out 0.3s ease forwards";
-      setTimeout(function () { toast.remove(); }, 300);
-    }, 4000);
+      toast.style.animation = "toast-out " + (TOAST_FADE_DURATION_MS / 1000) + "s ease forwards";
+      setTimeout(function () { toast.remove(); }, TOAST_FADE_DURATION_MS);
+    }, TOAST_DURATION_MS);
   }
 
   /* ================================================================
@@ -276,9 +280,8 @@
 
   function resolveButton(e) {
     if (!e) return null;
-    var el = e.target || e.srcElement;
-    if (!el) return null;
-    return el.closest ? el.closest("button") : el;
+    var el = e.target;
+    return el ? el.closest("button") : null;
   }
 
   /* ================================================================
@@ -318,7 +321,6 @@
       a.href = result.artifact;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.style.cssText = "color:var(--primary)";
       a.textContent = t("action.view_artifact");
       link.textContent = "\u21b3 ";
       link.appendChild(a);
@@ -391,6 +393,8 @@
     doLifecycle(slug, actionName, button);
   }
 
+  function _capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
   function doLifecycle(slug, actionName, button) {
     setLoading(button, true);
     showToast(t("action.running_toast") + _tAction(actionName) + "\u2026", "info");
@@ -402,8 +406,8 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.success) {
-          showToast(_tAction(actionName).charAt(0).toUpperCase() + _tAction(actionName).slice(1) + t("action.completed_toast"), "success");
-          setTimeout(function () { location.reload(); }, 1000);
+          showToast(_capitalize(_tAction(actionName)) + t("action.completed_toast"), "success");
+          setTimeout(function () { location.reload(); }, LIFECYCLE_RELOAD_DELAY_MS);
         } else {
           showToast(_tAction(actionName) + t("action.failed_toast") + (data.error || t("action.unknown_error")), "error");
         }

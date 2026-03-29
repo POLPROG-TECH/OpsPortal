@@ -28,11 +28,13 @@ from opsportal.app.routes_api import (
 from opsportal.app.routes_api import (
     router as api_router,
 )
+from opsportal.app.routes_integrations import router as integrations_router
 from opsportal.services.health import check_all_health
 
 router = APIRouter()
 router.include_router(api_router)
 router.include_router(admin_router)
+router.include_router(integrations_router)
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +84,13 @@ async def home(request: Request):
         "needs_attention": needs_attention,
     }
     return _templates(request).TemplateResponse(
-        request, "home.html", {"cards": cards, "platform": platform}
+        request,
+        "home.html",
+        {
+            "cards": cards,
+            "platform": platform,
+            "ops_overview_enabled": request.app.state.settings.ops_overview_enabled,
+        },
     )
 
 

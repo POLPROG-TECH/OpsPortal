@@ -60,6 +60,8 @@ def test_all_adapters_are_subprocess_web(slug, cls, cli, port, repo, pm):
     """GIVEN an adapter instance."""
     adapter = _make_adapter(cls, repo, pm, port, cli)
 
+    """WHEN inspecting the integration mode."""
+
     """THEN its integration mode is SUBPROCESS_WEB."""
     assert adapter.integration_mode == IntegrationMode.SUBPROCESS_WEB
 
@@ -84,6 +86,8 @@ def test_all_adapters_have_correct_slug(slug, cls, cli, port, repo, pm):
     """Every adapter's slug matches the expected value."""
     """GIVEN an adapter instance."""
     adapter = _make_adapter(cls, repo, pm, port, cli)
+
+    """WHEN inspecting the slug."""
 
     """THEN its slug matches the parametrized value."""
     assert adapter.slug == slug
@@ -140,6 +144,8 @@ async def test_web_url_none_when_not_running(slug, cls, cli, port, repo, pm):
     """GIVEN an adapter with no running process."""
     adapter = _make_adapter(cls, repo, pm, port, cli)
 
+    """WHEN requesting the web URL."""
+
     """THEN get_web_url returns None."""
     assert adapter.get_web_url() is None
 
@@ -169,6 +175,8 @@ def test_releasepilot_sets_allow_framing(repo, pm):
     """GIVEN a ReleasePilot adapter."""
     adapter = ReleasePilotAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN inspecting the environment variables."""
+
     """THEN RELEASEPILOT_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("RELEASEPILOT_ALLOW_FRAMING") == "true"
 
@@ -177,6 +185,8 @@ def test_releaseboard_sets_allow_framing(repo, pm):
     """ReleaseBoardAdapter sets RELEASEBOARD_ALLOW_FRAMING=true in its env."""
     """GIVEN a ReleaseBoard adapter."""
     adapter = ReleaseBoardAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN inspecting the environment variables."""
 
     """THEN RELEASEBOARD_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("RELEASEBOARD_ALLOW_FRAMING") == "true"
@@ -187,6 +197,8 @@ def test_localesync_sets_allow_framing(repo, pm):
     """GIVEN a LocaleSync adapter."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN inspecting the environment variables."""
+
     """THEN LOCALESYNC_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("LOCALESYNC_ALLOW_FRAMING") == "true"
 
@@ -196,6 +208,8 @@ def test_flowboard_sets_allow_framing(repo, pm):
     """GIVEN a FlowBoard adapter."""
     adapter = FlowBoardAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN inspecting the environment variables."""
+
     """THEN FLOWBOARD_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("FLOWBOARD_ALLOW_FRAMING") == "true"
 
@@ -204,6 +218,8 @@ def test_appsecone_sets_allow_framing(repo, pm):
     """AppSecOneAdapter sets APPSECONE_ALLOW_FRAMING=true in its env."""
     """GIVEN an AppSecOne adapter."""
     adapter = AppSecOneAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN inspecting the environment variables."""
 
     """THEN APPSECONE_ALLOW_FRAMING is set to 'true'."""
     assert adapter._env.get("APPSECONE_ALLOW_FRAMING") == "true"

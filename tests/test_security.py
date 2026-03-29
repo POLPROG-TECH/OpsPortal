@@ -198,7 +198,8 @@ class TestMalformedJSON:
 
 class TestCSPHeaders:
     def test_home_has_csp_header(self, client: TestClient) -> None:
-        """Home page response includes a Content-Security-Policy with default-src."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the home page."""
         resp = client.get("/")
 
@@ -208,7 +209,8 @@ class TestCSPHeaders:
         assert "default-src" in csp
 
     def test_no_deprecated_xss_protection(self, client: TestClient) -> None:
-        """Home page does not send the deprecated X-XSS-Protection header."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the home page."""
         resp = client.get("/")
 
@@ -216,7 +218,8 @@ class TestCSPHeaders:
         assert "x-xss-protection" not in resp.headers
 
     def test_x_frame_options_present(self, client: TestClient) -> None:
-        """Home page includes X-Frame-Options: SAMEORIGIN."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the home page."""
         resp = client.get("/")
 
@@ -231,7 +234,8 @@ class TestCSPHeaders:
 
 class TestCustomErrorPage:
     def test_404_uses_error_template(self, client: TestClient) -> None:
-        """Non-existent pages return 404 with an error message in the body."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting a non-existent page."""
         resp = client.get("/nonexistent-page-xyz")
 

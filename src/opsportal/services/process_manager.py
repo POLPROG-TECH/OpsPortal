@@ -284,29 +284,54 @@ class ProcessManager:
                 managed.status = ProcessStatus.FAILED
                 managed.logs.append(f"[portal] Port {port} not ready after {startup_timeout}s")
 
-    async def stop(self, name: str) -> None:
+    async def stop(self, name: str, *, port: int | None = None) -> None:
         """Gracefully stop a managed process."""
         managed = self._processes.get(name)
-        if not managed or not managed.process:
+        if not managed:
+            # No managed entry — try to kill by port as a last resort
+            if port:
+                pid = await self._find_pid_on_port(port)
+                if pid:
+                    logger.info("Stopping orphan on port %d (PID %d) for %r", port, pid, name)
+                    await self._kill_pid(pid)
             return
 
         if managed.status not in (ProcessStatus.RUNNING, ProcessStatus.STARTING):
             return
 
         managed.status = ProcessStatus.STOPPING
-        proc = managed.process
-        logger.info("Stopping process %r (PID %d)", name, proc.pid)
 
-        try:
-            proc.terminate()
+        if managed.process:
+            # We have a direct subprocess handle — terminate it
+            proc = managed.process
+            logger.info("Stopping process %r (PID %d)", name, proc.pid)
             try:
-                await asyncio.wait_for(proc.wait(), timeout=10.0)
-            except TimeoutError:
-                logger.warning("Process %r did not exit after SIGTERM, sending SIGKILL", name)
-                proc.kill()
-                await proc.wait()
-        except ProcessLookupError:
-            pass  # Already dead
+                proc.terminate()
+                try:
+                    await asyncio.wait_for(proc.wait(), timeout=10.0)
+                except TimeoutError:
+                    logger.warning("Process %r did not exit after SIGTERM, sending SIGKILL", name)
+                    proc.kill()
+                    await proc.wait()
+            except ProcessLookupError:
+                pass  # Already dead
+        elif managed.port:
+            # Adopted process — find PID by port and kill it
+            pid = await self._find_pid_on_port(managed.port)
+            if pid:
+                logger.info(
+                    "Stopping adopted process %r (PID %d on port %d)",
+                    name,
+                    pid,
+                    managed.port,
+                )
+                await self._kill_pid(pid)
+            else:
+                logger.warning(
+                    "Cannot stop %r: no subprocess handle and no PID found on port %d",
+                    name,
+                    managed.port,
+                )
 
         # Cancel reader tasks
         for task in managed._reader_tasks:
@@ -314,7 +339,48 @@ class ProcessManager:
         managed._reader_tasks.clear()
 
         managed.status = ProcessStatus.STOPPED
+        managed.process = None
         logger.info("Process %r stopped", name)
+
+    @staticmethod
+    async def _find_pid_on_port(port: int) -> int | None:
+        """Find the PID of a process listening on the given port."""
+        import subprocess as _sp
+
+        try:
+            result = await asyncio.to_thread(
+                _sp.run,
+                ["lsof", "-ti", f"tcp:{port}", "-sTCP:LISTEN"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return int(result.stdout.strip().split("\n")[0])
+        except (ValueError, OSError, _sp.TimeoutExpired):
+            pass
+        return None
+
+    @staticmethod
+    async def _kill_pid(pid: int) -> None:
+        """Send SIGTERM then SIGKILL to a process by PID."""
+        import os
+        import signal
+
+        try:
+            os.kill(pid, signal.SIGTERM)
+            # Wait for process to exit
+            for _ in range(20):  # 10 seconds max
+                await asyncio.sleep(0.5)
+                try:
+                    os.kill(pid, 0)  # Check if still alive
+                except ProcessLookupError:
+                    return  # Process exited
+            # Still alive — force kill
+            logger.warning("PID %d did not exit after SIGTERM, sending SIGKILL", pid)
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass  # Already dead
 
     async def restart(self, name: str) -> ManagedProcess:
         managed = self._processes.get(name)
@@ -346,10 +412,14 @@ class ProcessManager:
 
     async def shutdown_all(self) -> None:
         """Stop all managed processes (called during portal shutdown)."""
-        names = [n for n, p in self._processes.items() if p.status == ProcessStatus.RUNNING]
+        names = [
+            (n, p.port) for n, p in self._processes.items() if p.status == ProcessStatus.RUNNING
+        ]
         if names:
             logger.info("Shutting down %d managed process(es)", len(names))
-            await asyncio.gather(*(self.stop(n) for n in names), return_exceptions=True)
+            await asyncio.gather(
+                *(self.stop(n, port=port) for n, port in names), return_exceptions=True
+            )
 
     # -- Internal health / readiness ----------------------------------------
 

@@ -19,6 +19,7 @@ from opsportal.adapters.base import (
     ActionResult,
     EnsureReadyResult,
     HealthResult,
+    IntegrationEndpoint,
     IntegrationMode,
     ToolAction,
     ToolAdapter,
@@ -301,6 +302,19 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
             ),
         ]
 
+    # -- Integration --------------------------------------------------------
+    def get_integration_endpoints(self) -> list[IntegrationEndpoint]:
+        from opsportal.adapters.base import IntegrationCapability, IntegrationEndpoint
+
+        return [
+            IntegrationEndpoint(
+                capability=IntegrationCapability.RELEASE_NOTES,
+                method="POST",
+                path="/generate",
+                description="Generate release notes (standalone mode)",
+            ),
+        ]
+
     async def run_action(self, action_name: str, params: dict[str, Any]) -> ActionResult:
         actions = {
             "start": self._action_start,
@@ -329,7 +343,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     async def _stop_server(self) -> ActionResult:
         try:
-            await self._pm.stop(self._process_name)
+            await self._pm.stop(self._process_name, port=self._port)
             return ActionResult(success=True, output="ReleasePilot stopped")
         except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))

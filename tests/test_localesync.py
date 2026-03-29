@@ -42,6 +42,8 @@ def test_slug_is_localesync(repo: Path, pm: ProcessManager) -> None:
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN reading the slug property."""
+
     """THEN its slug is 'localesync'."""
     assert adapter.slug == "localesync"
 
@@ -50,6 +52,8 @@ def test_display_name(repo: Path, pm: ProcessManager) -> None:
     """LocaleSyncAdapter provides a human-readable display name."""
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN reading the display_name property."""
 
     """THEN its display name is 'LocaleSync'."""
     assert adapter.display_name == "LocaleSync"
@@ -60,6 +64,8 @@ def test_color_is_teal(repo: Path, pm: ProcessManager) -> None:
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN reading the color property."""
+
     """THEN its color is the expected teal hex."""
     assert adapter.color == "#0891B2"
 
@@ -69,6 +75,8 @@ def test_icon_is_globe(repo: Path, pm: ProcessManager) -> None:
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN reading the icon property."""
+
     """THEN its icon is 'globe'."""
     assert adapter.icon == "globe"
 
@@ -77,6 +85,8 @@ def test_description_is_meaningful(repo: Path, pm: ProcessManager) -> None:
     """LocaleSyncAdapter description is non-empty and mentions translation/locale."""
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN reading the description property."""
 
     """THEN its description mentions relevant keywords."""
     desc = adapter.description.lower()
@@ -88,6 +98,8 @@ def test_integration_mode_is_subprocess_web(repo: Path, pm: ProcessManager) -> N
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN reading the integration_mode property."""
+
     """THEN its integration mode is SUBPROCESS_WEB."""
     assert adapter.integration_mode == IntegrationMode.SUBPROCESS_WEB
 
@@ -96,6 +108,8 @@ def test_capabilities_include_configurable(repo: Path, pm: ProcessManager) -> No
     """LocaleSyncAdapter includes CONFIGURABLE in its capabilities."""
     """GIVEN a LocaleSync adapter instance."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN reading the capabilities set."""
 
     """THEN CONFIGURABLE is present in capabilities."""
     assert ToolCapability.CONFIGURABLE in adapter.capabilities
@@ -111,6 +125,8 @@ def test_default_port_is_8083(repo: Path, pm: ProcessManager) -> None:
     """GIVEN a LocaleSync adapter with default port."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN reading the internal port."""
+
     """THEN the internal port is 8083."""
     assert adapter._port == 8083
 
@@ -119,6 +135,8 @@ def test_custom_port(repo: Path, pm: ProcessManager) -> None:
     """LocaleSyncAdapter accepts a custom port."""
     """GIVEN a custom port."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm, port=9090)
+
+    """WHEN reading the internal port."""
 
     """THEN the adapter uses the custom port."""
     assert adapter._port == 9090
@@ -169,6 +187,9 @@ def test_scaffold_does_not_overwrite_existing(tmp_path: Path, pm: ProcessManager
 def test_builtin_default_config_has_required_keys() -> None:
     """The built-in default config contains all expected keys."""
     """GIVEN the default config constant."""
+
+    """WHEN inspecting the config keys."""
+
     """THEN it includes source_locale, target_locales, and format."""
     assert "source_locale" in _LOCALESYNC_DEFAULT_CONFIG
     assert "target_locales" in _LOCALESYNC_DEFAULT_CONFIG
@@ -189,6 +210,8 @@ def test_config_resolves_to_repo_path(tmp_path: Path, pm: ProcessManager) -> Non
     config.write_text("{}")
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
 
+    """WHEN resolving the config file path."""
+
     """THEN config_file_path returns the repo-based path."""
     assert adapter.config_file_path() == config
 
@@ -201,6 +224,8 @@ def test_config_resolves_to_work_dir(tmp_path: Path, pm: ProcessManager) -> None
     config = work_dir / "localesync.json"
     config.write_text("{}")
     adapter = LocaleSyncAdapter(work_dir=work_dir, process_manager=pm)
+
+    """WHEN resolving the config file path."""
 
     """THEN config_file_path returns the work_dir-based path."""
     assert adapter.config_file_path() == config
@@ -354,7 +379,7 @@ async def test_stop_action_delegates_to_process_manager(repo: Path, pm: ProcessM
 
     """THEN the stop was successful."""
     assert result.success is True
-    pm.stop.assert_called_once_with("localesync")
+    pm.stop.assert_called_once_with("localesync", port=8083)
 
 
 @pytest.mark.asyncio
@@ -385,6 +410,8 @@ def test_cors_origins_propagated(repo: Path, pm: ProcessManager) -> None:
         portal_origins="http://portal:8000,http://localhost:8000",
     )
 
+    """WHEN inspecting the adapter environment variables."""
+
     """THEN LOCALESYNC_CORS_ORIGINS is set to the provided origins."""
     assert adapter._env["LOCALESYNC_CORS_ORIGINS"] == "http://portal:8000,http://localhost:8000"
 
@@ -397,6 +424,8 @@ def test_custom_env_vars_merged(repo: Path, pm: ProcessManager) -> None:
         process_manager=pm,
         env={"MY_VAR": "hello"},
     )
+
+    """WHEN inspecting the adapter environment variables."""
 
     """THEN the custom var is present alongside framing/CORS vars."""
     assert adapter._env["MY_VAR"] == "hello"
@@ -412,6 +441,8 @@ def test_web_url_none_when_stopped(repo: Path, pm: ProcessManager) -> None:
     """get_web_url returns None when no process is running."""
     """GIVEN a LocaleSync adapter with no running process."""
     adapter = LocaleSyncAdapter(repo_path=repo, process_manager=pm)
+
+    """WHEN calling get_web_url."""
 
     """THEN get_web_url returns None."""
     assert adapter.get_web_url() is None
@@ -467,4 +498,4 @@ async def test_shutdown_stops_server(repo: Path, pm: ProcessManager) -> None:
     await adapter.shutdown()
 
     """THEN the process was stopped."""
-    pm.stop.assert_called_once_with("localesync")
+    pm.stop.assert_called_once_with("localesync", port=8083)

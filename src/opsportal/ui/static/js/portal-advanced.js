@@ -7,6 +7,12 @@
 (function () {
   "use strict";
 
+  var MAX_PALETTE_RESULTS = 12;
+  var MAX_FEED_ITEMS = 50;
+  var FEED_RECONNECT_DELAY_MS = 5000;
+  var MAX_FEED_RETRIES = 5;
+  var THEME_CHECK_INTERVAL_MS = 300000;
+
   /* ================================================================
      Collapsible Left Sidebar
      ================================================================ */
@@ -46,18 +52,18 @@
      Command Palette (⌘K / Ctrl+K)
      ================================================================ */
 
-  var paletteItems = [
-    { type: "page", label: "Home", url: "/", icon: "🏠" },
-    { type: "page", label: "Dashboard", url: "/dashboard", icon: "📊" },
-    { type: "page", label: "Health", url: "/health", icon: "💊" },
-    { type: "page", label: "Uptime", url: "/uptime", icon: "📈" },
-    { type: "page", label: "Logs", url: "/logs", icon: "📋" },
-    { type: "page", label: "Config", url: "/config", icon: "⚙️" },
-    { type: "page", label: "SLA Report", url: "/sla", icon: "📑" },
+  var _allItems = [
+    { type: "page", label: t('nav.home'), url: "/", icon: "🏠" },
+    { type: "page", label: t('nav.dashboard'), url: "/dashboard", icon: "📊" },
+    { type: "page", label: t('nav.health'), url: "/health", icon: "💊" },
+    { type: "page", label: t('nav.uptime'), url: "/uptime", icon: "📈" },
+    { type: "page", label: t('nav.logs'), url: "/logs", icon: "📋" },
+    { type: "page", label: t('nav.config'), url: "/config", icon: "⚙️" },
+    { type: "page", label: t('nav.sla'), url: "/sla", icon: "📑" },
   ];
 
-  var paletteSelectedIdx = 0;
-  var paletteFiltered = [];
+  var _selectedIndex = 0;
+  var _filteredItems = [];
 
   function openPalette() {
     var overlay = document.getElementById("cmd-palette");
@@ -65,7 +71,7 @@
 
     // Dynamically add tool items
     loadToolItems(function () {
-      overlay.style.display = "";
+      overlay.classList.remove("u-hidden");
       var input = document.getElementById("cmd-palette-input");
       input.value = "";
       input.focus();
@@ -75,20 +81,20 @@
 
   function closePalette() {
     var overlay = document.getElementById("cmd-palette");
-    if (overlay) overlay.style.display = "none";
+    if (overlay) overlay.classList.add("u-hidden");
   }
 
   function loadToolItems(callback) {
     // Only load once
-    if (paletteItems.length > 10) { callback(); return; }
+    if (_allItems.length > 10) { callback(); return; }
     fetch("/api/tools")
       .then(function (r) { return r.json(); })
       .then(function (tools) {
-        tools.forEach(function (t) {
-          paletteItems.push(
-            { type: "tool", label: t.name, url: "/tools/" + t.slug, icon: "🔧" },
-            { type: "action", label: "Start " + t.name, url: "/tools/" + t.slug, action: "start", slug: t.slug, icon: "▶️" },
-            { type: "action", label: "Stop " + t.name, url: "/tools/" + t.slug, action: "stop", slug: t.slug, icon: "⏹️" }
+        tools.forEach(function (tool) {
+          _allItems.push(
+            { type: "tool", label: tool.name, url: "/tools/" + tool.slug, icon: "🔧" },
+            { type: "action", label: t('cmd.start_tool', {name: tool.name}), url: "/tools/" + tool.slug, action: "start", slug: tool.slug, icon: "▶️" },
+            { type: "action", label: t('cmd.stop_tool', {name: tool.name}), url: "/tools/" + tool.slug, action: "stop", slug: tool.slug, icon: "⏹️" }
           );
         });
         callback();
@@ -97,26 +103,26 @@
   }
 
   function filterPalette(query) {
-    var q = query.toLowerCase();
-    paletteFiltered = paletteItems.filter(function (item) {
-      return !q || item.label.toLowerCase().indexOf(q) !== -1 || item.type.indexOf(q) !== -1;
+    var lowerQuery = query.toLowerCase();
+    _filteredItems = _allItems.filter(function (item) {
+      return !lowerQuery || item.label.toLowerCase().indexOf(lowerQuery) !== -1 || item.type.indexOf(lowerQuery) !== -1;
     });
-    paletteSelectedIdx = 0;
+    _selectedIndex = 0;
     renderPaletteResults();
   }
 
   function renderPaletteResults() {
     var container = document.getElementById("cmd-palette-results");
     if (!container) return;
-    var html = paletteFiltered.slice(0, 12).map(function (item, idx) {
-      var cls = "cmd-palette-item" + (idx === paletteSelectedIdx ? " cmd-palette-active" : "");
+    var html = _filteredItems.slice(0, MAX_PALETTE_RESULTS).map(function (item, idx) {
+      var cls = "cmd-palette-item" + (idx === _selectedIndex ? " cmd-palette-active" : "");
       return '<div class="' + cls + '" data-idx="' + idx + '">' +
         '<span class="cmd-palette-icon">' + item.icon + '</span>' +
         '<span class="cmd-palette-label">' + item.label + '</span>' +
         '<span class="cmd-palette-type">' + item.type + '</span>' +
         '</div>';
     }).join("");
-    container.innerHTML = html || '<div class="cmd-palette-empty">No results</div>';
+    container.innerHTML = html || '<div class="cmd-palette-empty">' + t('cmd.no_results') + '</div>';
   }
 
   function executePaletteItem(item) {
@@ -126,7 +132,9 @@
         method: "POST",
         headers: { "X-CSRF-Token": window._csrfToken() },
       }).then(function () {
-        if (window.showToast) window.showToast(item.label + " executed", "success");
+        if (window.showToast) window.showToast(t('cmd.action_executed', {label: item.label}), "success");
+      }).catch(function () {
+        if (window.showToast) window.showToast(t('cmd.action_failed', {label: item.label}), "error");
       });
     } else {
       window.location.href = item.url;
@@ -139,42 +147,42 @@
 
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
-      overlay.style.display === "none" ? openPalette() : closePalette();
+      overlay.classList.contains("u-hidden") ? openPalette() : closePalette();
       return;
     }
 
-    if (overlay.style.display === "none") return;
+    if (overlay.classList.contains("u-hidden")) return;
 
     if (e.key === "Escape") { closePalette(); return; }
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      paletteSelectedIdx = Math.min(paletteSelectedIdx + 1, paletteFiltered.length - 1);
+      _selectedIndex = Math.min(_selectedIndex + 1, _filteredItems.length - 1);
       renderPaletteResults();
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      paletteSelectedIdx = Math.max(paletteSelectedIdx - 1, 0);
+      _selectedIndex = Math.max(_selectedIndex - 1, 0);
       renderPaletteResults();
     }
-    if (e.key === "Enter" && paletteFiltered[paletteSelectedIdx]) {
+    if (e.key === "Enter" && _filteredItems[_selectedIndex]) {
       e.preventDefault();
-      executePaletteItem(paletteFiltered[paletteSelectedIdx]);
+      executePaletteItem(_filteredItems[_selectedIndex]);
     }
   });
 
-  var cmdInput = document.getElementById("cmd-palette-input");
-  if (cmdInput) {
-    cmdInput.addEventListener("input", function () { filterPalette(this.value); });
+  var _paletteInput = document.getElementById("cmd-palette-input");
+  if (_paletteInput) {
+    _paletteInput.addEventListener("input", function () { filterPalette(this.value); });
   }
 
-  var cmdOverlay = document.getElementById("cmd-palette");
-  if (cmdOverlay) {
-    cmdOverlay.addEventListener("click", function (e) {
-      if (e.target === cmdOverlay) closePalette();
+  var _paletteOverlay = document.getElementById("cmd-palette");
+  if (_paletteOverlay) {
+    _paletteOverlay.addEventListener("click", function (e) {
+      if (e.target === _paletteOverlay) closePalette();
       var item = e.target.closest(".cmd-palette-item");
       if (item) {
         var idx = parseInt(item.getAttribute("data-idx"), 10);
-        if (paletteFiltered[idx]) executePaletteItem(paletteFiltered[idx]);
+        if (_filteredItems[idx]) executePaletteItem(_filteredItems[idx]);
       }
     });
   }
@@ -208,11 +216,13 @@
 
   // Check theme schedule on load and every 5 minutes
   checkThemeSchedule();
-  setInterval(checkThemeSchedule, 300000);
+  setInterval(checkThemeSchedule, THEME_CHECK_INTERVAL_MS);
 
   /* ================================================================
      Activity Feed (real-time SSE on home page)
      ================================================================ */
+
+  var _feedRetries = 0;
 
   function initActivityFeed() {
     var feed = document.getElementById("activity-feed");
@@ -220,6 +230,7 @@
 
     var source = new EventSource("/api/logs/stream");
     source.onmessage = function (e) {
+      _feedRetries = 0;
       try {
         var data = JSON.parse(e.data);
         var item = document.createElement("div");
@@ -242,8 +253,7 @@
         item.appendChild(msg);
         feed.insertBefore(item, feed.firstChild);
 
-        // Keep max 50 items
-        while (feed.children.length > 50) {
+        while (feed.children.length > MAX_FEED_ITEMS) {
           feed.removeChild(feed.lastChild);
         }
       } catch (ignore) {}
@@ -251,7 +261,10 @@
 
     source.onerror = function () {
       source.close();
-      setTimeout(initActivityFeed, 5000);
+      if (_feedRetries < MAX_FEED_RETRIES) {
+        _feedRetries++;
+        setTimeout(initActivityFeed, FEED_RECONNECT_DELAY_MS);
+      }
     };
 
     window.addEventListener("beforeunload", function () { source.close(); });

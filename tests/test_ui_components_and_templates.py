@@ -18,7 +18,8 @@ class TestProductCardUX:
     """Verify the product card HTML structure after redesign."""
 
     def test_home_has_no_product_action_launch(self, client: TestClient):
-        """Home page does not contain the deprecated product-action-launch class."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the home page."""
         resp = client.get("/")
 
@@ -27,7 +28,8 @@ class TestProductCardUX:
         assert "product-action-launch" not in resp.text
 
     def test_home_has_no_product_action_open(self, client: TestClient):
-        """Home page does not contain the deprecated product-action-open class."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the home page."""
         resp = client.get("/")
 
@@ -364,6 +366,8 @@ class TestConfigSaveRestart:
         """Config form includes a Save & Restart button."""
         """GIVEN the tool_config.html template loaded at class level."""
 
+        """WHEN inspecting the template content."""
+
         """THEN the template contains saveConfig(true) and a save_restart label."""
         assert "saveConfig(true)" in self.TEMPLATE
         assert (
@@ -376,6 +380,8 @@ class TestConfigSaveRestart:
         """Config form shows a restart-hint banner after saving."""
         """GIVEN the tool_config.html template and English i18n bundle."""
 
+        """WHEN inspecting the template and i18n content."""
+
         """THEN the restart-hint element and i18n key are present."""
         assert "restart-hint" in self.TEMPLATE
         assert "restart_hint" in self.I18N_EN
@@ -384,6 +390,8 @@ class TestConfigSaveRestart:
         """Config template defines a restartTool() function calling /actions/restart."""
         """GIVEN the tool_config.html template loaded at class level."""
 
+        """WHEN inspecting the template content."""
+
         """THEN restartTool function and restart endpoint are present."""
         assert "restartTool" in self.TEMPLATE
         assert "/actions/restart" in self.TEMPLATE
@@ -391,6 +399,8 @@ class TestConfigSaveRestart:
     def test_restart_i18n_keys_present(self) -> None:
         """EN and PL i18n bundles include restart-related config keys."""
         """GIVEN the English and Polish i18n bundles loaded at class level."""
+
+        """WHEN inspecting i18n keys."""
 
         """THEN all restart keys are present in both locales."""
         for key in ["config.restart_hint", "config.restart_now", "config.restart_success"]:
@@ -413,12 +423,16 @@ class TestConfigSectionGrouping:
         """Config template defines a SECTION_MAP for field-to-section grouping."""
         """GIVEN the tool_config.html template loaded at class level."""
 
+        """WHEN inspecting the template content."""
+
         """THEN SECTION_MAP is defined in the template."""
         assert "SECTION_MAP" in self.TEMPLATE
 
     def test_section_labels_defined(self) -> None:
         """Config template defines SECTION_LABELS for display headings."""
         """GIVEN the tool_config.html template loaded at class level."""
+
+        """WHEN inspecting the template content."""
 
         """THEN SECTION_LABELS is defined in the template."""
         assert "SECTION_LABELS" in self.TEMPLATE
@@ -427,12 +441,16 @@ class TestConfigSectionGrouping:
         """CSS defines .config-section-heading for section headers."""
         """GIVEN the portal-pages.css file loaded at class level."""
 
+        """WHEN inspecting the CSS content."""
+
         """THEN .config-section-heading is defined."""
         assert ".config-section-heading" in self.CSS
 
     def test_section_group_css(self) -> None:
         """CSS defines .config-section-group for section containers."""
         """GIVEN the portal-pages.css file loaded at class level."""
+
+        """WHEN inspecting the CSS content."""
 
         """THEN .config-section-group is defined."""
         assert ".config-section-group" in self.CSS
@@ -452,6 +470,8 @@ class TestConfigSchemaValidation:
         """Config form includes a Validate button calling validateConfig()."""
         """GIVEN the tool_config.html template loaded at class level."""
 
+        """WHEN inspecting the template content."""
+
         """THEN validateConfig() is present in the template."""
         assert "validateConfig()" in self.TEMPLATE
 
@@ -459,12 +479,15 @@ class TestConfigSchemaValidation:
         """Config template includes validation error banner elements."""
         """GIVEN the tool_config.html template loaded at class level."""
 
+        """WHEN inspecting the template content."""
+
         """THEN validation-banner and validation-errors elements are present."""
         assert "validation-banner" in self.TEMPLATE
         assert "validation-errors" in self.TEMPLATE
 
     def test_save_validates_before_write(self) -> None:
         """save_config mixin calls validate_config before writing to disk."""
+        """GIVEN the JsonSchemaConfigMixin save_config method."""
         import inspect
 
         from opsportal.adapters._config_mixin import JsonSchemaConfigMixin

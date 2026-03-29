@@ -42,6 +42,11 @@ ENV OPSPORTAL_HOST="0.0.0.0" \
     OPSPORTAL_ARTIFACT_DIR="/app/artifacts" \
     OPSPORTAL_MANIFEST_PATH="/app/opsportal.yaml"
 
+# Persistent volumes — mount these to retain data across container restarts.
+# /app/work    — portal state, tool configs, users, audit log, uptime data
+# /app/artifacts — generated dashboards, reports, release notes
+VOLUME ["/app/work", "/app/artifacts"]
+
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

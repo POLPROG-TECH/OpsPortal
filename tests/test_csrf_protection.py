@@ -84,7 +84,8 @@ class TestCSRFProtection:
         assert resp.status_code == 403
 
     def test_health_endpoint_exempt_from_csrf(self, client: TestClient) -> None:
-        """Health API endpoint is exempt from CSRF checks."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN requesting the health API without any CSRF token."""
         resp = client.get("/api/health")
 
@@ -92,7 +93,8 @@ class TestCSRFProtection:
         assert resp.status_code == 200
 
     def test_csrf_cookie_set_on_get(self, client: TestClient) -> None:
-        """A GET request sets the opsportal_csrf cookie."""
+        """GIVEN a running OpsPortal app."""
+
         """WHEN making a GET request."""
         client.get("/")
 
@@ -175,7 +177,10 @@ class TestPortDefault:
     """CLI serve command must fall back to settings.port when --port is omitted."""
 
     def test_settings_port_default_is_8000(self, tmp_settings: PortalSettings) -> None:
-        """Test fixture overrides port to 9999."""
+        """GIVEN the test fixture settings."""
+
+        """WHEN inspecting the port value."""
+
         """THEN the fixture-overridden port is 9999."""
         assert tmp_settings.port == 9999  # our fixture overrides it
 

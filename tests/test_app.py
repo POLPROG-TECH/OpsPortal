@@ -6,7 +6,8 @@ from fastapi.testclient import TestClient
 
 
 def test_home_page_returns_200(client: TestClient) -> None:
-    """Home page responds with 200 and contains 'OpsPortal'."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the home page."""
     resp = client.get("/")
 
@@ -16,7 +17,8 @@ def test_home_page_returns_200(client: TestClient) -> None:
 
 
 def test_health_page_returns_200(client: TestClient) -> None:
-    """Health page responds with 200."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the health page."""
     resp = client.get("/health")
 
@@ -25,7 +27,8 @@ def test_health_page_returns_200(client: TestClient) -> None:
 
 
 def test_logs_page_returns_200(client: TestClient) -> None:
-    """Logs page responds with 200."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the logs page."""
     resp = client.get("/logs")
 
@@ -34,7 +37,8 @@ def test_logs_page_returns_200(client: TestClient) -> None:
 
 
 def test_config_page_returns_200(client: TestClient) -> None:
-    """Config page responds with 200."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the config page."""
     resp = client.get("/config")
 
@@ -43,7 +47,8 @@ def test_config_page_returns_200(client: TestClient) -> None:
 
 
 def test_api_health_returns_json(client: TestClient) -> None:
-    """API health endpoint returns JSON with a 'healthy' key."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the API health endpoint."""
     resp = client.get("/api/health")
 
@@ -54,7 +59,8 @@ def test_api_health_returns_json(client: TestClient) -> None:
 
 
 def test_api_tools_returns_list(client: TestClient) -> None:
-    """API tools endpoint returns a JSON list."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the API tools endpoint."""
     resp = client.get("/api/tools")
 
@@ -64,7 +70,8 @@ def test_api_tools_returns_list(client: TestClient) -> None:
 
 
 def test_unknown_tool_returns_404(client: TestClient) -> None:
-    """Requesting a non-existent tool page returns 404."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting a tool page for a non-existent tool."""
     resp = client.get("/tools/nonexistent")
 
@@ -73,7 +80,8 @@ def test_unknown_tool_returns_404(client: TestClient) -> None:
 
 
 def test_static_css_served(client: TestClient) -> None:
-    """Static CSS file returns 200 if present, 404 otherwise."""
+    """GIVEN a running OpsPortal app."""
+
     """WHEN requesting the base CSS file."""
     resp = client.get("/static/css/portal-base.css")
     # Will be 200 if static dir exists with file, 404 otherwise

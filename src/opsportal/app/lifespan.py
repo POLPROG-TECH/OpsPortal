@@ -33,6 +33,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         except (OSError, RuntimeError):
             logger.exception("Failed to start adapter %s", adapter.slug)
 
+    # Start integration gateway
+    if hasattr(app.state, "integration_gateway"):
+        await app.state.integration_gateway.startup()
+
     # Start background tasks
     bg_tasks: list[asyncio.Task] = []
 
@@ -88,6 +92,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             await adapter.shutdown()
         except (OSError, RuntimeError):
             logger.exception("Error shutting down adapter %s", adapter.slug)
+
+    # Shutdown integration gateway
+    if hasattr(app.state, "integration_gateway"):
+        await app.state.integration_gateway.shutdown()
 
     # Shutdown process manager
     if hasattr(app.state, "process_manager"):

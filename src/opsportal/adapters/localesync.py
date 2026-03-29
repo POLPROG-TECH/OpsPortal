@@ -19,6 +19,7 @@ from opsportal.adapters.base import (
     ActionResult,
     EnsureReadyResult,
     HealthResult,
+    IntegrationEndpoint,
     IntegrationMode,
     ToolAction,
     ToolAdapter,
@@ -300,6 +301,19 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
             ),
         ]
 
+    # -- Integration --------------------------------------------------------
+    def get_integration_endpoints(self) -> list[IntegrationEndpoint]:
+        from opsportal.adapters.base import IntegrationCapability, IntegrationEndpoint
+
+        return [
+            IntegrationEndpoint(
+                capability=IntegrationCapability.TRANSLATION,
+                method="POST",
+                path="/api/translate",
+                description="Translate locale files",
+            ),
+        ]
+
     async def run_action(self, action_name: str, params: dict[str, Any]) -> ActionResult:
         actions = {
             "start": self._action_start,
@@ -328,7 +342,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     async def _stop_server(self) -> ActionResult:
         try:
-            await self._pm.stop(self._process_name)
+            await self._pm.stop(self._process_name, port=self._port)
             return ActionResult(success=True, output="LocaleSync stopped")
         except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))

@@ -4,3 +4,5 @@ artifacts/
 work/
 .env
 *.egg-info/
+docs/assets/.DS_Store
+docs/assets/screenshots/.DS_Store

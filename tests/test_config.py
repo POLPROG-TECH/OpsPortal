@@ -15,6 +15,8 @@ def test_settings_defaults() -> None:
     """GIVEN default settings."""
     s = PortalSettings(manifest_path=Path("/tmp/test.yaml"))
 
+    """WHEN inspecting the settings values."""
+
     """THEN all defaults are correct."""
     assert s.host == "127.0.0.1"
     assert s.port == 8000
@@ -23,7 +25,8 @@ def test_settings_defaults() -> None:
 
 
 def test_settings_invalid_log_level() -> None:
-    """PortalSettings rejects an unsupported log level with ValueError."""
+    """GIVEN an invalid log level value."""
+
     """WHEN creating settings with an invalid log level."""
     """THEN a ValueError is raised."""
     with pytest.raises(ValueError, match="Invalid log level"):
@@ -31,7 +34,8 @@ def test_settings_invalid_log_level() -> None:
 
 
 def test_load_manifest_missing_file(tmp_path: Path) -> None:
-    """Loading a manifest from a non-existent file returns an empty tool list."""
+    """GIVEN a non-existent manifest file path."""
+
     """WHEN loading a manifest from a missing file."""
     m = load_manifest(tmp_path / "nope.yaml", tmp_path)
 
@@ -96,6 +100,8 @@ def test_manifest_get_tool() -> None:
         ]
     )
 
+    """WHEN looking up tools by slug."""
+
     """THEN known slugs return the tool and unknown slugs return None."""
     assert m.get_tool("a") is not None
     assert m.get_tool("a").display_name == "A"
@@ -123,6 +129,8 @@ def test_manifest_enabled_tools() -> None:
             ),
         ]
     )
+
+    """WHEN requesting enabled tools."""
 
     """THEN only the enabled tool is returned."""
     assert len(m.enabled_tools) == 1

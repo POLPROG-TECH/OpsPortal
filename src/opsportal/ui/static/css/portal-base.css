@@ -355,6 +355,15 @@ code {
 .status-error { background: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
 .status-warn { background: var(--warning); box-shadow: 0 0 0 1px var(--warning); }
 .status-idle { background: var(--text-muted); }
+.status-starting {
+  background: var(--warning, #f59e0b);
+  box-shadow: 0 0 0 1px var(--warning, #f59e0b);
+  animation: status-pulse 1s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
 
 .product-name-row {
   display: flex;

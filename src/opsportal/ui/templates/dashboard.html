@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — OpsPortal{% endblock %}
+{% block head_extra %}<meta data-i18n-doc-title="page.title.dashboard">{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -28,24 +29,24 @@
 
 <div class="dashboard-charts">
   <div class="chart-card">
-    <h3 class="chart-title">CPU & Memory Usage</h3>
+    <h3 class="chart-title" data-i18n="dashboard.chart_cpu_memory">CPU & Memory Usage</h3>
     <canvas id="chart-resources" height="250"></canvas>
   </div>
   <div class="chart-card">
-    <h3 class="chart-title">Response Latency (ms)</h3>
+    <h3 class="chart-title" data-i18n="dashboard.chart_latency">Response Latency (ms)</h3>
     <canvas id="chart-latency" height="250"></canvas>
   </div>
 </div>
 
 <div class="dashboard-charts">
   <div class="chart-card">
-    <h3 class="chart-title">Uptime %</h3>
+    <h3 class="chart-title" data-i18n="dashboard.chart_uptime">Uptime %</h3>
     <canvas id="chart-uptime" height="200"></canvas>
   </div>
   <div class="chart-card">
-    <h3 class="chart-title">Active Alerts</h3>
+    <h3 class="chart-title" data-i18n="dashboard.chart_alerts">Active Alerts</h3>
     <div id="alerts-list" class="alerts-list">
-      <p class="uptime-no-data">Loading alerts...</p>
+      <p class="uptime-no-data" data-i18n="dashboard.loading_alerts">Loading alerts…</p>
     </div>
   </div>
 </div>
@@ -68,8 +69,8 @@
     data: {
       labels: names,
       datasets: [
-        { label: 'CPU %', data: [], backgroundColor: 'rgba(99,102,241,0.7)' },
-        { label: 'Memory (MB)', data: [], backgroundColor: 'rgba(34,197,94,0.7)' }
+        { label: t('dashboard.label_cpu'), data: [], backgroundColor: 'rgba(99,102,241,0.7)' },
+        { label: t('dashboard.label_memory'), data: [], backgroundColor: 'rgba(34,197,94,0.7)' }
       ]
     },
     options: { responsive: true, scales: { y: { beginAtZero: true } } }
@@ -81,7 +82,7 @@
     type: 'bar',
     data: {
       labels: names,
-      datasets: [{ label: 'Avg Latency (ms)', data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
+      datasets: [{ label: t('dashboard.label_latency'), data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
     },
     options: { responsive: true, scales: { y: { beginAtZero: true } } }
   });
@@ -92,7 +93,7 @@
     type: 'bar',
     data: {
       labels: names,
-      datasets: [{ label: 'Uptime %', data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
+      datasets: [{ label: t('dashboard.label_uptime'), data: [], backgroundColor: slugs.map(function(_,i){ return colorFor(i); }) }]
     },
     options: { indexAxis: 'y', responsive: true, scales: { x: { min: 0, max: 100 } } }
   });
@@ -100,7 +101,7 @@
   function safeFetch(url) {
     return fetch(url)
       .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
-      .catch(function(err) { console.warn('Dashboard fetch failed:', url, err); return null; });
+      .catch(function() { return null; });
   }
 
   function refresh() {
@@ -136,7 +137,7 @@
       document.getElementById('dash-alerts').textContent = alerts.length;
       var el = document.getElementById('alerts-list');
       if (!alerts.length) {
-        el.innerHTML = '<p class="uptime-no-data">No active alerts ✓</p>';
+        el.innerHTML = '<p class="uptime-no-data">' + t('dashboard.no_alerts') + '</p>';
         return;
       }
       el.innerHTML = alerts.map(function(a) {

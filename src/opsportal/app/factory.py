@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -67,6 +68,18 @@ def create_app(settings: PortalSettings | None = None) -> FastAPI:
     app.state.log_store = LogStore(max_entries=settings.log_buffer_size)
     app.state.tool_installer = ToolInstaller(settings.tools_work_dir)
 
+    # -- Portal state (runtime-mutable settings persisted to disk) ----------
+    from opsportal.services.portal_state import PortalStateStore
+
+    state_store = PortalStateStore(settings.work_dir / "portal_state.json")
+    app.state.portal_state = state_store
+
+    # Rehydrate: apply persisted state over env-sourced defaults
+    if state_store.loaded_from_disk:
+        persisted_ops = state_store.get("ops_overview_enabled")
+        if persisted_ops is not None:
+            object.__setattr__(settings, "ops_overview_enabled", bool(persisted_ops))
+
     # -- New services -------------------------------------------------------
     app.state.audit_log = AuditLog(settings.work_dir / "audit.jsonl")
     app.state.config_versions = ConfigVersionManager(settings.work_dir / "config_versions")
@@ -114,6 +127,7 @@ def create_app(settings: PortalSettings | None = None) -> FastAPI:
     # -- Templates & static -------------------------------------------------
     templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
     templates.env.globals["portal_version"] = __version__
+    templates.env.globals["asset_hash"] = __version__ + "." + str(int(time.time()))
     templates.env.globals["auth_enabled"] = settings.auth_enabled
     app.state.templates = templates
     if _STATIC_DIR.exists():
@@ -130,6 +144,22 @@ def create_app(settings: PortalSettings | None = None) -> FastAPI:
     registry = AdapterRegistry()
     _register_adapters(registry, manifest, settings, app)
     app.state.registry = registry
+
+    # -- Integration services -----------------------------------------------
+    from opsportal.services.calendar_aggregator import CalendarAggregator
+    from opsportal.services.integration_gateway import IntegrationGateway
+    from opsportal.services.release_notes_orchestrator import ReleaseNotesOrchestrator
+    from opsportal.services.tags_aggregator import TagsAggregator
+    from opsportal.services.translation_proxy import TranslationProxy
+    from opsportal.services.widget_registry import create_default_registry
+
+    gateway = IntegrationGateway(registry, cache=app.state.cache, cache_ttl=30.0)
+    app.state.integration_gateway = gateway
+    app.state.calendar_aggregator = CalendarAggregator(gateway)
+    app.state.tags_aggregator = TagsAggregator(gateway)
+    app.state.release_notes_orchestrator = ReleaseNotesOrchestrator(gateway)
+    app.state.translation_proxy = TranslationProxy()
+    app.state.widget_registry = create_default_registry()
 
     # -- Portal routes ------------------------------------------------------
     app.include_router(router)

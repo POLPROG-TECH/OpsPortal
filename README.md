@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%2B-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+"></a>
-  <img src="https://img.shields.io/badge/tests-256%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 256 passed">
+  <img src="https://img.shields.io/badge/tests-352%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 352 passed">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-6366f1?style=flat-square" alt="License: AGPL-3.0"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>

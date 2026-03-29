@@ -19,6 +19,7 @@ from opsportal.adapters.base import (
     ActionResult,
     EnsureReadyResult,
     HealthResult,
+    IntegrationEndpoint,
     IntegrationMode,
     ToolAction,
     ToolAdapter,
@@ -310,6 +311,43 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
             ),
         ]
 
+    # -- Integration --------------------------------------------------------
+    def get_integration_endpoints(self) -> list[IntegrationEndpoint]:
+        from opsportal.adapters.base import IntegrationCapability, IntegrationEndpoint
+
+        return [
+            IntegrationEndpoint(
+                capability=IntegrationCapability.RELEASE_CALENDAR,
+                method="GET",
+                path="/api/release-calendar/milestones",
+                description="Upcoming release milestones with days remaining",
+            ),
+            IntegrationEndpoint(
+                capability=IntegrationCapability.RELEASE_CALENDAR,
+                method="GET",
+                path="/api/release-calendar",
+                description="Full release calendar data",
+            ),
+            IntegrationEndpoint(
+                capability=IntegrationCapability.TAGS,
+                method="GET",
+                path="/api/analyze/results",
+                description="Analysis results including latest tag per repo",
+            ),
+            IntegrationEndpoint(
+                capability=IntegrationCapability.RELEASE_NOTES,
+                method="POST",
+                path="/api/release-pilot/prepare",
+                description="Generate release notes for a repository",
+            ),
+            IntegrationEndpoint(
+                capability=IntegrationCapability.RELEASE_NOTES,
+                method="GET",
+                path="/api/release-pilot/capabilities",
+                description="Check ReleasePilot availability",
+            ),
+        ]
+
     async def run_action(self, action_name: str, params: dict[str, Any]) -> ActionResult:
         actions = {
             "start": self._action_start,
@@ -338,7 +376,7 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     async def _stop_server(self) -> ActionResult:
         try:
-            await self._pm.stop(self._process_name)
+            await self._pm.stop(self._process_name, port=self._port)
             return ActionResult(success=True, output="ReleaseBoard stopped")
         except (OSError, RuntimeError) as exc:
             return ActionResult(success=False, error=str(exc))

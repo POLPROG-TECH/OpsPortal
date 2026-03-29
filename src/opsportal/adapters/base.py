@@ -30,6 +30,16 @@ class ToolCapability(enum.StrEnum):
     PROCESS = "process"
 
 
+class IntegrationCapability(enum.StrEnum):
+    """Capabilities that tools can expose for portal-level data integration."""
+
+    RELEASE_CALENDAR = "release_calendar"
+    RELEASE_NOTES = "release_notes"
+    TRANSLATION = "translation"
+    TAGS = "tags"
+    ANALYSIS = "analysis"
+
+
 class ToolStatus(enum.StrEnum):
     AVAILABLE = "available"
     RUNNING = "running"
@@ -82,6 +92,16 @@ class Artifact:
     content_type: str = "text/html"
     created_at: str = ""
     size_bytes: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class IntegrationEndpoint:
+    """Describes an API endpoint a child tool exposes for portal integration."""
+
+    capability: IntegrationCapability
+    method: str  # GET, POST
+    path: str  # e.g., "/api/release-calendar/milestones"
+    description: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,6 +237,21 @@ class ToolAdapter(ABC):
     def get_artifact_dir(self) -> Path | None:
         """Return the directory where this tool stores generated artifacts."""
         return None
+
+    # -- Integration capabilities -------------------------------------------
+
+    def get_integration_endpoints(self) -> list[IntegrationEndpoint]:
+        """Return API endpoints this tool exposes for portal-level integration.
+
+        Override in subclasses to declare data-level capabilities such as
+        calendar, tags, release notes, or translation endpoints.
+        """
+        return []
+
+    @property
+    def integration_capabilities(self) -> set[IntegrationCapability]:
+        """Derived set of integration capabilities from declared endpoints."""
+        return {ep.capability for ep in self.get_integration_endpoints()}
 
     # -- Configuration (schema-driven editing) ------------------------------
 

@@ -41,6 +41,8 @@ def test_registry_get_unknown_returns_none() -> None:
     """GIVEN an empty registry."""
     reg = AdapterRegistry()
 
+    """WHEN looking up a non-existent slug."""
+
     """THEN looking up a non-existent slug returns None."""
     assert reg.get("nope") is None
 
@@ -64,11 +66,15 @@ async def test_stub_adapter_status() -> None:
     """GIVEN an available stub adapter."""
     adapter = StubAdapter("t", available=True)
 
+    """WHEN checking status."""
+
     """THEN status is AVAILABLE."""
     assert await adapter.get_status() == ToolStatus.AVAILABLE
 
     """GIVEN an unavailable stub adapter."""
     adapter2 = StubAdapter("t2", available=False)
+
+    """WHEN checking status."""
 
     """THEN status is ERROR."""
     assert await adapter2.get_status() == ToolStatus.ERROR
@@ -98,6 +104,8 @@ def test_stub_adapter_properties() -> None:
     """StubAdapter exposes correct slug, display_name, mode, and capabilities."""
     """GIVEN a stub adapter."""
     adapter = StubAdapter("my-tool")
+
+    """WHEN reading adapter properties."""
 
     """THEN its properties match expected defaults."""
     assert adapter.slug == "my-tool"

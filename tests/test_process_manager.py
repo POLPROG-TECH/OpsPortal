@@ -53,6 +53,8 @@ async def test_get_unknown_process() -> None:
     """GIVEN an empty process manager."""
     pm = ProcessManager()
 
+    """WHEN looking up a non-existent process name."""
+
     """THEN looking up a non-existent process returns None."""
     assert pm.get("nope") is None
 
@@ -62,6 +64,8 @@ async def test_get_logs_empty() -> None:
     """Getting logs for an unknown process returns an empty list."""
     """GIVEN an empty process manager."""
     pm = ProcessManager()
+
+    """WHEN requesting logs for a non-existent process."""
 
     """THEN logs for a non-existent process are empty."""
     assert pm.get_logs("nope") == []

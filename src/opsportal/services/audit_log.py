@@ -1,4 +1,4 @@
-"""Persistent audit log — records configuration changes, lifecycle actions, and user activity.
+"""Persistent audit log - records configuration changes, lifecycle actions, and user activity.
 
 Unlike the in-memory LogStore (activity ring buffer), AuditLog writes entries
 to a JSON-Lines file on disk so they survive portal restarts.  Each entry

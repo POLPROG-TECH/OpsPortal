@@ -1,8 +1,8 @@
-"""Portal routes — HTML pages and route assembly.
+"""Portal routes - HTML pages and route assembly.
 
 Sub-modules:
-  routes_api   — tool API, bulk actions, metrics, streaming
-  routes_admin — config, versioning, audit, scheduler, notifications
+  routes_api   - tool API, bulk actions, metrics, streaming
+  routes_admin - config, versioning, audit, scheduler, notifications
 """
 
 from __future__ import annotations
@@ -19,11 +19,11 @@ from opsportal.app.routes_api import (
     _log_store,
     _process_manager,
     _registry,
-    config_issues,  # noqa: F401 — re-exported
+    config_issues,  # noqa: F401 - re-exported
     tool_cards,
 )
 from opsportal.app.routes_api import (
-    config_issues as _config_issues,  # noqa: F401 — backward compat
+    config_issues as _config_issues,  # noqa: F401 - backward compat
 )
 from opsportal.app.routes_api import (
     router as api_router,

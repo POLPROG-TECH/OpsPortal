@@ -1,4 +1,4 @@
-"""Admin API routes — config, versioning, audit, scheduler, notifications."""
+"""Admin API routes - config, versioning, audit, scheduler, notifications."""
 
 from __future__ import annotations
 

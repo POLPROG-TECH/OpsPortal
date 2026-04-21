@@ -1,5 +1,5 @@
 # =============================================================================
-# OpsPortal — Docker Compose
+# OpsPortal - Docker Compose
 #
 # Usage:
 #   docker compose up -d          # start

@@ -1,4 +1,4 @@
-"""ReleasePilot adapter — SUBPROCESS_WEB integration with auto-start.
+"""ReleasePilot adapter - SUBPROCESS_WEB integration with auto-start.
 
 ReleasePilot now exposes a full FastAPI web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
@@ -79,7 +79,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
         self._tools_base_dir = tools_base_dir
         self._process_name = "releasepilot"
         self._http_client: httpx.AsyncClient | None = None
-        # Config mixin setup — ReleasePilot uses auto-discovered config files
+        # Config mixin setup - ReleasePilot uses auto-discovered config files
         self._config_file = ".releasepilot.json"
         self._schema_paths = self._build_schema_paths()
         self._validate_fn = _rp_validate
@@ -158,7 +158,7 @@ class ReleasePilotAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def description(self) -> str:
-        return "Release notes generator — from git history to polished documents"
+        return "Release notes generator - from git history to polished documents"
 
     @property
     def integration_mode(self) -> IntegrationMode:

@@ -72,18 +72,18 @@ class TestCSSClassCoverage:
         self.html_text = _read_all(TEMPLATE_DIR, "*.html")
         self.html_classes = _extract_html_classes(self.html_text)
 
+    """GIVEN allowed dynamic/external classes"""
+
     def test_no_missing_css_classes(self) -> None:
-        """All classes used in templates are defined in CSS."""
-        """GIVEN allowed dynamic/external classes."""
         allowed_missing = {
             # Jinja-generated dynamic classes (e.g., status-{{ card.status }})
             "status",
         }
 
-        """WHEN computing the set of template classes missing from CSS."""
+        """WHEN computing the set of template classes missing from CSS"""
         missing = self.html_classes - self.css_classes - allowed_missing
 
-        """THEN no classes are missing."""
+        """THEN no classes are missing"""
         assert not missing, f"Template classes missing from CSS ({len(missing)}): " + ", ".join(
             sorted(missing)
         )
@@ -103,11 +103,10 @@ class TestAccessibility:
         for f in sorted(TEMPLATE_DIR.glob("*.html")):
             self.templates[f.name] = f.read_text(encoding="utf-8")
 
-    def test_all_svgs_have_aria_hidden(self) -> None:
-        """Decorative SVGs in templates have aria-hidden='true'."""
-        """GIVEN all loaded templates."""
+    """GIVEN all loaded templates"""
 
-        """WHEN scanning for <svg> tags."""
+    def test_all_svgs_have_aria_hidden(self) -> None:
+        """WHEN scanning for <svg> tags"""
 
         """THEN every <svg> tag includes aria-hidden="true"."""
         for name, html in self.templates.items():
@@ -117,54 +116,49 @@ class TestAccessibility:
                     f"{name}: SVG missing aria-hidden='true': {svg_tag[:80]}..."
                 )
 
-    def test_toast_container_has_aria_live(self) -> None:
-        """Toast container in base.html has aria-live for screen readers."""
-        """GIVEN all loaded templates."""
+    """GIVEN all loaded templates"""
 
-        """WHEN reading base.html."""
+    def test_toast_container_has_aria_live(self) -> None:
+        """WHEN reading base.html"""
         base = self.templates.get("base.html", "")
 
-        """THEN it contains aria-live and toast-container."""
+        """THEN it contains aria-live and toast-container"""
         assert "aria-live" in base and "toast-container" in base
 
-    def test_modal_has_dialog_role(self) -> None:
-        """Modal in base.html has role='dialog' and aria-modal='true'."""
-        """GIVEN all loaded templates."""
+    """GIVEN all loaded templates"""
 
-        """WHEN reading base.html."""
+    def test_modal_has_dialog_role(self) -> None:
+        """WHEN reading base.html"""
         base = self.templates.get("base.html", "")
 
-        """THEN it contains dialog role and aria-modal."""
+        """THEN it contains dialog role and aria-modal"""
         assert 'role="dialog"' in base
         assert 'aria-modal="true"' in base
 
-    def test_error_pages_have_alert_role(self) -> None:
-        """Error page templates contain role='alert'."""
-        """GIVEN error templates."""
+    """GIVEN error templates"""
 
-        """WHEN scanning for role attributes."""
+    def test_error_pages_have_alert_role(self) -> None:
+        """WHEN scanning for role attributes"""
 
         """THEN each error template includes role="alert"."""
         for name in ("error.html", "tool_error.html"):
             html = self.templates.get(name, "")
             assert 'role="alert"' in html, f"{name}: missing role='alert'"
 
+    """GIVEN all loaded templates"""
+
     def test_buttons_have_type(self) -> None:
-        """All <button> elements in templates have an explicit type attribute."""
-        """GIVEN all loaded templates."""
+        """WHEN scanning for <button> tags"""
 
-        """WHEN scanning for <button> tags."""
-
-        """THEN every button tag has a type attribute."""
+        """THEN every button tag has a type attribute"""
         for name, html in self.templates.items():
             buttons = re.findall(r"<button[^>]*>", html)
             for btn in buttons:
                 assert 'type="' in btn, f"{name}: button missing type: {btn[:80]}..."
 
-    def test_target_blank_has_rel(self) -> None:
-        """Links with target='_blank' include rel='noopener noreferrer'."""
-        """GIVEN all loaded templates."""
+    """GIVEN all loaded templates"""
 
+    def test_target_blank_has_rel(self) -> None:
         """WHEN scanning for target="_blank" links."""
 
         """THEN every target="_blank" link has rel="noopener"."""
@@ -189,100 +183,91 @@ class TestI18nCoverage:
         self.i18n_js = (JS_DIR / "portal-i18n.js").read_text(encoding="utf-8")
         self.pl_js = (JS_DIR / "portal-i18n-pl.js").read_text(encoding="utf-8")
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_both_locales_present(self) -> None:
-        """Both en and pl locale dictionaries exist in i18n files."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting locale dictionaries"""
 
-        """WHEN inspecting locale dictionaries."""
-
-        """THEN en locale and PL locale are present."""
+        """THEN en locale and PL locale are present"""
         assert "en:" in self.i18n_js or '"en"' in self.i18n_js
         assert "__OPS_PL" in self.pl_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_t_function_exported(self) -> None:
-        """The t() translation function is defined in the i18n module."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting exported functions"""
 
-        """WHEN inspecting exported functions."""
-
-        """THEN t() function exists."""
+        """THEN t() function exists"""
         assert "function t(" in self.i18n_js or "window.t" in self.i18n_js
 
+    """GIVEN extracted key sets from both locale files"""
+
     def test_en_pl_key_parity(self) -> None:
-        """Every key in en exists in pl and vice versa."""
-        """GIVEN extracted key sets from both locale files."""
         en_keys = set(re.findall(r'"([\w.]+)":\s*"', self.i18n_js))
         pl_keys = set(re.findall(r'"([\w.]+)":\s*"', self.pl_js))
 
-        """WHEN computing key differences."""
+        """WHEN computing key differences"""
         missing_in_pl = en_keys - pl_keys
         missing_in_en = pl_keys - en_keys
 
-        """THEN no keys are missing in either direction."""
+        """THEN no keys are missing in either direction"""
         assert not missing_in_pl, f"Keys in en but not pl: {sorted(missing_in_pl)}"
         assert not missing_in_en, f"Keys in pl but not en: {sorted(missing_in_en)}"
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_apply_language_handles_placeholder(self) -> None:
-        """applyLanguage supports data-i18n-placeholder attribute."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting applyLanguage functionality"""
 
-        """WHEN inspecting applyLanguage functionality."""
-
-        """THEN data-i18n-placeholder is referenced in the i18n module."""
+        """THEN data-i18n-placeholder is referenced in the i18n module"""
         assert "data-i18n-placeholder" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_apply_language_handles_doc_title(self) -> None:
-        """applyLanguage supports document.title updates via data-i18n-doc-title."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting applyLanguage functionality"""
 
-        """WHEN inspecting applyLanguage functionality."""
-
-        """THEN data-i18n-doc-title is referenced in the i18n module."""
+        """THEN data-i18n-doc-title is referenced in the i18n module"""
         assert "data-i18n-doc-title" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_apply_language_handles_map(self) -> None:
-        """applyLanguage supports data-i18n-map for dynamic content."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting applyLanguage functionality"""
 
-        """WHEN inspecting applyLanguage functionality."""
-
-        """THEN data-i18n-map is referenced in the i18n module."""
+        """THEN data-i18n-map is referenced in the i18n module"""
         assert "data-i18n-map" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_locale_cookie_set(self) -> None:
-        """applyLanguage sets an opsportal_lang cookie for server-side locale."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting cookie handling"""
 
-        """WHEN inspecting cookie handling."""
-
-        """THEN i18n module references opsportal_lang= and cookie."""
+        """THEN i18n module references opsportal_lang= and cookie"""
         assert "opsportal_lang=" in self.i18n_js and "cookie" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_browser_lang_detection(self) -> None:
-        """getLang detects browser language via _detectBrowserLang."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting language detection"""
 
-        """WHEN inspecting language detection."""
-
-        """THEN _detectBrowserLang is referenced in the i18n module."""
+        """THEN _detectBrowserLang is referenced in the i18n module"""
         assert "_detectBrowserLang" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_pluralization_support(self) -> None:
-        """Pluralization function tp() is defined in the i18n module."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting pluralization support"""
 
-        """WHEN inspecting pluralization support."""
-
-        """THEN tp() function exists."""
+        """THEN tp() function exists"""
         assert "function tp(" in self.i18n_js or "window.tp" in self.i18n_js
 
+    """GIVEN the loaded i18n JS files"""
+
     def test_number_formatting_support(self) -> None:
-        """Number formatting function formatNumber is defined in the i18n module."""
-        """GIVEN the loaded i18n JS files."""
+        """WHEN inspecting number formatting support"""
 
-        """WHEN inspecting number formatting support."""
-
-        """THEN formatNumber exists."""
+        """THEN formatNumber exists"""
         assert "formatNumber" in self.i18n_js
 
 
@@ -296,6 +281,8 @@ class TestFileSizeLimits:
 
     MAX_LINES = 600
 
+    """GIVEN a directory of UI files"""
+
     @pytest.mark.parametrize(
         "subdir,glob_pattern",
         [
@@ -305,13 +292,11 @@ class TestFileSizeLimits:
         ],
     )
     def test_files_under_limit(self, subdir: Path, glob_pattern: str) -> None:
-        """UI files do not exceed the 600-line limit."""
-        """GIVEN a directory of UI files."""
         # i18n dictionary files are pure data and grow with translation coverage
         i18n_data_files = {"portal-i18n.js", "portal-i18n-pl.js"}
         violations = []
 
-        """WHEN checking line counts for each file."""
+        """WHEN checking line counts for each file"""
         for f in sorted(subdir.rglob(glob_pattern)):
             if f.name in i18n_data_files:
                 continue
@@ -319,5 +304,5 @@ class TestFileSizeLimits:
             if lines > self.MAX_LINES:
                 violations.append(f"{f.name}: {lines} lines")
 
-        """THEN no files exceed the limit."""
+        """THEN no files exceed the limit"""
         assert not violations, f"Files exceeding {self.MAX_LINES} lines: " + "; ".join(violations)

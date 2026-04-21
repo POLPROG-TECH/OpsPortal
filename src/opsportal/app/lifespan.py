@@ -1,4 +1,4 @@
-"""Application lifespan — startup and shutdown hooks."""
+"""Application lifespan - startup and shutdown hooks."""
 
 from __future__ import annotations
 

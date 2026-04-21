@@ -1,4 +1,4 @@
-"""Calendar aggregator — fetches release calendar data from connected tools."""
+"""Calendar aggregator - fetches release calendar data from connected tools."""
 
 from __future__ import annotations
 

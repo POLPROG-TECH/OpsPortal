@@ -1,4 +1,4 @@
-"""Uptime tracker — records historical availability data for each tool.
+"""Uptime tracker - records historical availability data for each tool.
 
 Stores health check results over time so the portal can display
 uptime percentages, availability timelines, and incident history.
@@ -115,7 +115,7 @@ class UptimeTracker:
                 and summary.incidents
                 and "end" not in summary.incidents[-1]
             ):
-                # Recovery — close last incident
+                # Recovery - close last incident
                 summary.incidents[-1]["end"] = rec.timestamp
                 summary.incidents[-1]["end_str"] = rec.time_str
                 duration = rec.timestamp - summary.incidents[-1]["start"]

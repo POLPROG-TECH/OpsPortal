@@ -1,4 +1,4 @@
-"""Adapter registry — central lookup for all registered tool adapters."""
+"""Adapter registry - central lookup for all registered tool adapters."""
 
 from __future__ import annotations
 

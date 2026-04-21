@@ -1,4 +1,4 @@
-"""Integration gateway — HTTP proxy to child tool APIs with health-aware routing.
+"""Integration gateway - HTTP proxy to child tool APIs with health-aware routing.
 
 Central service that fetches data from running child tools through their REST
 endpoints.  Uses the adapter registry for URL resolution and auto-starts tools
@@ -29,9 +29,9 @@ from opsportal.core.errors import get_logger
 logger = get_logger("services.integration_gateway")
 
 GATEWAY_TIMEOUT = 15.0  # seconds
-DEFAULT_CACHE_TTL = 30.0  # seconds — for GET responses
+DEFAULT_CACHE_TTL = 30.0  # seconds - for GET responses
 MAX_RETRIES = 3
-RETRY_BASE_DELAY = 0.5  # seconds — exponential backoff base
+RETRY_BASE_DELAY = 0.5  # seconds - exponential backoff base
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,7 +206,7 @@ class IntegrationGateway:
                         http_status=resp.status_code,
                     )
 
-                # Server errors (5xx) — retryable
+                # Server errors (5xx) - retryable
                 last_error = f"HTTP {resp.status_code}"
 
             except httpx.TimeoutException:

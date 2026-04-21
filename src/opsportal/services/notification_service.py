@@ -1,4 +1,4 @@
-"""Notification service — sends alerts via webhooks when tool status changes.
+"""Notification service - sends alerts via webhooks when tool status changes.
 
 Supports generic webhook (Slack-compatible JSON), with a simple configuration
 model.  Notifications are triggered on: tool crash, health check failure,

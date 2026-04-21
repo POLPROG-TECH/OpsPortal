@@ -1,4 +1,4 @@
-"""Artifact manager — storage and retrieval for generated HTML/report outputs."""
+"""Artifact manager - storage and retrieval for generated HTML/report outputs."""
 
 from __future__ import annotations
 

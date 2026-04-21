@@ -1,4 +1,4 @@
-"""SLA reporter — generates uptime SLA reports with target comparisons.
+"""SLA reporter - generates uptime SLA reports with target comparisons.
 
 Produces monthly/weekly reports from UptimeTracker data, with CSV
 export and summary statistics.

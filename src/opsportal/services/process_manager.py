@@ -1,4 +1,4 @@
-"""Process manager — lifecycle management for subprocess-backed tools."""
+"""Process manager - lifecycle management for subprocess-backed tools."""
 
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ class ProcessManager:
         # and use corporate CA bundles without explicit configuration.
         full_env = {**os.environ, **ssl_proxy_env(), **(env or {})}
 
-        # Resolve the binary to its full path — uvloop requires absolute paths
+        # Resolve the binary to its full path - uvloop requires absolute paths
         resolved_bin = shutil.which(command[0])
         if not resolved_bin:
             raise FileNotFoundError(f"Command not found in PATH: {command[0]}")
@@ -139,7 +139,7 @@ class ProcessManager:
                         "Process %r exited immediately with code %d", name, proc.returncode
                     )
             except (TimeoutError, asyncio.CancelledError):
-                pass  # Good — process is still running
+                pass  # Good - process is still running
 
             logger.info("Process %r started (PID %d)", name, proc.pid)
 
@@ -169,7 +169,7 @@ class ProcessManager:
         async with self._lock_for(name):
             managed = self._processes.get(name)
 
-            # Already running — check if process is still alive
+            # Already running - check if process is still alive
             reuse = await self._check_existing(managed, name, port, health_endpoint)
             if reuse is not None:
                 return reuse
@@ -216,14 +216,14 @@ class ProcessManager:
             logger.warning("Process %r found dead (rc=%d)", name, managed.process.returncode)
             return None
 
-        # Process still alive — optionally verify health
+        # Process still alive - optionally verify health
         if not (health_endpoint and port):
             return managed
 
         if await self._probe_health(port, health_endpoint):
             return managed
 
-        # Process alive but not healthy — restart
+        # Process alive but not healthy - restart
         logger.warning("Process %r alive but health check failed, restarting", name)
         await self.stop(name)
         return None
@@ -288,7 +288,7 @@ class ProcessManager:
         """Gracefully stop a managed process."""
         managed = self._processes.get(name)
         if not managed:
-            # No managed entry — try to kill by port as a last resort
+            # No managed entry - try to kill by port as a last resort
             if port:
                 pid = await self._find_pid_on_port(port)
                 if pid:
@@ -302,7 +302,7 @@ class ProcessManager:
         managed.status = ProcessStatus.STOPPING
 
         if managed.process:
-            # We have a direct subprocess handle — terminate it
+            # We have a direct subprocess handle - terminate it
             proc = managed.process
             logger.info("Stopping process %r (PID %d)", name, proc.pid)
             try:
@@ -316,7 +316,7 @@ class ProcessManager:
             except ProcessLookupError:
                 pass  # Already dead
         elif managed.port:
-            # Adopted process — find PID by port and kill it
+            # Adopted process - find PID by port and kill it
             pid = await self._find_pid_on_port(managed.port)
             if pid:
                 logger.info(
@@ -376,7 +376,7 @@ class ProcessManager:
                     os.kill(pid, 0)  # Check if still alive
                 except ProcessLookupError:
                     return  # Process exited
-            # Still alive — force kill
+            # Still alive - force kill
             logger.warning("PID %d did not exit after SIGTERM, sending SIGKILL", pid)
             os.kill(pid, signal.SIGKILL)
         except ProcessLookupError:
@@ -424,7 +424,7 @@ class ProcessManager:
     # -- Internal health / readiness ----------------------------------------
 
     async def _probe_health(self, port: int, endpoint: str) -> bool:
-        """Single health probe — returns True if endpoint responds 2xx."""
+        """Single health probe - returns True if endpoint responds 2xx."""
         url = f"http://127.0.0.1:{port}{endpoint}"
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:

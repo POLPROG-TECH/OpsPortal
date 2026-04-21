@@ -1,4 +1,4 @@
-"""Plugin loader — discovers and loads tool adapters from entry points.
+"""Plugin loader - discovers and loads tool adapters from entry points.
 
 Third-party packages can register adapters by declaring an entry point
 in the ``opsportal.adapters`` group:

@@ -352,14 +352,14 @@
       "error.action_not_supported": "Action not supported",
 
       /* ---------- page titles (document.title) ---------- */
-      "page.title.home":            "OpsPortal — Engineering Operations Platform",
-      "page.title.health":          "Health — OpsPortal",
-      "page.title.logs":            "Logs — OpsPortal",
-      "page.title.config":          "Configuration — OpsPortal",
-      "page.title.error":           "Error — OpsPortal",
-      "page.title.dashboard":       "Dashboard — OpsPortal",
-      "page.title.sla":             "SLA Report — OpsPortal",
-      "page.title.depgraph":        "Dependencies — OpsPortal",
+      "page.title.home":            "OpsPortal - Engineering Operations Platform",
+      "page.title.health":          "Health - OpsPortal",
+      "page.title.logs":            "Logs - OpsPortal",
+      "page.title.config":          "Configuration - OpsPortal",
+      "page.title.error":           "Error - OpsPortal",
+      "page.title.dashboard":       "Dashboard - OpsPortal",
+      "page.title.sla":             "SLA Report - OpsPortal",
+      "page.title.depgraph":        "Dependencies - OpsPortal",
 
       /* ---------- aria / accessibility ---------- */
       "aria.main_nav":              "Main navigation",

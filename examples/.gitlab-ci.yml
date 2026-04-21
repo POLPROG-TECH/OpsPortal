@@ -1,5 +1,5 @@
 # =============================================================================
-# OpsPortal — GitLab CI/CD Pipeline (example)
+# OpsPortal - GitLab CI/CD Pipeline (example)
 # =============================================================================
 
 variables:
@@ -78,7 +78,7 @@ build:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-# ── Deploy to staging (example — adjust for your infra) ─────
+# ── Deploy to staging (example - adjust for your infra) ─────
 deploy:staging:
   stage: deploy
   image: alpine:latest

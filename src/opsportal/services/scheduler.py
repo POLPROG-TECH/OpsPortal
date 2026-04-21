@@ -1,4 +1,4 @@
-"""Scheduler service — cron-like periodic action execution.
+"""Scheduler service - cron-like periodic action execution.
 
 Allows users to schedule tool actions (e.g., generate release notes every
 Friday at 16:00) with a simple cron-inspired syntax.  Schedules are stored
@@ -160,9 +160,9 @@ class Scheduler:
         """Compute next run time from cron expression.
 
         Supported formats:
-          interval:300     — every 300 seconds
-          daily:16:00      — every day at 16:00 UTC
-          weekly:5:16:00   — every Friday (5=Fri, 0=Mon) at 16:00 UTC
+          interval:300     - every 300 seconds
+          daily:16:00      - every day at 16:00 UTC
+          weekly:5:16:00   - every Friday (5=Fri, 0=Mon) at 16:00 UTC
         """
         expr = job.cron_expr.strip()
         now = time.time()

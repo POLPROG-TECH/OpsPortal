@@ -8,9 +8,9 @@ Clone all repositories into a shared parent directory:
 
 ```bash
 mkdir opsportal-dev && cd opsportal-dev
-git clone https://github.com/POLPROG-TECH/OpsPortal.git
-git clone https://github.com/POLPROG-TECH/ReleasePilot.git
-git clone https://github.com/POLPROG-TECH/ReleaseBoard.git
+git clone https://github.com/polprog-tech/OpsPortal.git
+git clone https://github.com/polprog-tech/ReleasePilot.git
+git clone https://github.com/polprog-tech/ReleaseBoard.git
 
 pip3 install -e "./ReleasePilot[all]"
 pip3 install -e ./ReleaseBoard

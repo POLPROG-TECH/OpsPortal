@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: "3.13"
 
@@ -207,8 +211,8 @@ jobs:
 
       - name: Install managed tools from remote sources
         run: |
-          pip install "git+https://github.com/POLPROG-TECH/ReleasePilot.git@v1.1.0[all]" || echo "ReleasePilot install skipped (may not be public)"
-          pip install "git+https://github.com/POLPROG-TECH/ReleaseBoard.git@v1.1.0" || echo "ReleaseBoard install skipped (may not be public)"
+          pip install "git+https://github.com/polprog-tech/ReleasePilot.git@v1.1.0[all]" || echo "ReleasePilot install skipped (may not be public)"
+          pip install "git+https://github.com/polprog-tech/ReleaseBoard.git@v1.1.0" || echo "ReleaseBoard install skipped (may not be public)"
 
       - name: Verify CLI entrypoints
         run: |

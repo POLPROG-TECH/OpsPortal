@@ -1,4 +1,4 @@
-"""ReleaseBoard adapter — SUBPROCESS_WEB integration with auto-start.
+"""ReleaseBoard adapter - SUBPROCESS_WEB integration with auto-start.
 
 ReleaseBoard exposes a full FastAPI web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
@@ -158,7 +158,7 @@ class ReleaseBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def description(self) -> str:
-        return "Release readiness dashboard — track branch status across repos"
+        return "Release readiness dashboard - track branch status across repos"
 
     @property
     def integration_mode(self) -> IntegrationMode:

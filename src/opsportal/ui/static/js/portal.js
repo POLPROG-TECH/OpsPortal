@@ -1,5 +1,5 @@
 /* ============================================================
-   OpsPortal — Portal Interactions
+   OpsPortal - Portal Interactions
    Theme, Gear Menu, Modal, Toast, Lifecycle
    ============================================================ */
 

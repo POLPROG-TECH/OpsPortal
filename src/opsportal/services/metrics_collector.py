@@ -1,4 +1,4 @@
-"""Metrics collector — gathers resource usage and tool statistics for monitoring.
+"""Metrics collector - gathers resource usage and tool statistics for monitoring.
 
 Provides:
   - Per-process CPU and memory metrics (via /proc on Linux, psutil-free)

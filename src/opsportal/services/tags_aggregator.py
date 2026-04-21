@@ -1,4 +1,4 @@
-"""Tags aggregator — extracts tag summaries from connected tool analysis results."""
+"""Tags aggregator - extracts tag summaries from connected tool analysis results."""
 
 from __future__ import annotations
 

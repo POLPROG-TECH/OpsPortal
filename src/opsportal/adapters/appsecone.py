@@ -1,4 +1,4 @@
-"""AppSecOne adapter — SUBPROCESS_WEB integration with auto-start.
+"""AppSecOne adapter - SUBPROCESS_WEB integration with auto-start.
 
 AppSecOne exposes a full FastAPI web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
@@ -33,7 +33,7 @@ logger = get_logger("adapters.appsecone")
 
 
 def _as_validate(data: dict[str, Any]) -> list[str]:
-    """Validate — AppSecOne does not expose a config validator yet."""
+    """Validate - AppSecOne does not expose a config validator yet."""
     return []
 
 
@@ -152,7 +152,7 @@ class AppSecOneAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def description(self) -> str:
-        return "Security posture dashboard — release readiness powered by Fortify SSC"
+        return "Security posture dashboard - release readiness powered by Fortify SSC"
 
     @property
     def integration_mode(self) -> IntegrationMode:

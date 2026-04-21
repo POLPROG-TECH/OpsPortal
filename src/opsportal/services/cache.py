@@ -1,4 +1,4 @@
-"""TTL cache service — caches logos, config schemas, and other slow-to-fetch data.
+"""TTL cache service - caches logos, config schemas, and other slow-to-fetch data.
 
 Uses a simple time-based expiration model with per-key storage.
 Thread-safe for concurrent access from async handlers.

@@ -1,4 +1,4 @@
-"""Health check service — aggregates health from all registered adapters."""
+"""Health check service - aggregates health from all registered adapters."""
 
 from __future__ import annotations
 

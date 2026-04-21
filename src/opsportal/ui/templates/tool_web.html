@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ tool.display_name }} — OpsPortal{% endblock %}
+{% block title %}{{ tool.display_name }} - OpsPortal{% endblock %}
 
 {% block breadcrumb %}
 <div class="breadcrumb-bar">
@@ -118,7 +118,7 @@
         showFrame();
         return;
       }
-      // Short body — could be still rendering. Retry after a delay.
+      // Short body - could be still rendering. Retry after a delay.
       retryContentCheck(3);
     } catch(e) {
       // SecurityError = cross-origin = tool page loaded. This is SUCCESS.
@@ -130,7 +130,7 @@
     if (!shown) verifyThenFallback();
   });
 
-  // Overall timeout — generous to allow for tool startup
+  // Overall timeout - generous to allow for tool startup
   setTimeout(function() {
     if (!shown) verifyThenFallback();
   }, 20000);
@@ -158,7 +158,7 @@
     if (shown) return;
     fetch(toolUrl, { method: 'HEAD', mode: 'no-cors' })
       .then(function() {
-        // Tool reachable — try reloading the iframe once
+        // Tool reachable - try reloading the iframe once
         if (!shown) {
           frame.src = toolUrl;
           // Give the reload a chance; if still no success, show fallback
@@ -166,7 +166,7 @@
         }
       })
       .catch(function() {
-        // Tool unreachable — show fallback immediately
+        // Tool unreachable - show fallback immediately
         showFallback();
       });
   }
@@ -195,7 +195,7 @@
     frame.style.display = 'none';
   }
 
-  // Retry button handler — reset state and reload iframe
+  // Retry button handler - reset state and reload iframe
   window.retryEmbed = function() {
     shown = false;
     fallback.classList.add('u-hidden');

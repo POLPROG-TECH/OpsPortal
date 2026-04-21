@@ -16,18 +16,18 @@ from opsportal.core.errors import get_logger
 logger = get_logger("config.manifest")
 
 # ---------------------------------------------------------------------------
-# Default manifest template — used by `opsportal init` and auto-bootstrap
+# Default manifest template - used by `opsportal init` and auto-bootstrap
 # ---------------------------------------------------------------------------
 
 DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
-    # OpsPortal Manifest — Tool Registration
+    # OpsPortal Manifest - Tool Registration
     # Generated automatically. Customize as needed.
     # Docs: https://github.com/POLPROG-TECH/OpsPortal#configuration
 
     tools:
       releasepilot:
         display_name: ReleasePilot
-        description: "Release notes generator — from git history to polished documents"
+        description: "Release notes generator - from git history to polished documents"
         integration_mode: subprocess_web
         icon: rocket
         color: "#4F46E5"
@@ -45,7 +45,7 @@ DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
 
       releaseboard:
         display_name: ReleaseBoard
-        description: "Release readiness dashboard — track branch status across repos"
+        description: "Release readiness dashboard - track branch status across repos"
         integration_mode: subprocess_web
         icon: clipboard-check
         color: "#059669"
@@ -63,7 +63,7 @@ DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
 
       localesync:
         display_name: LocaleSync
-        description: "Translation file sync — keep locale files consistent across projects"
+        description: "Translation file sync - keep locale files consistent across projects"
         integration_mode: subprocess_web
         icon: globe
         color: "#0891B2"
@@ -82,7 +82,7 @@ DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
 
       flowboard:
         display_name: FlowBoard
-        description: "Delivery intelligence dashboards — from Jira data to actionable insights"
+        description: "Delivery intelligence dashboards - from Jira data to actionable insights"
         integration_mode: subprocess_web
         icon: bar-chart-2
         color: "#2563EB"
@@ -100,7 +100,7 @@ DEFAULT_MANIFEST_YAML = textwrap.dedent("""\
 
       appsecone:
         display_name: AppSecOne
-        description: "Security posture dashboard — release readiness powered by Fortify SSC"
+        description: "Security posture dashboard - release readiness powered by Fortify SSC"
         integration_mode: subprocess_web
         icon: shield
         color: "#DC2626"
@@ -238,7 +238,7 @@ class ToolConfig(BaseModel):
             warnings.append(f"[{self.slug}] subprocess_web tool has no 'port' configured")
         if self.repo_path is None and self.source is None:
             warnings.append(
-                f"[{self.slug}] neither 'repo_path' nor 'source' defined — "
+                f"[{self.slug}] neither 'repo_path' nor 'source' defined - "
                 "tool must be pre-installed and CLI must be on PATH"
             )
         self._warnings = warnings

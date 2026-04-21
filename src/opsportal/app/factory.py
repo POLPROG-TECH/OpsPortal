@@ -1,4 +1,4 @@
-"""Application factory — creates and configures the FastAPI portal app."""
+"""Application factory - creates and configures the FastAPI portal app."""
 
 from __future__ import annotations
 
@@ -193,14 +193,14 @@ def create_app(settings: PortalSettings | None = None) -> FastAPI:
     )
 
     logger.info(
-        "OpsPortal ready — %d tool(s) registered",
+        "OpsPortal ready - %d tool(s) registered",
         len(registry),
     )
     return app
 
 
 # ---------------------------------------------------------------------------
-# Adapter wiring — auto-install from source, then create adapters
+# Adapter wiring - auto-install from source, then create adapters
 # ---------------------------------------------------------------------------
 
 

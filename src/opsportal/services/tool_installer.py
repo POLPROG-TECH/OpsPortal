@@ -1,4 +1,4 @@
-"""Managed tool installer — installs tools from remote sources via pip.
+"""Managed tool installer - installs tools from remote sources via pip.
 
 Handles:
   - pip install from git+https (GitHub/GitLab)

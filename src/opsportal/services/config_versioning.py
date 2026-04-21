@@ -1,4 +1,4 @@
-"""Configuration versioning — maintains a history of config changes with rollback support.
+"""Configuration versioning - maintains a history of config changes with rollback support.
 
 Each time a tool config is saved, a timestamped snapshot is stored.
 Users can list versions and restore any previous version.

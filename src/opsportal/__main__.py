@@ -10,7 +10,7 @@ from opsportal import __version__
 
 app = typer.Typer(
     name="opsportal",
-    help="OpsPortal — Unified operations portal for internal developer tools",
+    help="OpsPortal - Unified operations portal for internal developer tools",
     no_args_is_help=True,
 )
 

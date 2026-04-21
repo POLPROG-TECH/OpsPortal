@@ -1,10 +1,10 @@
-"""Portal state store — durable persistence for runtime-mutable settings.
+"""Portal state store - durable persistence for runtime-mutable settings.
 
 Unlike ``PortalSettings`` (which reads env vars once at startup and is
 effectively immutable), ``PortalStateStore`` manages settings that users
 change at runtime through the Admin UI and that **must survive restarts**.
 
-Storage: ``work/portal_state.json`` — atomic writes, schema-versioned.
+Storage: ``work/portal_state.json`` - atomic writes, schema-versioned.
 """
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ class PortalStateStore:
     def load(self) -> None:
         """Load persisted state from disk, falling back to defaults."""
         if not self._path.exists():
-            logger.info("No portal state file at %s — using defaults", self._path)
+            logger.info("No portal state file at %s - using defaults", self._path)
             self._loaded = False
             return
 
@@ -94,7 +94,7 @@ class PortalStateStore:
         version = data.get("_schema_version", 0)
         if version > _SCHEMA_VERSION:
             logger.warning(
-                "Portal state schema v%d > supported v%d — using defaults",
+                "Portal state schema v%d > supported v%d - using defaults",
                 version,
                 _SCHEMA_VERSION,
             )

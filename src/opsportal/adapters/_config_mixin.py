@@ -81,7 +81,7 @@ class JsonSchemaConfigMixin:
       _work_dir: Path | None
 
     Optionally override:
-      _builtin_default_config: dict | None — hardcoded fallback when no schema exists
+      _builtin_default_config: dict | None - hardcoded fallback when no schema exists
     """
 
     _repo_path: Path | None

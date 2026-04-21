@@ -9,56 +9,60 @@ import pytest
 from opsportal.config.manifest import PortalManifest, ToolConfig, load_manifest
 from opsportal.core.settings import PortalSettings
 
+"""GIVEN default settings"""
+
 
 def test_settings_defaults() -> None:
-    """Default PortalSettings have expected host, port, and log level."""
-    """GIVEN default settings."""
     s = PortalSettings(manifest_path=Path("/tmp/test.yaml"))
 
-    """WHEN inspecting the settings values."""
+    """WHEN inspecting the settings values"""
 
-    """THEN all defaults are correct."""
+    """THEN all defaults are correct"""
     assert s.host == "127.0.0.1"
     assert s.port == 8000
     assert s.debug is False
     assert s.log_level == "info"
 
 
-def test_settings_invalid_log_level() -> None:
-    """GIVEN an invalid log level value."""
+"""GIVEN an invalid log level value"""
 
-    """WHEN creating settings with an invalid log level."""
-    """THEN a ValueError is raised."""
+
+def test_settings_invalid_log_level() -> None:
+    """WHEN creating settings with an invalid log level"""
+    """THEN a ValueError is raised"""
     with pytest.raises(ValueError, match="Invalid log level"):
         PortalSettings(log_level="verbose", manifest_path=Path("/tmp/test.yaml"))
 
 
-def test_load_manifest_missing_file(tmp_path: Path) -> None:
-    """GIVEN a non-existent manifest file path."""
+"""GIVEN a non-existent manifest file path"""
 
-    """WHEN loading a manifest from a missing file."""
+
+def test_load_manifest_missing_file(tmp_path: Path) -> None:
+    """WHEN loading a manifest from a missing file"""
     m = load_manifest(tmp_path / "nope.yaml", tmp_path)
 
-    """THEN the manifest has no tools."""
+    """THEN the manifest has no tools"""
     assert len(m.tools) == 0
+
+
+"""GIVEN a manifest file with an empty tools section"""
 
 
 def test_load_manifest_empty(tmp_path: Path) -> None:
-    """Loading a manifest with an empty tools dict returns no tools."""
-    """GIVEN a manifest file with an empty tools section."""
     f = tmp_path / "m.yaml"
     f.write_text("tools: {}\n")
 
-    """WHEN loading the manifest."""
+    """WHEN loading the manifest"""
     m = load_manifest(f, tmp_path)
 
-    """THEN the manifest has no tools."""
+    """THEN the manifest has no tools"""
     assert len(m.tools) == 0
 
 
+"""GIVEN a manifest file with one tool configured"""
+
+
 def test_load_manifest_with_tools(tmp_path: Path) -> None:
-    """Loading a manifest with a tool entry populates slug, name, and mode."""
-    """GIVEN a manifest file with one tool configured."""
     f = tmp_path / "m.yaml"
     tool_dir = tmp_path / "MyTool"
     tool_dir.mkdir()
@@ -75,10 +79,10 @@ tools:
 """
     )
 
-    """WHEN loading the manifest."""
+    """WHEN loading the manifest"""
     m = load_manifest(f, tmp_path)
 
-    """THEN the tool is parsed with correct attributes."""
+    """THEN the tool is parsed with correct attributes"""
     assert len(m.tools) == 1
     t = m.tools[0]
     assert t.slug == "mytool"
@@ -86,9 +90,10 @@ tools:
     assert t.integration_mode.value == "cli_task"
 
 
+"""GIVEN a manifest with two tools"""
+
+
 def test_manifest_get_tool() -> None:
-    """PortalManifest.get_tool returns the matching tool or None."""
-    """GIVEN a manifest with two tools."""
     m = PortalManifest(
         tools=[
             ToolConfig(
@@ -100,17 +105,18 @@ def test_manifest_get_tool() -> None:
         ]
     )
 
-    """WHEN looking up tools by slug."""
+    """WHEN looking up tools by slug"""
 
-    """THEN known slugs return the tool and unknown slugs return None."""
+    """THEN known slugs return the tool and unknown slugs return None"""
     assert m.get_tool("a") is not None
     assert m.get_tool("a").display_name == "A"
     assert m.get_tool("c") is None
 
 
+"""GIVEN a manifest with one enabled and one disabled tool"""
+
+
 def test_manifest_enabled_tools() -> None:
-    """PortalManifest.enabled_tools excludes disabled tools."""
-    """GIVEN a manifest with one enabled and one disabled tool."""
     m = PortalManifest(
         tools=[
             ToolConfig(
@@ -130,8 +136,8 @@ def test_manifest_enabled_tools() -> None:
         ]
     )
 
-    """WHEN requesting enabled tools."""
+    """WHEN requesting enabled tools"""
 
-    """THEN only the enabled tool is returned."""
+    """THEN only the enabled tool is returned"""
     assert len(m.enabled_tools) == 1
     assert m.enabled_tools[0].slug == "on"

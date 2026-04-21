@@ -113,7 +113,7 @@ class HealthResult:
 
 @dataclass(slots=True)
 class EnsureReadyResult:
-    """Returned by ensure_ready() — tells the portal whether the tool is usable."""
+    """Returned by ensure_ready() - tells the portal whether the tool is usable."""
 
     ready: bool
     message: str = ""
@@ -125,7 +125,7 @@ class EnsureReadyResult:
 
 @dataclass(slots=True)
 class ConfigValidationResult:
-    """Returned by validate_config() — field-level validation feedback."""
+    """Returned by validate_config() - field-level validation feedback."""
 
     valid: bool
     errors: list[str] = field(default_factory=list)

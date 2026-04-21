@@ -1,4 +1,4 @@
-"""Integration API routes — cross-tool data aggregation and one-click actions.
+"""Integration API routes - cross-tool data aggregation and one-click actions.
 
 All integration endpoints live under ``/api/integrations/`` and proxy or
 orchestrate data from child tools through the integration gateway.

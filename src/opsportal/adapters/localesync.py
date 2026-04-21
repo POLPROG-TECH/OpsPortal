@@ -1,4 +1,4 @@
-"""LocaleSync adapter — SUBPROCESS_WEB integration with auto-start.
+"""LocaleSync adapter - SUBPROCESS_WEB integration with auto-start.
 
 LocaleSync exposes a full web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
@@ -33,7 +33,7 @@ logger = get_logger("adapters.localesync")
 
 
 def _ls_validate(data: dict[str, Any]) -> list[str]:
-    """Validate — LocaleSync does not expose a config validator yet."""
+    """Validate - LocaleSync does not expose a config validator yet."""
     return []
 
 
@@ -76,7 +76,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
         self._tools_base_dir = tools_base_dir
         self._process_name = "localesync"
         self._http_client: httpx.AsyncClient | None = None
-        # Config mixin setup — LocaleSync uses auto-discovered config files
+        # Config mixin setup - LocaleSync uses auto-discovered config files
         self._schema_paths = self._build_schema_paths()
         self._validate_fn = _ls_validate
         self._builtin_default_config = _LOCALESYNC_DEFAULT_CONFIG
@@ -154,7 +154,7 @@ class LocaleSyncAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def description(self) -> str:
-        return "Translation file sync — keep locale files consistent across projects"
+        return "Translation file sync - keep locale files consistent across projects"
 
     @property
     def integration_mode(self) -> IntegrationMode:

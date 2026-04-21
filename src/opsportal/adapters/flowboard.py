@@ -1,4 +1,4 @@
-"""FlowBoard adapter — SUBPROCESS_WEB integration with auto-start.
+"""FlowBoard adapter - SUBPROCESS_WEB integration with auto-start.
 
 FlowBoard exposes a full FastAPI web application with its own UI.
 The portal runs it as a managed subprocess and embeds it via iframe.
@@ -32,7 +32,7 @@ logger = get_logger("adapters.flowboard")
 
 
 def _fb_validate(data: dict[str, Any]) -> list[str]:
-    """Validate — FlowBoard does not expose a config validator yet."""
+    """Validate - FlowBoard does not expose a config validator yet."""
     return []
 
 
@@ -148,7 +148,7 @@ class FlowBoardAdapter(JsonSchemaConfigMixin, ToolAdapter):
 
     @property
     def description(self) -> str:
-        return "Delivery intelligence dashboards — from Jira data to actionable insights"
+        return "Delivery intelligence dashboards - from Jira data to actionable insights"
 
     @property
     def integration_mode(self) -> IntegrationMode:

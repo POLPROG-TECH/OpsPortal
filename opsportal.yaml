@@ -1,10 +1,10 @@
-# OpsPortal Manifest — Tool Registration
+# OpsPortal Manifest - Tool Registration
 # Tools can be sourced from remote Git repos (production) or local paths (dev).
 
 tools:
   releasepilot:
     display_name: ReleasePilot
-    description: "Release notes generator — from git history to polished documents"
+    description: "Release notes generator - from git history to polished documents"
     integration_mode: subprocess_web
     icon: rocket
     color: "#4F46E5"
@@ -22,7 +22,7 @@ tools:
 
   releaseboard:
     display_name: ReleaseBoard
-    description: "Release readiness dashboard — track branch status across repos"
+    description: "Release readiness dashboard - track branch status across repos"
     integration_mode: subprocess_web
     icon: clipboard-check
     color: "#059669"
@@ -40,7 +40,7 @@ tools:
 
   localesync:
     display_name: LocaleSync
-    description: "Translation file sync — keep locale files consistent across projects"
+    description: "Translation file sync - keep locale files consistent across projects"
     integration_mode: subprocess_web
     icon: globe
     color: "#0891B2"
@@ -59,7 +59,7 @@ tools:
 
   flowboard:
     display_name: FlowBoard
-    description: "Delivery intelligence dashboards — from Jira data to actionable insights"
+    description: "Delivery intelligence dashboards - from Jira data to actionable insights"
     integration_mode: subprocess_web
     icon: bar-chart-2
     color: "#2563EB"
@@ -77,7 +77,7 @@ tools:
 
   appsecone:
     display_name: AppSecOne
-    description: "Security posture dashboard — release readiness powered by Fortify SSC"
+    description: "Security posture dashboard - release readiness powered by Fortify SSC"
     integration_mode: subprocess_web
     icon: shield
     color: "#DC2626"

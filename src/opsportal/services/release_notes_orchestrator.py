@@ -1,4 +1,4 @@
-"""Release notes orchestrator — cross-app generation via connected tools.
+"""Release notes orchestrator - cross-app generation via connected tools.
 
 Fans out release-notes generation requests to all connected tools that
 declare the RELEASE_NOTES capability, aggregates results, and handles
@@ -118,7 +118,7 @@ class ReleaseNotesOrchestrator:
                 yield {
                     "type": "error",
                     "app": slug,
-                    "error": "No analysis results — run analysis first",
+                    "error": "No analysis results - run analysis first",
                 }
                 continue
             analyses = (analysis_resp.data or {}).get("analyses", [])
@@ -224,7 +224,7 @@ class ReleaseNotesOrchestrator:
         if not analysis_resp.success or not (analysis_resp.data or {}).get("ok"):
             return {
                 "app": tool_slug,
-                "error": "No analysis results — run analysis first",
+                "error": "No analysis results - run analysis first",
                 "repos": [],
             }
 

@@ -1,4 +1,4 @@
-/* OpsPortal — Pages (tool views, config forms, dark theme) */
+/* OpsPortal - Pages (tool views, config forms, dark theme) */
 
 /* ============================================================
    Tool Header (tool_web / tool_cli)
@@ -67,7 +67,7 @@
 .container.frame-expand-left { max-width: none; padding-left: 16px; padding-right: 32px; }
 .container.frame-expand-right { max-width: none; padding-left: 32px; padding-right: 16px; }
 
-/* Skeleton loader — shimmer pattern (aligned with ReleaseBoard) */
+/* Skeleton loader - shimmer pattern (aligned with ReleaseBoard) */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .iframe-skeleton { padding: 32px; display: flex; flex-direction: column; gap: 16px; min-height: 300px; }
 .skeleton-shimmer {

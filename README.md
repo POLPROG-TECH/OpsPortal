@@ -1,11 +1,13 @@
-<p align="center">
-  <img alt="OpsPortal" src="docs/assets/logo-full.svg" width="420">
-</p>
+<div align="center">
+  <img alt="opsportal" src="docs/assets/logo-full.svg" width="520">
+</div>
+
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%2B-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+"></a>
   <img src="https://img.shields.io/badge/tests-352%20passed-22c55e?style=flat-square&logo=pytest&logoColor=white" alt="Tests: 352 passed">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-6366f1?style=flat-square" alt="License: AGPL-3.0"></a>
+  <a href="https://github.com/POLPROG-TECH/OpsPortal/actions"><img src="https://img.shields.io/github/actions/workflow/status/POLPROG-TECH/OpsPortal/ci.yml?branch=main&style=flat-square" alt="CI"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>
 
@@ -15,14 +17,18 @@
 </p>
 
 <p align="center">
-  <a href="#what-is-opsportal">About</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#cicd-pipelines">CI/CD</a> •
-  <a href="#troubleshooting">Troubleshooting</a> •
+  <a href="#what-is-opsportal">About</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#cicd-pipelines">CI/CD</a> ·
+  <a href="#troubleshooting">Troubleshooting</a> ·
   <a href="#development">Development</a>
+</p>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/polprog"><img src="https://img.shields.io/badge/Support%20this%20project-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Support this project"></a>
 </p>
 
 ---
@@ -41,8 +47,67 @@ monitor, and manage internal engineering tools.
 | **FlowBoard** | 8084 | Delivery intelligence dashboards from Jira data |
 | **AppSecOne** | 8085 | Security posture dashboard powered by Fortify SSC |
 
-Every tool is a full web application — OpsPortal starts each on demand, monitors health,
+Every tool is a full web application - OpsPortal starts each on demand, monitors health,
 and embeds them in the portal UI via iframe with automatic theme and language forwarding.
+
+## Screenshots
+
+### Dashboard Overview
+
+The main dashboard shows all registered tools with live status indicators,
+version badges, and capability tags. One click opens any tool directly
+inside the portal.
+
+<p align="center">
+  <img src="docs/assets/screenshots/dashboard-overview.png" alt="OpsPortal - dashboard overview with tool cards and status indicators" width="800">
+</p>
+
+### ReleasePilot - Release Notes Generator
+
+Generates professional changelogs and release notes from git history.
+Supports multiple output formats, template customisation, and CI/CD integration.
+
+<p align="center">
+  <img src="docs/assets/screenshots/tool-integration.png" alt="OpsPortal - ReleasePilot embedded in the portal with server controls" width="800">
+</p>
+
+### ReleaseBoard - Release Readiness Dashboard
+
+Analyses repositories against branch naming conventions and scores release
+readiness in real time. Provides layer breakdown, provider integration, and a release calendar.
+
+<p align="center">
+  <img src="docs/assets/screenshots/first-run-wizard.png" alt="OpsPortal - ReleaseBoard first-run config wizard with layer and provider setup" width="800">
+</p>
+
+### LocaleSync - Translation File Sync
+
+Keeps locale files consistent across projects and repositories. Detects
+missing keys, sorts entries, and supports JSON, YAML, and Properties formats.
+
+<p align="center">
+  <img src="docs/assets/screenshots/localesync.png" alt="OpsPortal - LocaleSync application card on the dashboard" width="800">
+</p>
+
+### FlowBoard - Delivery Intelligence Dashboards
+
+Generates Scrum, Kanban, and Waterfall dashboards from Jira data. Includes
+timeline views, workload analysis, sprint tracking, and planning conflict detection.
+
+<p align="center">
+  <img src="docs/assets/screenshots/flowboard.png" alt="OpsPortal - FlowBoard embedded with Gantt-style timeline view showing assignee swimlanes and sprint boundaries" width="800">
+</p>
+
+### AppSecOne - Security Posture Dashboard
+
+Security posture and release readiness dashboard powered by Fortify SSC. Features
+a guided setup wizard for connection, project mapping, and policy configuration.
+
+<p align="center">
+  <img src="docs/assets/screenshots/appsecone.png" alt="OpsPortal - AppSecOne embedded with Fortify SSC connection setup wizard" width="800">
+</p>
+
+---
 
 ## Table of Contents
 
@@ -71,63 +136,6 @@ and embeds them in the portal UI via iframe with automatic theme and language fo
 - [Remote Tool Sourcing](#remote-tool-sourcing)
 - [Migration Notes](#migration-notes)
 - [License](#license)
-
-## Screenshots
-
-### Dashboard Overview
-
-The main dashboard shows all registered tools with live status indicators,
-version badges, and capability tags. One click opens any tool directly
-inside the portal.
-
-<p align="center">
-  <img src="docs/assets/screenshots/dashboard-overview.png" alt="OpsPortal — dashboard overview with tool cards and status indicators" width="800">
-</p>
-
-### ReleasePilot — Release Notes Generator
-
-Generates professional changelogs and release notes from git history.
-Supports multiple output formats, template customisation, and CI/CD integration.
-
-<p align="center">
-  <img src="docs/assets/screenshots/tool-integration.png" alt="OpsPortal — ReleasePilot embedded in the portal with server controls" width="800">
-</p>
-
-### ReleaseBoard — Release Readiness Dashboard
-
-Analyses repositories against branch naming conventions and scores release
-readiness in real time. Provides layer breakdown, provider integration, and a release calendar.
-
-<p align="center">
-  <img src="docs/assets/screenshots/first-run-wizard.png" alt="OpsPortal — ReleaseBoard first-run config wizard with layer and provider setup" width="800">
-</p>
-
-### LocaleSync — Translation File Sync
-
-Keeps locale files consistent across projects and repositories. Detects
-missing keys, sorts entries, and supports JSON, YAML, and Properties formats.
-
-<p align="center">
-  <img src="docs/assets/screenshots/localesync.png" alt="OpsPortal — LocaleSync application card on the dashboard" width="800">
-</p>
-
-### FlowBoard — Delivery Intelligence Dashboards
-
-Generates Scrum, Kanban, and Waterfall dashboards from Jira data. Includes
-timeline views, workload analysis, sprint tracking, and planning conflict detection.
-
-<p align="center">
-  <img src="docs/assets/screenshots/flowboard.png" alt="OpsPortal — FlowBoard embedded with Gantt-style timeline view showing assignee swimlanes and sprint boundaries" width="800">
-</p>
-
-### AppSecOne — Security Posture Dashboard
-
-Security posture and release readiness dashboard powered by Fortify SSC. Features
-a guided setup wizard for connection, project mapping, and policy configuration.
-
-<p align="center">
-  <img src="docs/assets/screenshots/appsecone.png" alt="OpsPortal — AppSecOne embedded with Fortify SSC connection setup wizard" width="800">
-</p>
 
 ## Quick Start
 
@@ -167,7 +175,7 @@ The `opsportal setup` command:
 # 1. Install OpsPortal
 pip install "git+https://github.com/POLPROG-TECH/OpsPortal.git@main"
 
-# 2. Generate the default manifest (optional — created automatically on serve or setup)
+# 2. Generate the default manifest (optional - created automatically on serve or setup)
 opsportal init              # creates opsportal.yaml in current directory
 # Edit to pin versions, change ports, add proxy env, etc.
 
@@ -200,10 +208,10 @@ opsportal serve
 
 When you run `opsportal serve` for the first time:
 
-1. **Manifest bootstrap** — if no `opsportal.yaml` exists in the current directory, a default manifest is created with all five tools pre-configured
-2. **Tool auto-install** — for each tool with a `source:` block, OpsPortal checks if the tool's CLI is available; if not, it runs `pip install` from the specified Git repository
-3. **Config scaffolding** — on portal startup, each adapter attempts to create default config files from its JSON Schema (if the schema provides default values for all required fields)
-4. **Dashboard** — the portal starts on `http://127.0.0.1:8000` with tool cards showing status
+1. **Manifest bootstrap** - if no `opsportal.yaml` exists in the current directory, a default manifest is created with all five tools pre-configured
+2. **Tool auto-install** - for each tool with a `source:` block, OpsPortal checks if the tool's CLI is available; if not, it runs `pip install` from the specified Git repository
+3. **Config scaffolding** - on portal startup, each adapter attempts to create default config files from its JSON Schema (if the schema provides default values for all required fields)
+4. **Dashboard** - the portal starts on `http://127.0.0.1:8000` with tool cards showing status
 
 ### Where config files live
 
@@ -252,10 +260,10 @@ opsportal serve
 
 If the dashboard shows "Setup required" for a tool, it means the tool's config file was not found or could not be auto-scaffolded. To resolve:
 
-1. **Run `opsportal setup`** — this attempts to install tools and scaffold configs
-2. **Use the web UI** — click the gear icon on the tool card to open the Configuration page
-3. **Create config manually** — create the config file at the expected location (see table above)
-4. **Set environment variable** — point to an existing config file via the tool's env var
+1. **Run `opsportal setup`** - this attempts to install tools and scaffold configs
+2. **Use the web UI** - click the gear icon on the tool card to open the Configuration page
+3. **Create config manually** - create the config file at the expected location (see table above)
+4. **Set environment variable** - point to an existing config file via the tool's env var
 
 ## Configuration
 
@@ -362,8 +370,8 @@ Config changes are saved to the tool's config file (e.g., `.releasepilot.json`,
 for changes to take effect.
 
 The config page provides two save options:
-- **Save** — writes the file and shows a "restart required" banner with a Restart Now button
-- **Save & Restart** — writes the file and immediately restarts the tool process
+- **Save** - writes the file and shows a "restart required" banner with a Restart Now button
+- **Save & Restart** - writes the file and immediately restarts the tool process
 
 **Config loading chain:**
 1. OpsPortal saves config to the tool's config file (atomic write)
@@ -394,9 +402,9 @@ Each tool defines its own schema. See:
 
 OpsPortal embeds child tools in iframes. For this to work, two conditions must be met:
 
-1. **Portal CSP** — OpsPortal's Content-Security-Policy includes `frame-src` directives
+1. **Portal CSP** - OpsPortal's Content-Security-Policy includes `frame-src` directives
    for each tool's origin (built automatically from configured ports).
-2. **Tool framing headers** — each tool must allow framing from the portal's origin.
+2. **Tool framing headers** - each tool must allow framing from the portal's origin.
    OpsPortal sets `{TOOL}_ALLOW_FRAMING=true` and `{TOOL}_CORS_ORIGINS` environment
    variables when launching child processes.
 
@@ -413,10 +421,10 @@ the portal displays a clear fallback message with an "Open in New Tab" action. U
 are never shown a blank or cryptic "blocked content" page.
 
 The detection logic handles:
-- **Cross-origin frames** (SecurityError on `contentDocument` access) — treated as successful embedding
-- **Same-origin blank pages** — content length check with retry after 1 second
-- **Error events** — immediate fallback display
-- **Timeout** — 15-second deadline triggers fallback if nothing loads
+- **Cross-origin frames** (SecurityError on `contentDocument` access) - treated as successful embedding
+- **Same-origin blank pages** - content length check with retry after 1 second
+- **Error events** - immediate fallback display
+- **Timeout** - 15-second deadline triggers fallback if nothing loads
 
 ## Iframe Width Controls
 
@@ -449,7 +457,7 @@ file using a multi-strategy search (first match wins):
 | 5 | Current working directory | `./releaseboard.json` |
 
 If no config file is found, the dashboard shows a diagnostic message with
-the search locations (sanitized — no raw filesystem paths are exposed to end users).
+the search locations (sanitized - no raw filesystem paths are exposed to end users).
 
 **For containerized / CI deployments**, set `OPSPORTAL_RELEASEBOARD_CONFIG` to the
 absolute path of the mounted config file.
@@ -518,7 +526,7 @@ AppSecOne is a security posture dashboard powered by Fortify SSC. It uses an
 | 5 | Current working directory | `./appsecone.json` |
 
 AppSecOne has a built-in first-run setup wizard. When the config file does not exist,
-it launches in setup mode — guiding the user through Fortify SSC connection, project
+it launches in setup mode - guiding the user through Fortify SSC connection, project
 discovery, repository mapping, and policy configuration.
 
 **Version:** Resolved from installed package metadata (`importlib.metadata.version("appsecone")`).
@@ -529,9 +537,9 @@ discovery, repository mapping, and policy configuration.
 
 OpsPortal provides both HTML pages and a JSON API:
 
-**Pages** — dashboard with tool tiles (`/`), per-tool context pages (`/tools/{slug}`), health overview, activity logs, and configuration viewer.
+**Pages** - dashboard with tool tiles (`/`), per-tool context pages (`/tools/{slug}`), health overview, activity logs, and configuration viewer.
 
-**API** — JSON endpoints for tool health (`/api/health`), tool listing (`/api/tools`), individual tool status, and lifecycle control (start/stop/restart).
+**API** - JSON endpoints for tool health (`/api/health`), tool listing (`/api/tools`), individual tool status, and lifecycle control (start/stop/restart).
 
 ## Architecture
 
@@ -553,10 +561,10 @@ OpsPortal provides both HTML pages and a JSON API:
 ```
 
 Every tool follows the same pattern:
-- **SUBPROCESS_WEB** integration — OpsPortal launches `{tool} serve --port N`
+- **SUBPROCESS_WEB** integration - OpsPortal launches `{tool} serve --port N`
 - **Health check** via `GET /health/live` → `{"status": "alive"}`
-- **Iframe embedding** — each tool sets `{TOOL}_ALLOW_FRAMING=true`
-- **On-demand lifecycle** — started when user clicks, stopped at portal shutdown
+- **Iframe embedding** - each tool sets `{TOOL}_ALLOW_FRAMING=true`
+- **On-demand lifecycle** - started when user clicks, stopped at portal shutdown
 
 ## Unified Platform Architecture
 
@@ -580,7 +588,7 @@ Both tools share the same architectural model (defined by ReleaseBoard):
 src/opsportal/
 ├── __main__.py       # Typer CLI (serve, version)
 ├── app/
-│   ├── factory.py    # create_app() — registers adapters, mounts routes
+│   ├── factory.py    # create_app() - registers adapters, mounts routes
 │   ├── routes.py     # Portal HTML pages + JSON API
 │   ├── lifespan.py   # Startup/shutdown lifecycle
 │   └── middleware.py  # Security headers (CSP, CSRF, X-Frame-Options)
@@ -644,11 +652,11 @@ all iframes. This provides defense-in-depth while allowing tools to function nor
 **Symptom:** Browser shows a "blocked content" message instead of the embedded tool.
 
 **Causes and fixes:**
-1. **Tool not started** — check process logs on the tool error page; verify the CLI binary is installed
-2. **CSP mismatch** — check browser DevTools console for `frame-src` or `Refused to frame` errors
-3. **Reverse proxy override** — verify the proxy doesn't inject its own CSP that omits the tool's origin
-4. **`X-Frame-Options` conflict** — ensure the child tool sets `SAMEORIGIN` or allows framing from the portal origin
-5. **SSL interception** — corporate proxies may break WebSocket or iframe connections; see [Corporate Proxy / SSL](#corporate-proxy--ssl)
+1. **Tool not started** - check process logs on the tool error page; verify the CLI binary is installed
+2. **CSP mismatch** - check browser DevTools console for `frame-src` or `Refused to frame` errors
+3. **Reverse proxy override** - verify the proxy doesn't inject its own CSP that omits the tool's origin
+4. **`X-Frame-Options` conflict** - ensure the child tool sets `SAMEORIGIN` or allows framing from the portal origin
+5. **SSL interception** - corporate proxies may break WebSocket or iframe connections; see [Corporate Proxy / SSL](#corporate-proxy--ssl)
 
 ### ReleaseBoard config not found
 
@@ -670,7 +678,7 @@ export OPSPORTAL_RELEASEBOARD_CONFIG=/path/to/releaseboard.json
 Config resolution order for ReleaseBoard:
 1. `OPSPORTAL_RELEASEBOARD_CONFIG` environment variable
 2. `{repo_path}/releaseboard.json` (local dev checkout)
-3. `{work_dir}/releaseboard.json` (remote-managed tool — default: `work/tools/releaseboard/`)
+3. `{work_dir}/releaseboard.json` (remote-managed tool - default: `work/tools/releaseboard/`)
 4. `{tools_base_dir}/releaseboard.json`
 5. `{CWD}/releaseboard.json`
 
@@ -694,7 +702,7 @@ export OPSPORTAL_RELEASEPILOT_CONFIG=/path/to/.releasepilot.json
 Config resolution order for ReleasePilot:
 1. `OPSPORTAL_RELEASEPILOT_CONFIG` environment variable
 2. `{repo_path}/.releasepilot.json` (local dev checkout)
-3. `{work_dir}/.releasepilot.json` (remote-managed tool — default: `work/tools/releasepilot/`)
+3. `{work_dir}/.releasepilot.json` (remote-managed tool - default: `work/tools/releasepilot/`)
 4. `{tools_base_dir}/.releasepilot.json`
 5. `{CWD}/.releasepilot.json`
 
@@ -712,7 +720,7 @@ Config resolution order for ReleasePilot:
 ### Admin diagnostics
 
 OpsPortal never exposes raw filesystem paths or internal details in the UI.
-All error messages are sanitized — home directory paths are replaced with `~`.
+All error messages are sanitized - home directory paths are replaced with `~`.
 Full diagnostic details are available in:
 - Process logs on the tool error page
 - The portal's Activity Logs page (`/logs`)
@@ -734,19 +742,6 @@ ruff check src/ tests/
 ruff format src/ tests/
 ```
 
-### Pre-commit Hook
-
-A pre-commit hook is provided that runs lint (with auto-fix), format check, and the full test suite before each commit:
-
-```bash
-cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-```
-
-The hook will:
-1. **Auto-fix** lint issues on staged files (`ruff check --fix`)
-2. **Check formatting** — if issues are found, it auto-formats and exits so you can review and re-stage
-3. **Run the test suite** — commit is blocked if any test fails
-
 ## CI/CD Pipelines
 
 Production-ready pipeline examples are included for both GitHub Actions and GitLab CI.
@@ -758,10 +753,10 @@ File: `.gitlab-ci.yml`
 Stages: lint → test → validate → build
 
 Both pipelines include:
-- **Config validation** — catches schema/config errors before deployment
-- **Secure secret handling** — secrets are referenced via CI variables, never hardcoded
-- **Proxy-aware builds** — `HTTP_PROXY`/`HTTPS_PROXY`/`SSL_CERT_FILE` can be set as CI variables
-- **Artifact publishing** — built wheels are stored as pipeline artifacts
+- **Config validation** - catches schema/config errors before deployment
+- **Secure secret handling** - secrets are referenced via CI variables, never hardcoded
+- **Proxy-aware builds** - `HTTP_PROXY`/`HTTPS_PROXY`/`SSL_CERT_FILE` can be set as CI variables
+- **Artifact publishing** - built wheels are stored as pipeline artifacts
 
 ### Running behind a corporate proxy in CI
 
@@ -806,7 +801,7 @@ export HTTP_PROXY=http://proxy.example.com:8080
 export HTTPS_PROXY=http://proxy.example.com:8080
 export NO_PROXY=localhost,127.0.0.1,.internal.example.com
 
-# 4. Start OpsPortal — all env vars are forwarded to child tools
+# 4. Start OpsPortal - all env vars are forwarded to child tools
 opsportal serve
 ```
 </details>
@@ -830,7 +825,7 @@ $env:HTTP_PROXY = "http://proxy.example.com:8080"
 $env:HTTPS_PROXY = "http://proxy.example.com:8080"
 $env:NO_PROXY = "localhost,127.0.0.1,.internal.example.com"
 
-# 4. Start OpsPortal — all env vars are forwarded to child tools
+# 4. Start OpsPortal - all env vars are forwarded to child tools
 opsportal serve
 ```
 
@@ -896,45 +891,67 @@ tools:
 
 ### Upgrading to remote-managed tool sourcing
 
-**repo_path is now optional** — tools with a `source:` block no longer require
+**repo_path is now optional** - tools with a `source:` block no longer require
 `repo_path`. If you currently use `repo_path: ReleasePilot`, you can either:
 - Remove it and rely on the `source:` block for production
 - Keep it alongside `source:` for local development
 
-**work_dir replaces repo_path for CWD** — when `repo_path` is not set, the tool
+**work_dir replaces repo_path for CWD** - when `repo_path` is not set, the tool
 process runs from `work/tools/{slug}/` instead of a repo checkout directory.
 Config files are stored there too.
 
-**tools_base_dir is legacy** — the `OPSPORTAL_TOOLS_BASE_DIR` env var still works
+**tools_base_dir is legacy** - the `OPSPORTAL_TOOLS_BASE_DIR` env var still works
 for resolving relative `repo_path` values, but is not needed for remote-managed tools.
 
 ### Upgrading from pre-v0.x (before enterprise features)
 
-**Config resolution** — ReleaseBoard config is no longer resolved via a single
+**Config resolution** - ReleaseBoard config is no longer resolved via a single
 hardcoded path. If you relied on the tool finding `releaseboard.json` inside
 `repo_path`, this still works. To use a different location, set
 `OPSPORTAL_RELEASEBOARD_CONFIG=/path/to/releaseboard.json`.
 
-**Product card HTML** — the CSS classes `product-action`, `product-action-launch`,
+**Product card HTML** - the CSS classes `product-action`, `product-action-launch`,
 `product-action-open`, `product-action-setup` have been removed. If you have custom
 themes targeting these selectors, migrate to `.product-version`,
 `.product-status-label`, and `.product-meta-badge`.
 
-**New CSS classes** — the following were added and must be present in any custom theme:
-- `.product-meta`, `.product-meta-badge`, `.product-meta-web`, `.product-meta-config` — card metadata badges
-- `.iframe-controls`, `.iframe-control-btn` — iframe width expansion controls
-- `.iframe-skeleton`, `.skeleton-shimmer`, `.skeleton-card`, `.skeleton-row`, `.skeleton-block` — loading skeleton
-- `.container.frame-expand-left`, `.container.frame-expand-right` — iframe width modes
+**New CSS classes** - the following were added and must be present in any custom theme:
+- `.product-meta`, `.product-meta-badge`, `.product-meta-web`, `.product-meta-config` - card metadata badges
+- `.iframe-controls`, `.iframe-control-btn` - iframe width expansion controls
+- `.iframe-skeleton`, `.skeleton-shimmer`, `.skeleton-card`, `.skeleton-row`, `.skeleton-block` - loading skeleton
+- `.container.frame-expand-left`, `.container.frame-expand-right` - iframe width modes
 
-**CSP headers** — the portal now emits `frame-src` directives. If you have a reverse
+**CSP headers** - the portal now emits `frame-src` directives. If you have a reverse
 proxy that sets its own CSP, merge the portal's `frame-src` values or remove the
 proxy-level override.
 
-**i18n keys** — three new keys added: `tool.expand_left`, `tool.expand_right`, `tool.reset_width`.
+**i18n keys** - three new keys added: `tool.expand_left`, `tool.expand_right`, `tool.reset_width`.
 If you maintain custom translations, add these keys.
 
-**Log sanitization** — process logs displayed on error pages now replace home directory
+**Log sanitization** - process logs displayed on error pages now replace home directory
 paths with `~`. This is a display-only change; actual log content is unchanged.
+
+---
+
+## Release Notes
+
+See [CHANGELOG.md](CHANGELOG.md) for release history. OpsPortal follows [Semantic Versioning](https://semver.org/).
+
+## Author
+
+Created and maintained by **[POLPROG](https://polprog.pl/)** ([@polprog-tech](https://github.com/polprog-tech)).
+
+- **Report issues:** [GitHub Issues](https://github.com/polprog-tech/OpsPortal/issues)
+- **Feature requests:** [GitHub Discussions](https://github.com/polprog-tech/OpsPortal/discussions)
+
+---
+
+## Contributing & Community
+
+- [Contributing Guide](CONTRIBUTING.md) - development setup, code style, PR guidance
+- [Code of Conduct](CODE_OF_CONDUCT.md) - expected behavior for contributors and maintainers
+- [Security Policy](SECURITY.md) - how to privately report security vulnerabilities
+- [Changelog](CHANGELOG.md) - release history and notable changes
 
 ## License
 

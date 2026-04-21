@@ -1,4 +1,4 @@
-/* OpsPortal — Polish translations */
+/* OpsPortal - Polish translations */
 window.__OPS_PL = {
       /* ---------- actions / lifecycle ---------- */
       "action.completed_in":        "Zako\u0144czono w ",
@@ -340,14 +340,14 @@ window.__OPS_PL = {
       "error.action_not_supported": "Akcja nie jest obs\u0142ugiwana",
 
       /* ---------- page titles (document.title) ---------- */
-      "page.title.home":            "OpsPortal — Platforma operacji inżynieryjnych",
-      "page.title.health":          "Stan — OpsPortal",
-      "page.title.logs":            "Logi — OpsPortal",
-      "page.title.config":          "Konfiguracja — OpsPortal",
-      "page.title.error":           "Błąd — OpsPortal",
-      "page.title.dashboard":       "Panel — OpsPortal",
-      "page.title.sla":             "Raport SLA — OpsPortal",
-      "page.title.depgraph":        "Zale\u017cno\u015bci — OpsPortal",
+      "page.title.home":            "OpsPortal - Platforma operacji inżynieryjnych",
+      "page.title.health":          "Stan - OpsPortal",
+      "page.title.logs":            "Logi - OpsPortal",
+      "page.title.config":          "Konfiguracja - OpsPortal",
+      "page.title.error":           "Błąd - OpsPortal",
+      "page.title.dashboard":       "Panel - OpsPortal",
+      "page.title.sla":             "Raport SLA - OpsPortal",
+      "page.title.depgraph":        "Zale\u017cno\u015bci - OpsPortal",
 
       /* ---------- aria / accessibility ---------- */
       "aria.main_nav":              "Nawigacja główna",

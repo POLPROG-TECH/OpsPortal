@@ -1,4 +1,4 @@
-"""Manifest watcher — detects changes to opsportal.yaml and triggers reload.
+"""Manifest watcher - detects changes to opsportal.yaml and triggers reload.
 
 Uses file stat polling (works on all OS) to detect modifications.
 When a change is detected, it signals the portal to re-read the manifest

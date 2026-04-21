@@ -1,4 +1,4 @@
-"""Widget registry — generic dashboard widget system for OPSPortal.
+"""Widget registry - generic dashboard widget system for OPSPortal.
 
 Each widget declares its data source (integration capability), a refresh
 interval, size hints, and a render function.  The dashboard composer uses

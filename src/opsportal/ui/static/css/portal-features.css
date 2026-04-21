@@ -552,7 +552,7 @@
 .ops-progress-wrap { width:100%; background:var(--border-color,#e5e7eb); border-radius:6px; height:8px; overflow:hidden; margin:0.5rem 0; }
 .ops-progress-bar { height:100%; background:var(--primary,#6366f1); border-radius:6px; transition:width 0.15s ease; min-width:2%; }
 .ops-progress-text { font-size:0.78rem; color:var(--text-muted,#6b7280); text-align:center; margin-top:0.25rem; }
-/* Per-card loading — skeleton shimmer */
+/* Per-card loading - skeleton shimmer */
 .product-card-loading { position: relative; pointer-events: none; }
 .product-card-loading::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 2;

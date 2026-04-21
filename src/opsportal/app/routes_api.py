@@ -1,4 +1,4 @@
-"""Tool API routes — status, actions, logs, logos, bulk operations."""
+"""Tool API routes - status, actions, logs, logos, bulk operations."""
 
 from __future__ import annotations
 
@@ -129,11 +129,11 @@ def config_issues(adapter) -> list[str]:
     if getattr(adapter, "has_first_run_wizard", False):
         return issues
 
-    # Config file is expected but missing — try scaffolding first
+    # Config file is expected but missing - try scaffolding first
     if hasattr(adapter, "scaffold_default_config") and adapter.scaffold_default_config():
         return issues
 
-    # Scaffolding didn't work — report actionable guidance
+    # Scaffolding didn't work - report actionable guidance
     slug = getattr(adapter, "slug", "tool")
     config_file = getattr(adapter, "_config_file", "config.json")
     env_var = f"OPSPORTAL_{slug.upper()}_CONFIG"
@@ -302,7 +302,7 @@ async def api_run_action(request: Request, slug: str, action: str):
         slug,
         action,
         f"Completed: {'success' if result.success else 'failed'}"
-        + (f" — {result.error}" if result.error else ""),
+        + (f" - {result.error}" if result.error else ""),
         level="info" if result.success else "error",
     )
 

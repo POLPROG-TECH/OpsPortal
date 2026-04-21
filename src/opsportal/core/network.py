@@ -1,4 +1,4 @@
-"""Networking utilities for OpsPortal — environment propagation, HTTP client factory.
+"""Networking utilities for OpsPortal - environment propagation, HTTP client factory.
 
 OpsPortal is an orchestrator that launches child tools (ReleasePilot, ReleaseBoard)
  as subprocesses.Those child tools make their own outbound HTTPS calls to
@@ -10,9 +10,9 @@ SSL and proxy environment variables into each child process.
 
 This module provides:
 
-- ``ssl_proxy_env()`` — collects the SSL/proxy env vars that must be
+- ``ssl_proxy_env()`` - collects the SSL/proxy env vars that must be
   forwarded to child processes.
-- ``make_http_client()`` — shared ``httpx.AsyncClient`` factory with
+- ``make_http_client()`` - shared ``httpx.AsyncClient`` factory with
   consistent timeout and SSL defaults (for OpsPortal's own health checks).
 
 Configuration
@@ -20,15 +20,15 @@ Configuration
 The following environment variables are automatically propagated to all
 child tool processes when set in the OpsPortal environment:
 
-- ``SSL_CERT_FILE`` — path to a custom CA bundle PEM file
-- ``REQUESTS_CA_BUNDLE`` — same, used by ``requests``-based tools
-- ``CURL_CA_BUNDLE`` — same, used by ``curl``
-- ``HTTP_PROXY`` / ``http_proxy`` — HTTP proxy URL
-- ``HTTPS_PROXY`` / ``https_proxy`` — HTTPS proxy URL
-- ``NO_PROXY`` / ``no_proxy`` — comma-separated list of hostnames to bypass
-- ``NODE_EXTRA_CA_CERTS`` — for Node.js-based tools (if any in the future)
+- ``SSL_CERT_FILE`` - path to a custom CA bundle PEM file
+- ``REQUESTS_CA_BUNDLE`` - same, used by ``requests``-based tools
+- ``CURL_CA_BUNDLE`` - same, used by ``curl``
+- ``HTTP_PROXY`` / ``http_proxy`` - HTTP proxy URL
+- ``HTTPS_PROXY`` / ``https_proxy`` - HTTPS proxy URL
+- ``NO_PROXY`` / ``no_proxy`` - comma-separated list of hostnames to bypass
+- ``NODE_EXTRA_CA_CERTS`` - for Node.js-based tools (if any in the future)
 
-No OpsPortal configuration is needed — if these env vars are set in the
+No OpsPortal configuration is needed - if these env vars are set in the
 shell that runs OpsPortal, they are automatically forwarded.
 """
 
@@ -86,7 +86,7 @@ def ssl_proxy_env() -> dict[str, str]:
 def make_http_client(*, timeout: float = 5.0) -> httpx.AsyncClient:
     """Create an ``httpx.AsyncClient`` with consistent defaults.
 
-    This is a factory for OpsPortal's own HTTP clients — specifically
+    This is a factory for OpsPortal's own HTTP clients - specifically
     for **localhost** health checks and probes.  All adapters should use
     this instead of creating ``httpx.AsyncClient`` instances directly.
 

@@ -1,4 +1,4 @@
-"""Backup service — snapshot and restore portal state.
+"""Backup service - snapshot and restore portal state.
 
 Creates zip archives of the portal work directory (configs, scheduler,
 audit logs, uptime data) and can restore from a previously created archive.

@@ -1,4 +1,4 @@
-"""Translation proxy — single-file JSON translation preserving structure.
+"""Translation proxy - single-file JSON translation preserving structure.
 
 Delegates actual translation to LocaleSync's library classes (already
 pip-installed as a dependency).  Accepts a single JSON object, flattens
@@ -73,7 +73,7 @@ class TranslationProxy:
 
     Uses LocaleSync's ``PlaceholderAwareTranslator`` wrapping
     ``GoogleTranslator`` to handle placeholder protection, retries,
-    and language normalization — zero business logic duplication.
+    and language normalization - zero business logic duplication.
     """
 
     async def translate_json(
@@ -115,7 +115,7 @@ class TranslationProxy:
         except ImportError:
             return {
                 "success": False,
-                "error": "LocaleSync is not installed — translation unavailable",
+                "error": "LocaleSync is not installed - translation unavailable",
                 "translated_json": None,
                 "keys_translated": 0,
                 "keys_skipped": 0,

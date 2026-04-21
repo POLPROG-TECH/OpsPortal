@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ tool.display_name }} — Configuration — OpsPortal{% endblock %}
+{% block title %}{{ tool.display_name }} - Configuration - OpsPortal{% endblock %}
 
 {% block breadcrumb %}
 <div class="breadcrumb-bar">
@@ -17,12 +17,12 @@
 {% block content %}
 <div class="tool-header" style="border-left-color: {{ tool.color }}">
   <div class="tool-header-info">
-    <h1 class="tool-header-name">{{ tool.display_name }} — <span data-i18n="config.title">Configuration</span></h1>
+    <h1 class="tool-header-name">{{ tool.display_name }} - <span data-i18n="config.title">Configuration</span></h1>
     <p class="tool-header-desc">
       {% if config_file %}
       <code>{{ config_file }}</code>
       {% else %}
-      <span data-i18n="config.no_file">No configuration file yet — save to create one.</span>
+      <span data-i18n="config.no_file">No configuration file yet - save to create one.</span>
       {% endif %}
     </p>
   </div>

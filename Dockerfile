@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir build \
 # ── Runtime stage ────────────────────────────────────────────
 FROM python:3.13-slim
 
-LABEL maintainer="POLPROG <polprog.tech@gmail.com>"
+LABEL maintainer="POLPROG <contact@polprog.pl>"
 LABEL org.opencontainers.image.source="https://github.com/polprog-tech/OpsPortal"
 LABEL org.opencontainers.image.description="Unified developer operations portal"
 
@@ -42,9 +42,9 @@ ENV OPSPORTAL_HOST="0.0.0.0" \
     OPSPORTAL_ARTIFACT_DIR="/app/artifacts" \
     OPSPORTAL_MANIFEST_PATH="/app/opsportal.yaml"
 
-# Persistent volumes — mount these to retain data across container restarts.
-# /app/work    — portal state, tool configs, users, audit log, uptime data
-# /app/artifacts — generated dashboards, reports, release notes
+# Persistent volumes - mount these to retain data across container restarts.
+# /app/work    - portal state, tool configs, users, audit log, uptime data
+# /app/artifacts - generated dashboards, reports, release notes
 VOLUME ["/app/work", "/app/artifacts"]
 
 EXPOSE 8080

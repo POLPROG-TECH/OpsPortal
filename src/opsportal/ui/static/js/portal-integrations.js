@@ -1,4 +1,4 @@
-/* OPSPortal — Operations Overview: refresh, calendar/tags, release notes, translation */
+/* OPSPortal - Operations Overview: refresh, calendar/tags, release notes, translation */
 (function () {
   "use strict";
 
@@ -358,8 +358,8 @@
       html += '<div class="ops-widget-warn">' + _escapeHtml(t('ops.errors_label')) + '<ul class="ops-error-list">';
       data.errors.forEach(function (e) {
         var em = _escapeHtml(e.error), lk = '';
-        if (em.indexOf('run analysis first') >= 0 || em.indexOf('No analysis') >= 0) lk = ' — ' + _toolPageLink(e.app, t('ops.open_releaseboard_analysis', {tool: e.app}));
-        else if (em.indexOf('not available') >= 0 || em.indexOf('Cannot reach') >= 0) lk = ' — ' + _toolPageLink(e.app, t('ops.start_tool', {tool: e.app}));
+        if (em.indexOf('run analysis first') >= 0 || em.indexOf('No analysis') >= 0) lk = ' - ' + _toolPageLink(e.app, t('ops.open_releaseboard_analysis', {tool: e.app}));
+        else if (em.indexOf('not available') >= 0 || em.indexOf('Cannot reach') >= 0) lk = ' - ' + _toolPageLink(e.app, t('ops.start_tool', {tool: e.app}));
         html += '<li>' + _escapeHtml(e.app) + ': ' + em + lk + '</li>';
       });
       html += '</ul></div>';

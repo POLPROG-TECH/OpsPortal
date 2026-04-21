@@ -1,4 +1,4 @@
-/* OpsPortal — Components (buttons, badges, overlays, modals) */
+/* OpsPortal - Components (buttons, badges, overlays, modals) */
 
 /* ============================================================
    Onboarding Overlay
@@ -486,7 +486,7 @@
 }
 
 /* ============================================================
-   Tables — template aliases
+   Tables - template aliases
    ============================================================ */
 
 .table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }

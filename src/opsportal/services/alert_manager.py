@@ -1,4 +1,4 @@
-"""Alert manager — configurable threshold-based alerting.
+"""Alert manager - configurable threshold-based alerting.
 
 Monitors tool metrics and triggers notifications when thresholds are
 breached.  Rules are stored in a JSON file and evaluated periodically.

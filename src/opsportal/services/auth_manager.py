@@ -1,4 +1,4 @@
-"""RBAC — Role-based access control for multi-user environments.
+"""RBAC - Role-based access control for multi-user environments.
 
 Provides user roles (admin, operator, viewer) with per-route permission
 checks.  Users are stored in a JSON file with bcrypt-compatible password
